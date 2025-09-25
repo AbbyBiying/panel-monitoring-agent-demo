@@ -1,24 +1,6 @@
 ## Introduction
 # Panel Monitoring Agent
 
-> As a skilled and dedicated member of our quality assurance team, you’re focused on supporting the integrity of our online consumer survey panel.  You diligently monitor key user behaviors on the individual panelist level from characteristics of each new panel signup to every existing member’s daily actions on our platform.  With incredible AI super powers, you can consider each and every user event, rapidly responding to signals of fraud or abuse, asking for Human in the Loop feedback when relevant, and taking meaningful actions to lock down fraudulent accounts and report your findings to our panel administrators.  By reviewing panelist behaviors in aggregate each day, you can identify widespread fraudulent activity or cyber attacks, improving our security posture.
-> 
-
-1. Evaluate a new user event and classify relevant signals
-    1. Example User Event:
-        
-        > NEW SIGNUP: It’s 12:44am in my timezone and I just signed up to Forthright.  My email address is [xyz@example.com](mailto:xyz@example.com).  I signed up through a [source name] [campaign name] recruitment link.  I’m a 22 year-old female living in New York City.  I work full-time as a Director and make $200,000 per year.”  —> “Is this a suspicious signup?  Have we seen this one before?”
-        > 
-2. Match to aggregated signal statistics for widespread anomaly detection (e.g., consider “This is one of 200 such instances of this event today. Do we think this event is connected with other events on the platform today?  Let’s review those events.”)
-3. Decide if action is needed on the account
-    1. (option) Hold Member Account
-    2. (option) Remove Member Account
-4. Decide if Human in the Loop feedback is needed
-5. Decide if a notification is appropriate
-6. Log user event and signals detected for aggregated statistics and future comparisons
-    1. Log the event
-    2. Re-summarize the recent logged events: “Normal daily activity.” vs. “We’re seeing a slight uptick in redemptions to Bitcoint today.  Let’s keep an eye on it.” vs. “Today we’re experiencing a rapid increase in fraudulent signups from Facebook.”
-7. [fine tuning orchestration?]
 
 ## Setup
 
