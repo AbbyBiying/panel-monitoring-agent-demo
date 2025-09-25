@@ -1,0 +1,10 @@
+{
+    "dockerfile_lines": [],
+    "graphs": {
+      "panel_agent": "./panel_agent.py:graph"
+    },
+    "python_version": "3.11",
+    "dependencies": [
+      "."
+    ]
+  }
