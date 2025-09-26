@@ -1,0 +1,37 @@
+# Environment & secrets
+.env
+.env.*
+*.key
+*.pem
+
+# System files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Logs
+*.log
+logs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+db.sqlite3
+.venv/
+env/
+venv/
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.tox/
+.coverage
+coverage.xml
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+__pypackages__/
