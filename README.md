@@ -1,21 +1,31 @@
 ## Introduction
-# Panel Monitoring Agent
+Panel Monitoring Agent
 
+Flexible monitoring agent built with LangGraph and Vertex AI (Gemini) / OpenAI + LangSmith.
+Supports running locally for development or inside Google Cloud for production.
 
 ## Setup
 
 ### Python version
+Use Python 3.12+ for compatibility with LangGraph and project dependencies.
 
-To get the most out of this course, please ensure you're using Python 3.11 or later. 
-This version is required for optimal compatibility with LangGraph. If you're on an older version, 
-upgrading will ensure everything runs smoothly.
-```
+Check your version:
+```bash
 python3 --version
 ```
 
 ### Create an environment and install dependencies
+
+This project uses uv (a fast alternative to pip).
+
+# Create or reset the virtual environment
 ```
-$ pip install -r requirements.txt
+uv venv .venv --clear
+```
+
+# Install all dependencies from pyproject.toml / uv.lock
+```
+uv sync
 ```
 
 ### Running notebooks
@@ -26,22 +36,67 @@ $ jupyter notebook
 
 ### Setting up env variables
 Briefly going over how to set up environment variables. You can also 
-use a `.env` file
+use a `.env` file with `python-dotenv` library.
+#### Mac/Linux/WSL
+```
+$ export API_ENV_VAR="your-api-key-here"
+```
 
+Create a .env file in the repo root (auto-loaded), or set environment variables manually:
+
+# Google credentials
+```
+GOOGLE_APPLICATION_CREDENTIALS="path/to/creds.json"
+GOOGLE_CLOUD_PROJECT="your-gcp-project"
+GOOGLE_CLOUD_LOCATION="us-central1"
+```
+# OpenAI (if used)
+```
+OPENAI_API_KEY="your-key"
+```
+
+# LangSmith (optional monitoring/tracing)
+```
+LANGSMITH_API_KEY="your-key"
+LANGSMITH_TRACING=true
+LANGSMITH_PROJECT="panel-monitoring-agent"
+# Tavily (optional web search)
+```
+TAVILY_API_KEY="your-key"
+```
+
+### Set OpenAI API key
+* If you don't have an OpenAI API key, you can sign up [here](https://openai.com/index/openai-api/).
+*  Set `OPENAI_API_KEY` in your environment 
 
 ### Sign up and Set LangSmith API
 * Sign up for LangSmith [here](https://smith.langchain.com/), find out more about LangSmith
 * and how to use it within your workflow [here](https://www.langchain.com/langsmith), and relevant library [docs](https://docs.smith.langchain.com/)!
-*  Set `LANGSMITH_API_KEY`, `LANGSMITH_TRACING_V2=true` `LANGSMITH_PROJECT="langchain-academy"`in your environment 
+*  Set `LANGSMITH_API_KEY`, `LANGSMITH_TRACING=true`, `LANGSMITH_PROJECT="panel-monitoring-agent"` in your environment 
 
-### Set up Tavily API for web search
 
-* Tavily Search API is a search engine optimized for LLMs and RAG, aimed at efficient, 
-quick, and persistent search results. 
-* You can sign up for an API key [here](https://tavily.com/). 
-It's easy to sign up and offers a very generous free tier. Some lessons (in Module 4) will use Tavily. 
+# Run as a package:
+``` 
+uv run python -m panel_monitoring.panel_agent_openai
+uv run python -m panel_monitoring.panel_agent_vertexai 
+uv run python -m panel_monitoring.panel_agent_genai
+```
 
-* Set `TAVILY_API_KEY` in your environment.
+# Via the unified CLI (with FunctionProvider):
+OpenAI
+```
+uv run python -m panel_monitoring.scripts.panel_agent --provider openai
+```
+
+Vertex AI (Gemini)
+```
+uv run python -m panel_monitoring.scripts.panel_agent --provider vertexai
+```
+
+GenAI (Google Generative AI API)
+```
+uv run python -m panel_monitoring.scripts.panel_agent --provider genai
+```
 
 ### Set up LangGraph Studio
 
@@ -73,4 +128,27 @@ for i in {1..5}; do
 done
 echo "TAVILY_API_KEY=\"$TAVILY_API_KEY\"" >> module-4/studio/.env
 ```
-# panel-agent
+
+### Code Quality: Ruff (lint & format)
+
+This repo uses Ruff for linting and formatting.
+
+Install (adds to your project via uv):
+```
+uv add ruff
+```
+
+Run lint checks:
+```
+uv run ruff check .
+```
+
+Auto-fix what can be fixed safely:
+```
+uv run ruff check . --fix
+```
+
+Format code (Ruff’s formatter):
+```
+uv run ruff format .
+```
