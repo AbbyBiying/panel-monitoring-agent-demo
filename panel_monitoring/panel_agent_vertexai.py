@@ -53,7 +53,7 @@ SAFETY_SETTINGS = {
 try:
     creds = load_credentials()
     llm = ChatVertexAI(
-        model_name=DEFAULT_MODEL,
+        model=DEFAULT_MODEL,
         temperature=0,
         project=PROJECT_ID,
         location=LOCATION,
