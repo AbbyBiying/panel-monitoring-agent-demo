@@ -10,6 +10,7 @@ from panel_monitoring.app.nodes import (
 )
 from panel_monitoring.app.clients.llms.provider_base import ClassifierProvider
 
+
 def build_graph(provider: ClassifierProvider):
     wf = StateGraph(GraphState)
     wf.add_node("event_input", user_event_node)

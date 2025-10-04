@@ -6,7 +6,11 @@ import os
 from datetime import datetime, timezone
 
 from dotenv import find_dotenv, load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI, HarmBlockThreshold, HarmCategory
+from langchain_google_genai import (
+    ChatGoogleGenerativeAI,
+    HarmBlockThreshold,
+    HarmCategory,
+)
 from langsmith import Client
 from pydantic import ValidationError
 
@@ -40,7 +44,9 @@ os.environ.setdefault("LANGSMITH_PROJECT", PROJECT)
 DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-pro")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 if not GOOGLE_API_KEY:
-    raise RuntimeError("Set GOOGLE_API_KEY in your environment for ChatGoogleGenerativeAI.")
+    raise RuntimeError(
+        "Set GOOGLE_API_KEY in your environment for ChatGoogleGenerativeAI."
+    )
 
 SAFETY_SETTINGS = {
     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,

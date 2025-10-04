@@ -40,7 +40,7 @@ class LLMClientOpenAI(LLMPredictionClient):
         *,
         model_ref: str = "openai-classifier",
         model_name: str = DEFAULT_OPENAI_MODEL,
-        user_prompt: str = PROMPT_CLASSIFY_USER,   # must contain "{event}"
+        user_prompt: str = PROMPT_CLASSIFY_USER,  # must contain "{event}"
         system_prompt: Optional[str] = PROMPT_CLASSIFY_SYSTEM,
         prompt_config: Optional[dict] = None,
         log=None,
@@ -88,21 +88,24 @@ class LLMClientOpenAI(LLMPredictionClient):
             api_key=self.api_key,
         )
 
-
     def classify_event(self, event: str) -> dict:
         """
         Synchronous structured classification (mirrors your original function).
         Returns a dict normalized to your Signals shape.
         """
         if self.client is None:
-            raise PredictionError("Model not initialized. Call setup() first.", str(self.model_ref))
+            raise PredictionError(
+                "Model not initialized. Call setup() first.", str(self.model_ref)
+            )
 
         msgs = build_classify_messages(event)
         try:
             result = self.client.with_structured_output(Signals).invoke(msgs)
             return normalize_signals(result)
         except ValidationError as e:
-            raise PredictionError(f"Schema validation failed: {e}", str(self.model_ref)) from e
+            raise PredictionError(
+                f"Schema validation failed: {e}", str(self.model_ref)
+            ) from e
         except Exception as e:
             raise PredictionError(
                 f"OpenAI classification error: {type(e).__name__}: {e}",
@@ -114,14 +117,18 @@ class LLMClientOpenAI(LLMPredictionClient):
         Async structured classification.
         """
         if self.client is None:
-            raise PredictionError("Model not initialized. Call setup() first.", str(self.model_ref))
+            raise PredictionError(
+                "Model not initialized. Call setup() first.", str(self.model_ref)
+            )
 
         msgs = build_classify_messages(event)
         try:
             result = await self.client.with_structured_output(Signals).ainvoke(msgs)
             return normalize_signals(result)
         except ValidationError as e:
-            raise PredictionError(f"Schema validation failed: {e}", str(self.model_ref)) from e
+            raise PredictionError(
+                f"Schema validation failed: {e}", str(self.model_ref)
+            ) from e
         except (AuthenticationError, RateLimitError, APIError, OpenAIError) as e:
             raise PredictionError(f"OpenAI API error: {e}", str(self.model_ref)) from e
         except Exception as e:
@@ -164,6 +171,7 @@ class LLMClientOpenAI(LLMPredictionClient):
 # ---- Back-compat convenience wrapper ---------------------------------------
 
 _client_singleton: Optional[LLMClientOpenAI] = None
+
 
 def classify_with_openai(event: str) -> dict:
     """

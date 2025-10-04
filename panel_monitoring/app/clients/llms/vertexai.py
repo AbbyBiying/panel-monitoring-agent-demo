@@ -60,7 +60,7 @@ class LLMClientVertexAI(LLMPredictionClient):
         *,
         model_ref: str = "vertexai-classifier",
         model_name: str = DEFAULT_MODEL,
-        user_prompt: str = PROMPT_CLASSIFY_USER,     # must contain "{event}"
+        user_prompt: str = PROMPT_CLASSIFY_USER,  # must contain "{event}"
         system_prompt: Optional[str] = PROMPT_CLASSIFY_SYSTEM,
         prompt_config: Optional[dict] = None,
         log=None,
@@ -103,7 +103,9 @@ class LLMClientVertexAI(LLMPredictionClient):
 
         logger.info(
             "VertexAI config: project=%s location=%s model=%s",
-            self.project or "<auto>", self.location, model
+            self.project or "<auto>",
+            self.location,
+            model,
         )
 
         self.client = ChatVertexAI(
@@ -116,7 +118,6 @@ class LLMClientVertexAI(LLMPredictionClient):
             max_retries=max_retries,
         )
 
-
     # ---- primary (structured) APIs ---------------------------------------
 
     def classify_event(self, event: str) -> dict:
@@ -124,7 +125,9 @@ class LLMClientVertexAI(LLMPredictionClient):
         Sync structured classification with raw-text fallback.
         """
         if self.client is None:
-            raise PredictionError("Model not initialized. Call setup() first.", str(self.model_ref))
+            raise PredictionError(
+                "Model not initialized. Call setup() first.", str(self.model_ref)
+            )
 
         msgs = build_classify_messages(event)
 
@@ -151,7 +154,9 @@ class LLMClientVertexAI(LLMPredictionClient):
             raw_text = getattr(raw_resp, "content", None) or str(raw_resp)
             return parse_signals_from_text(raw_text)
         except (ValidationError, NotFound, PermissionDenied, GoogleAPIError) as e:
-            logger.debug("Fallback raw parse failed (%s): %s", type(e).__name__, e, exc_info=True)
+            logger.debug(
+                "Fallback raw parse failed (%s): %s", type(e).__name__, e, exc_info=True
+            )
             raise PredictionError(
                 f"Vertex AI classification error in fallback: {type(e).__name__}: {e}",
                 str(self.model_ref),
@@ -162,14 +167,14 @@ class LLMClientVertexAI(LLMPredictionClient):
                 str(self.model_ref),
             ) from e2
 
-
-
     async def aclassify_event(self, event: str) -> dict:
         """
         Async structured classification with raw-text fallback.
         """
         if self.client is None:
-            raise PredictionError("Model not initialized. Call setup() first.", str(self.model_ref))
+            raise PredictionError(
+                "Model not initialized. Call setup() first.", str(self.model_ref)
+            )
 
         msgs = build_classify_messages(event)
 
@@ -177,17 +182,27 @@ class LLMClientVertexAI(LLMPredictionClient):
             result = await self.client.with_structured_output(Signals).ainvoke(msgs)
             return normalize_signals(result)
         except (ValidationError, NotFound, PermissionDenied, GoogleAPIError) as e:
-            logger.debug("Structured output failed (%s): %s — falling back to raw parse", type(e).__name__, e)
+            logger.debug(
+                "Structured output failed (%s): %s — falling back to raw parse",
+                type(e).__name__,
+                e,
+            )
         except Exception as e:
-            logger.debug("Structured output failed (unexpected %s): %s — falling back", type(e).__name__, e, exc_info=True)
-
+            logger.debug(
+                "Structured output failed (unexpected %s): %s — falling back",
+                type(e).__name__,
+                e,
+                exc_info=True,
+            )
 
         try:
-            raw_resp = await self.client.ainvoke(msgs)   # ✅
+            raw_resp = await self.client.ainvoke(msgs)  # ✅
             raw_text = getattr(raw_resp, "content", None) or str(raw_resp)
             return parse_signals_from_text(raw_text)
         except (ValidationError, NotFound, PermissionDenied, GoogleAPIError) as e:
-            logger.debug("Fallback raw parse failed (%s): %s", type(e).__name__, e, exc_info=True)
+            logger.debug(
+                "Fallback raw parse failed (%s): %s", type(e).__name__, e, exc_info=True
+            )
             raise PredictionError(
                 f"Vertex AI classification error in fallback: {type(e).__name__}: {e}",
                 str(self.model_ref),
@@ -197,7 +212,6 @@ class LLMClientVertexAI(LLMPredictionClient):
                 f"Vertex AI classification error after fallback: {type(e2).__name__}: {e2}",
                 str(self.model_ref),
             ) from e2
-
 
     # ---- base.py-required async predict ----------------------------------
 
@@ -232,6 +246,7 @@ class LLMClientVertexAI(LLMPredictionClient):
 # ---- Back-compat convenience wrapper ---------------------------------------
 
 _client_singleton: Optional[LLMClientVertexAI] = None
+
 
 def classify_with_vertexai(event: str) -> dict:
     """
