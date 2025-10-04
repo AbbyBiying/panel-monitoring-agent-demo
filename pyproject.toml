@@ -30,6 +30,7 @@ dependencies = [
   "ruff>=0.13.2",
   "pytest>=8.4.2",
   "google-cloud-firestore>=2.21.0",
+  "firebase-admin>=6.9.0",
 ]
 
 
