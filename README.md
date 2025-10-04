@@ -68,6 +68,28 @@ Minimal write/read path:
 uv run python -m panel_monitoring.scripts.smoke_datastore
 ```
 
+### Seeding Firestore with demo data
+
+You can seed Firestore with a sample project and event to verify the client setup.
+
+Run the seeder from the repo root:
+
+```
+uv run python -m panel_monitoring.scripts.seed_firestore
+```
+### Verify Firestore seed
+
+After seeding, you can quickly check the latest event was written:
+
+```
+uv run python -m panel_monitoring.scripts.peek_firestore
+```
+
+This will print the most recent event document under your project, e.g.:
+
+```
+mH2rAYijvDXOhDH6kLji {'type': 'signup', 'source': 'web', ...}
+```
 # LangSmith (optional monitoring/tracing)
 ```
 LANGSMITH_API_KEY="your-key"
