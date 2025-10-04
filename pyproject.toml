@@ -29,6 +29,7 @@ dependencies = [
   "google-auth>=2.40.3",
   "ruff>=0.13.2",
   "pytest>=8.4.2",
+  "google-cloud-firestore>=2.21.0",
 ]
 
 
@@ -49,3 +50,9 @@ package = false
 
 [tool.ruff]
 exclude = ["**/*.ipynb"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "ruff>=0.13.2",
+]
