@@ -10,7 +10,7 @@ Supports running locally for development or inside Google Cloud for production.
 Use Python 3.12+ for compatibility with LangGraph and project dependencies.
 
 Check your version:
-```bash
+```
 python3 --version
 ```
 
@@ -77,6 +77,7 @@ Run the seeder from the repo root:
 ```
 uv run python -m panel_monitoring.scripts.seed_firestore
 ```
+
 ### Verify Firestore seed
 
 After seeding, you can quickly check the latest event was written:
@@ -90,6 +91,7 @@ This will print the most recent event document under your project, e.g.:
 ```
 mH2rAYijvDXOhDH6kLji {'type': 'signup', 'source': 'web', ...}
 ```
+
 # LangSmith (optional monitoring/tracing)
 ```
 LANGSMITH_API_KEY="your-key"
