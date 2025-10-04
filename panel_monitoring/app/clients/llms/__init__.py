@@ -12,6 +12,7 @@ _CLASSIFIERS = {
     "vertexai": classify_with_vertexai,
 }
 
+
 def get_llm_classifier(provider: str):
     """
     Return a callable classification function for the chosen provider.

@@ -49,10 +49,23 @@ Create a .env file in the repo root (auto-loaded), or set environment variables 
 GOOGLE_APPLICATION_CREDENTIALS="path/to/creds.json"
 GOOGLE_CLOUD_PROJECT="your-gcp-project"
 GOOGLE_CLOUD_LOCATION="us-central1"
+FIRESTORE_DATABASE_ID="(default)"       
 ```
 # OpenAI (if used)
 ```
 OPENAI_API_KEY="your-key"
+```
+
+Smoke checks (Firestore)
+
+Auth/connectivity:
+```
+uv run python -m panel_monitoring.scripts.smoke_auth_check
+```
+
+Minimal write/read path:
+```
+uv run python -m panel_monitoring.scripts.smoke_datastore
 ```
 
 # LangSmith (optional monitoring/tracing)

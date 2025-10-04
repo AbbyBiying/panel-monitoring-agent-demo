@@ -50,7 +50,9 @@ def main():
     try:
         classify = get_llm_classifier(provider_key)
     except ValueError:
-        logger.error(f"Unknown provider '{args.provider}'. Valid options: {', '.join(SUPPORTED_PROVIDERS)}")
+        logger.error(
+            f"Unknown provider '{args.provider}'. Valid options: {', '.join(SUPPORTED_PROVIDERS)}"
+        )
         sys.exit(2)
     except Exception as e:
         logger.error(f"Failed to initialize provider '{args.provider}': {e}")

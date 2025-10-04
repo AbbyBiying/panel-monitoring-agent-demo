@@ -15,7 +15,7 @@ class BaseModel:
     - created_at / modified_at: timestamps
     """
 
-    id: Optional[int] = None                      # filled by Postgres when inserted
+    id: Optional[int] = None  # filled by Postgres when inserted
     uuid: str = field(default_factory=lambda: str(uuid.uuid4()))
     created_at: datetime = field(default_factory=datetime.utcnow)
     modified_at: datetime = field(default_factory=datetime.utcnow)

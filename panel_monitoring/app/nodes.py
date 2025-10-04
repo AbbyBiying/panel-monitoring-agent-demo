@@ -8,6 +8,7 @@ from panel_monitoring.app.schemas import GraphState
 from panel_monitoring.app.utils import looks_like_automated
 from panel_monitoring.app.clients.llms.provider_base import ClassifierProvider
 
+
 @traceable(tags=["node"])
 def user_event_node(state: GraphState) -> GraphState:
     return {
