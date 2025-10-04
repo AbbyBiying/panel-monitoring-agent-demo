@@ -59,7 +59,7 @@ class LLMClientVertexAI(LLMPredictionClient):
         self,
         *,
         model_ref: str = "vertexai-classifier",
-        model_name: str = DEFAULT_MODEL,
+        model: str = DEFAULT_MODEL,
         user_prompt: str = PROMPT_CLASSIFY_USER,  # must contain "{event}"
         system_prompt: Optional[str] = PROMPT_CLASSIFY_SYSTEM,
         prompt_config: Optional[dict] = None,
@@ -67,12 +67,13 @@ class LLMClientVertexAI(LLMPredictionClient):
     ):
         super().__init__(
             model_ref=model_ref,
-            model_name=model_name,
+            model_name=model,
             user_prompt=user_prompt,
             system_prompt=system_prompt,
             prompt_config=prompt_config,
             log=log,
         )
+        self.model: Optional[str] = model
         self.project: Optional[str] = None
         self.location: Optional[str] = None
         self.client: Optional[ChatVertexAI] = None
@@ -95,8 +96,7 @@ class LLMClientVertexAI(LLMPredictionClient):
             "GOOGLE_CLOUD_LOCATION", "us-central1"
         )
 
-        # Use the configured model_name (fall back to DEFAULT)
-        model = getattr(self, "model_name", None) or DEFAULT_MODEL
+        model = self.model or DEFAULT_MODEL
         temperature = (self.prompt_config or {}).get("temperature", 0)
         max_retries = (self.prompt_config or {}).get("max_retries", 2)
         creds = load_credentials()
