@@ -9,7 +9,7 @@ from langsmith import Client
 from panel_monitoring.app.graph import build_graph
 from panel_monitoring.app.runtime import run_interactive
 from panel_monitoring.app.utils import get_event_input
-from panel_monitoring.app.clients.llms import get_llm_classifier  # lazy factory
+from panel_monitoring.app.clients.llms import get_llm_classifier
 
 
 logging.basicConfig(
@@ -19,8 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# Supported provider names (keep in sync with get_llm_classifier)
-SUPPORTED_PROVIDERS = ("openai", "genai", "vertexai")
+SUPPORTED_PROVIDERS = ("openai", "genai", "gemini", "vertexai")
 
 
 def main():
@@ -38,7 +37,10 @@ def main():
     )
     args = parser.parse_args()
 
-    # Register project with LangSmith if possible
+    # Normalize alias
+    provider_key = {"gemini": "genai"}.get(args.provider, args.provider)
+    logger.info(f"Using provider: {args.provider}")
+
     try:
         Client().create_project(args.project, upsert=True)
         logger.info(f"Agent ready. LangSmith Project: {args.project}")
@@ -46,7 +48,7 @@ def main():
         logger.warning("Agent ready. (LangSmith tracing disabled)")
 
     try:
-        classify = get_llm_classifier(args.provider)
+        classify = get_llm_classifier(provider_key)
     except ValueError:
         logger.error(f"Unknown provider '{args.provider}'. Valid options: {', '.join(SUPPORTED_PROVIDERS)}")
         sys.exit(2)
