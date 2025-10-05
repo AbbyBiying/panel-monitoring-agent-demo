@@ -50,6 +50,7 @@ def get_db() -> firestore.Client:
 
     return _DB
 
+project_id = "panel-app-dev"
 
 def project_doc(project_id: str):
     return get_db().collection("projects").document(project_id)
