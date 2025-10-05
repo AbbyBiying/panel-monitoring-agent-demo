@@ -6,6 +6,18 @@ from dotenv import load_dotenv
 
 from google.cloud import firestore
 from google.auth.exceptions import DefaultCredentialsError
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def _project() -> str | None:
+    return (
+        os.getenv("GOOGLE_CLOUD_PROJECT")
+        or os.getenv("GCLOUD_PROJECT")
+        or os.getenv("GCP_PROJECT")
+        or os.getenv("GCP_PROJECT_ID")
+    )
 
 load_dotenv()
 
@@ -19,7 +31,7 @@ def get_db() -> firestore.Client:
         return _DB
 
     emulator = os.getenv("FIRESTORE_EMULATOR_HOST")
-    project = os.getenv("GCP_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT")
+    project = _project()
     database = os.getenv("FIRESTORE_DATABASE_ID") or "(default)"
 
     if emulator and not project:
@@ -50,7 +62,6 @@ def get_db() -> firestore.Client:
 
     return _DB
 
-project_id = "panel-app-dev"
 
 def project_doc(project_id: str):
     return get_db().collection("projects").document(project_id)
