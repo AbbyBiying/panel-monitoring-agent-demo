@@ -14,11 +14,9 @@ from panel_monitoring.app.schemas import GraphState, ModelMeta
 from panel_monitoring.app.utils import looks_like_automated
 from panel_monitoring.app.clients.llms.provider_base import ClassifierProvider
 from panel_monitoring.data.firestore_client import (
-    events_col,
-    runs_col,
-    metrics_daily_doc,
+    events_col,   # top-level 'events'
+    runs_col,     # top-level 'runs'
 )
-
 
 # ----------------------------
 # Helpers
@@ -55,10 +53,11 @@ def user_event_node(state: GraphState) -> GraphState:
     # If caller already set event_id, just pass-through.
     event_id = state.get("event_id")
     if not event_id:
-        # Create minimal event doc
-        evt_ref = events_col(project_id).document()
+        # Create minimal event doc in TOP-LEVEL 'events'
+        evt_ref = events_col().document()
         evt_ref.set(
             {
+                "project_id": project_id,
                 "type": "signup",  # derive from input if you have a parser
                 "source": "web",
                 "received_at": firestore.SERVER_TIMESTAMP,
@@ -104,9 +103,13 @@ def make_signal_eval_node(provider: ClassifierProvider):
         else:
             try:
                 # Provider returns (signals, meta)
-                signals, meta = provider.classify(event_text) if hasattr(provider, "classify") else provider(event_text)
+                signals, meta = (
+                    provider.classify(event_text)
+                    if hasattr(provider, "classify")
+                    else provider(event_text)
+                )
                 model_meta = meta or {}
-            except Exception as _:
+            except Exception:
                 signals = _heuristic_fallback(event_text)
                 model_meta = {"provider": "heuristic", "model": "fallback"}
 
@@ -166,8 +169,8 @@ def explanation_node(state: GraphState) -> GraphState:
 @traceable(tags=["node"])
 def logging_node(state: GraphState) -> GraphState:
     """
-    Persist a run subdoc, update the parent event summary, and roll up metrics.
-    Also produce a small JSON log entry for console visibility.
+    Persist a run (top-level 'runs') and update the parent event summary.
+    Metrics rollups removed for simplicity.
     """
     project_id = state["project_id"]
     event_id = state["event_id"]
@@ -178,9 +181,12 @@ def logging_node(state: GraphState) -> GraphState:
     signals = state.get("signals", {}) or {}
     meta: ModelMeta = state.get("model_meta", {}) or {}
 
-    # ---- Write run subdoc
-    runs_col(project_id, event_id).document(run_id).set(
+    # ---- Write run (TOP-LEVEL 'runs')
+    runs_col().document(run_id).set(
         {
+            "project_id": project_id,
+            "event_id": event_id,
+
             "provider": meta.get("provider", "vertexai"),
             "model": meta.get("model", "gemini-2.5-pro"),
             "temperature": meta.get("temperature", 0),
@@ -202,35 +208,14 @@ def logging_node(state: GraphState) -> GraphState:
         }
     )
 
-    # ---- Update parent event summary
-    events_col(project_id).document(event_id).set(
+    # ---- Update parent event summary (TOP-LEVEL 'events')
+    events_col().document(event_id).set(
         {
+            "project_id": project_id,
             "status": "classified" if decision != "error" else "error",
             "decision": decision,
             "confidence": confidence,
             "last_run_id": run_id,
-            "updated_at": firestore.SERVER_TIMESTAMP,
-        },
-        merge=True,
-    )
-
-    # ---- Roll up daily metrics
-    day = _utcnow().strftime("%Y-%m-%d")
-    suspicious_inc = 1 if decision == "suspicious" else 0
-    metrics_daily_doc(project_id, day).set(
-        {
-            "date": day,
-            "classified_events": firestore.Increment(1),
-            "suspicious_events": firestore.Increment(suspicious_inc),
-            "runs_count": firestore.Increment(1),
-            "runs_latency_ms_sum": firestore.Increment(meta.get("latency_ms") or 0),
-            "cost_usd_total": firestore.Increment(meta.get("cost_usd") or 0.0),
-            "by_provider": {
-                meta.get("provider", "vertexai"): {"count": firestore.Increment(1)}
-            },
-            "by_model": {
-                meta.get("model", "gemini-2.5-pro"): {"count": firestore.Increment(1)}
-            },
             "updated_at": firestore.SERVER_TIMESTAMP,
         },
         merge=True,

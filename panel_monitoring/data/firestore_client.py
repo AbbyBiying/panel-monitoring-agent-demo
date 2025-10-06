@@ -30,12 +30,7 @@ def get_db() -> firestore.Client:
     if _DB is not None:
         return _DB
 
-<<<<<<< Updated upstream
-    emulator = os.getenv("FIRESTORE_EMULATOR_HOST")
-    project = _project()
-=======
     project = os.getenv("GCP_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT")
->>>>>>> Stashed changes
     database = os.getenv("FIRESTORE_DATABASE_ID") or "(default)"
 
     try:
