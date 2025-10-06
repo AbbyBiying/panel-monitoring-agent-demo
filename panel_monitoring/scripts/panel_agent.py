@@ -133,7 +133,9 @@ def main():
 
     # LangSmith project (optional)
     try:
-        Client().create_project(args.project, upsert=True)
+        Client().create_project(
+            args.project, upsert=True
+        )  # see if we can just get the current project created
         logger.info(f"Agent ready. LangSmith Project: {args.project}")
     except Exception:
         logger.warning("Agent ready. (LangSmith tracing disabled)")
