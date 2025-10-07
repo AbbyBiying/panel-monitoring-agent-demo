@@ -6,7 +6,6 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "Proprietary" }
 
-# ── Runtime deps only (keep dev tools out of here) ──
 dependencies = [
   "langgraph",
   "langgraph-prebuilt",
@@ -33,7 +32,6 @@ dependencies = [
   "notebook",
 ]
 
-# If you want pip/uv extra: `pip install .[dev]`
 [project.optional-dependencies]
 dev = [
   "ruff>=0.13.2",
@@ -45,7 +43,6 @@ dev = [
 requires = ["hatchling>=1.18"]
 build-backend = "hatchling.build"
 
-# ── Tell Hatch where your package actually is (src layout) ──
 [tool.hatch.build.targets.wheel]
 packages = ["src/panel_monitoring"]
 
@@ -54,8 +51,6 @@ include = ["src/panel_monitoring", "README.md", "pyproject.toml"]
 
 [tool.uv]
 managed = true
-# This must be TRUE (or omitted) if you want to build a wheel/package.
-# Setting it false marks this repo as "not a package", which breaks -e installs.
 package = true
 
 [tool.ruff]
