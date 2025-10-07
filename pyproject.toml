@@ -4,7 +4,9 @@ version = "1.0.0"
 description = "Panel Monitoring Agent"
 readme = "README.md"
 requires-python = ">=3.12"
+license = { text = "Proprietary" }
 
+# ── Runtime deps only (keep dev tools out of here) ──
 dependencies = [
   "langgraph",
   "langgraph-prebuilt",
@@ -15,25 +17,23 @@ dependencies = [
   "langchain-core",
   "langchain-openai",
   "langchain-google-vertexai",
+  "langchain-google-genai",
   "google-cloud-aiplatform",
   "google-api-core",
+  "google-auth>=2.40.3",
+  "google-cloud-firestore>=2.21.0",
+  "firebase-admin>=6.9.0",
   "python-dotenv",
   "pydantic",
   "pydantic-settings",
-  "notebook",
   "tavily-python",
   "wikipedia",
   "trustcall",
   "langgraph-cli[inmem]",
-  "langchain-google-genai",
-  "google-auth>=2.40.3",
-  "ruff>=0.13.2",
-  "pytest>=8.4.2",
-  "google-cloud-firestore>=2.21.0",
-  "firebase-admin>=6.9.0",
+  "notebook",
 ]
 
-
+# If you want pip/uv extra: `pip install .[dev]`
 [project.optional-dependencies]
 dev = [
   "ruff>=0.13.2",
@@ -42,18 +42,21 @@ dev = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.18"]
 build-backend = "hatchling.build"
+
+# ── Tell Hatch where your package actually is (src layout) ──
+[tool.hatch.build.targets.wheel]
+packages = ["src/panel_monitoring"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/panel_monitoring", "README.md", "pyproject.toml"]
 
 [tool.uv]
 managed = true
-package = false
+# This must be TRUE (or omitted) if you want to build a wheel/package.
+# Setting it false marks this repo as "not a package", which breaks -e installs.
+package = true
 
 [tool.ruff]
 exclude = ["**/*.ipynb"]
-
-[dependency-groups]
-dev = [
-    "pytest>=8.4.2",
-    "ruff>=0.13.2",
-]

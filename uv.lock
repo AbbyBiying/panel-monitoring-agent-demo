@@ -2506,7 +2506,7 @@ wheels = [
 [[package]]
 name = "panel-monitoring-agent"
 version = "1.0.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "firebase-admin" },
     { name = "google-api-core" },
@@ -2527,9 +2527,7 @@ dependencies = [
     { name = "notebook" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
-    { name = "pytest" },
     { name = "python-dotenv" },
-    { name = "ruff" },
     { name = "tavily-python" },
     { name = "trustcall" },
     { name = "wikipedia" },
@@ -2538,12 +2536,6 @@ dependencies = [
 [package.optional-dependencies]
 dev = [
     { name = "langchain" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
-[package.dev-dependencies]
-dev = [
     { name = "pytest" },
     { name = "ruff" },
 ]
@@ -2570,22 +2562,14 @@ requires-dist = [
     { name = "notebook" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
-    { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.4.2" },
     { name = "python-dotenv" },
-    { name = "ruff", specifier = ">=0.13.2" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.13.2" },
     { name = "tavily-python" },
     { name = "trustcall" },
     { name = "wikipedia" },
 ]
 provides-extras = ["dev"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pytest", specifier = ">=8.4.2" },
-    { name = "ruff", specifier = ">=0.13.2" },
-]
 
 [[package]]
 name = "parso"
