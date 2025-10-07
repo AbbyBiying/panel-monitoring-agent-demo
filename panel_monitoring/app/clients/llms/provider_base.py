@@ -23,7 +23,7 @@ class Signal(TypedDict, total=False):
     confidence: float
     reason: str
 
-# MetaDict is used to store metadata about the classifier and it's inference
+# SignalMeta is used to store metadata about the classifier and it's inference
 class SignalMeta(TypedDict, total=False):
     provider: str
     model: str
@@ -37,20 +37,20 @@ class SignalMeta(TypedDict, total=False):
     error: str
 
 class ClassifierProvider(Protocol):
-    def __call__(self, event: str) -> Tuple[SignalsDict, MetaDict]: ...
-    def classify(self, event: str) -> Tuple[SignalsDict, MetaDict]: ...
+    def __call__(self, event: str) -> Tuple[UserEvent, SignalMeta]: ...
+    def classify(self, event: str) -> Tuple[UserEvent, SignalMeta]: ...
 
 class FunctionProvider:
     """
-    Wrap a function(event: str) -> Tuple[SignalsDict, MetaDict]
+    Wrap a function(event: str) -> Tuple[UserEvent, SignalMeta]
     as a provider object.
     """
 
-    def __init__(self, fn: Callable[[str], Tuple[SignalsDict, MetaDict]]) -> None:
+    def __init__(self, fn: Callable[[str], Tuple[UserEvent, SignalMeta]]) -> None:
         self._fn = fn
 
-    def __call__(self, event: str) -> Tuple[SignalsDict, MetaDict]:
+    def __call__(self, event: str) -> Tuple[UserEvent, SignalMeta]:
         return self._fn(event)
 
-    def classify(self, event: str) -> Tuple[SignalsDict, MetaDict]:
+    def classify(self, event: str) -> Tuple[UserEvent, SignalMeta]:
         return self._fn(event)

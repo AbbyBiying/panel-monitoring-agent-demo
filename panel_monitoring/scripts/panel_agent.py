@@ -17,8 +17,8 @@ from panel_monitoring.app.clients.llms import get_llm_classifier
 from panel_monitoring.app.clients.llms.provider_base import (
     ClassifierProvider,
     FunctionProvider,
-    SignalsDict,
-    MetaDict,
+    UserEvent,
+    SignalMeta,
 )
 
 logging.basicConfig(
@@ -44,13 +44,13 @@ def _model_from_obj_or_env(obj: Any, provider_key: str) -> str:
     return "unknown"
 
 
-def _wrap_signals_only(fn: Callable[[str], SignalsDict], provider_key: str) -> ClassifierProvider:
+def _wrap_signals_only(fn: Callable[[str], UserEvent], provider_key: str) -> ClassifierProvider:
     """Adapt legacy function (event -> signals) to (event -> (signals, meta)) with latency."""
-    def _wrapped(event_text: str) -> Tuple[SignalsDict, MetaDict]:
+    def _wrapped(event_text: str) -> Tuple[UserEvent, SignalMeta]:
         t0 = time.perf_counter()
         signals = fn(event_text)
         dur_ms = int((time.perf_counter() - t0) * 1000)
-        meta: MetaDict = {
+        meta: SignalMeta = {
             "provider": provider_key,
             "model": _model_from_obj_or_env(fn, provider_key),
             "latency_ms": dur_ms,
@@ -63,7 +63,7 @@ def _ensure_provider(obj: Any, provider_key: str) -> ClassifierProvider:
     """
     Ensure the provider yields (signals, meta).
     Supports:
-      - callables returning SignalsDict         -> wrap to (signals, meta) + latency
+      - callables returning UserEvent         -> wrap to (signals, meta) + latency
       - callables returning (signals, meta)     -> pass through (+ default meta if missing)
       - objects with .classify(...) either shape
     """
