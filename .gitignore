@@ -59,3 +59,5 @@ __pypackages__/
 # -------------------------
 .langgraph_api/
 credentials/
+datasets
+data
