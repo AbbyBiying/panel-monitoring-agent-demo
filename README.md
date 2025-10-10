@@ -102,6 +102,8 @@ LANGSMITH_PROJECT="panel-monitoring-agent"
 TAVILY_API_KEY="your-key"
 ```
 
+Run `uv run python testing-examples/datasets/seed_panel_cases.py` to create the **Panel Monitoring Cases** dataset in LangSmith, seeding evaluation examples aligned with GraphState for classification and action testing.
+
 ### Set OpenAI API key
 * If you don't have an OpenAI API key, you can sign up [here](https://openai.com/index/openai-api/).
 *  Set `OPENAI_API_KEY` in your environment 
