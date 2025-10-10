@@ -44,8 +44,14 @@ def _model_from_obj_or_env(obj: Any, provider_key: str) -> str:
     return "unknown"
 
 
-def _wrap_signals_only(fn: Callable[[str], UserEvent], provider_key: str) -> ClassifierProvider:
-    """Adapt legacy function (event -> signals) to (event -> (signals, meta)) with latency."""
+def _wrap_signals_only(
+    fn: Callable[[str], UserEvent], provider_key: str
+) -> ClassifierProvider:
+    """
+    Adapt a legacy function (event_text -> signals) into a ClassifierProvider
+    that returns (signals, meta) and captures simple latency.
+    """
+
     def _wrapped(event_text: str) -> Tuple[UserEvent, SignalMeta]:
         t0 = time.perf_counter()
         signals = fn(event_text)
@@ -56,57 +62,55 @@ def _wrap_signals_only(fn: Callable[[str], UserEvent], provider_key: str) -> Cla
             "latency_ms": dur_ms,
         }
         return signals, meta
+
     return FunctionProvider(_wrapped)
 
 
 def _ensure_provider(obj: Any, provider_key: str) -> ClassifierProvider:
     """
-    Ensure the provider yields (signals, meta).
-    Supports:
-      - callables returning UserEvent         -> wrap to (signals, meta) + latency
-      - callables returning (signals, meta)     -> pass through (+ default meta if missing)
-      - objects with .classify(...) either shape
+    Normalize a provider to the (signals, meta) protocol.
+
+    Supported inputs:
+      - object with .classify(text) -> signals  (legacy)          => wrapped to (signals, meta)
+      - object with .classify(text) -> (signals, meta)            => pass-through (+defaults)
+      - callable(text) -> signals  (legacy)                       => wrapped to (signals, meta)
+      - callable(text) -> (signals, meta)                         => pass-through (+defaults)
     """
+
+    def _attach_defaults(model_owner: Any, out: Any, dur_ms: int):
+        if isinstance(out, dict):  # legacy signals-only
+            return out, {
+                "provider": provider_key,
+                "model": _model_from_obj_or_env(model_owner, provider_key),
+                "latency_ms": dur_ms,
+            }
+        signals, meta = out
+        meta = dict(meta or {})
+        meta.setdefault("provider", provider_key)
+        meta.setdefault("model", _model_from_obj_or_env(model_owner, provider_key))
+        meta.setdefault("latency_ms", dur_ms)
+        return signals, meta
+
     # Object with .classify(...)
     if hasattr(obj, "classify") and callable(getattr(obj, "classify")):
+
         def _call(event_text: str):
             t0 = time.perf_counter()
             out = obj.classify(event_text)
             dur_ms = int((time.perf_counter() - t0) * 1000)
+            return _attach_defaults(obj, out, dur_ms)
 
-            if isinstance(out, dict):  # legacy signals-only
-                return out, {
-                    "provider": provider_key,
-                    "model": _model_from_obj_or_env(obj, provider_key),
-                    "latency_ms": dur_ms,
-                }
-            signals, meta = out
-            meta = dict(meta or {})
-            meta.setdefault("provider", provider_key)
-            meta.setdefault("model", _model_from_obj_or_env(obj, provider_key))
-            meta.setdefault("latency_ms", dur_ms)
-            return signals, meta
         return FunctionProvider(_call)
 
     # Plain callable
     if callable(obj):
+
         def _call(event_text: str):
             t0 = time.perf_counter()
             out = obj(event_text)
             dur_ms = int((time.perf_counter() - t0) * 1000)
+            return _attach_defaults(obj, out, dur_ms)
 
-            if isinstance(out, dict):  # legacy signals-only
-                return out, {
-                    "provider": provider_key,
-                    "model": _model_from_obj_or_env(obj, provider_key),
-                    "latency_ms": dur_ms,
-                }
-            signals, meta = out
-            meta = dict(meta or {})
-            meta.setdefault("provider", provider_key)
-            meta.setdefault("model", _model_from_obj_or_env(obj, provider_key))
-            meta.setdefault("latency_ms", dur_ms)
-            return signals, meta
         return FunctionProvider(_call)
 
     raise TypeError("Unsupported provider type from get_llm_classifier().")
@@ -127,20 +131,18 @@ def main():
     )
     args = parser.parse_args()
 
-    # Normalize alias used elsewhere: "gemini" -> "genai"
+    # Normalize alias: "gemini" -> "genai"
     provider_key = {"gemini": "genai"}.get(args.provider, args.provider)
     logger.info(f"Using provider: {args.provider} (resolved: {provider_key})")
 
-    # LangSmith project (optional)
+    # Try to set up LangSmith project (non-fatal)
     try:
-        Client().create_project(
-            args.project, upsert=True
-        )  # see if we can just get the current project created
+        Client().create_project(args.project, upsert=True)
         logger.info(f"Agent ready. LangSmith Project: {args.project}")
     except Exception:
         logger.warning("Agent ready. (LangSmith tracing disabled)")
 
-    # Get a provider (function or object) from your existing factory
+    # Build provider
     try:
         raw_provider = get_llm_classifier(provider_key)
     except ValueError:
@@ -153,16 +155,15 @@ def main():
         logger.error("Tip: check your API key/credentials env vars for this provider.")
         sys.exit(3)
 
-    # Ensure it matches the new (signals, meta) protocol
+    provider: ClassifierProvider
     if callable(raw_provider) and not hasattr(raw_provider, "classify"):
-        # Might be legacy signals-only callable
-        provider: ClassifierProvider = _wrap_signals_only(raw_provider, provider_key)
+        provider = _wrap_signals_only(raw_provider, provider_key)
     else:
         provider = _ensure_provider(raw_provider, provider_key)
 
-    # Build graph and run interactive loop
+    # Build graph and start interactive loop
     try:
-        app = build_graph(provider)
+        app = build_graph(provider)  # sets provider globally for the classify node
     except Exception as e:
         logger.error(f"Failed to build graph: {e}")
         sys.exit(4)
