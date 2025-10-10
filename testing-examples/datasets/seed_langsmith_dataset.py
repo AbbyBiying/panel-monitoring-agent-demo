@@ -84,7 +84,6 @@ examples = [
         },
     },
     {
-        # Added from your runtime log (final_action = remove_account)
         "inputs": {
             "raw_event": {
                 "case_id": "geo_ip_mismatch_ct_vs_ca_runtime",
