@@ -3,9 +3,8 @@
 from __future__ import annotations
 import hashlib
 import json
-import time
 from google.cloud import firestore
-from .firestore_client import events_col, metrics_daily_doc
+from .firestore_client import events_col
 
 
 def _event_id_for(payload: dict) -> str:
@@ -89,16 +88,4 @@ def finalize_event(
             "finalLabel": label,
             "finalConfidence": float(confidence),
         }
-    )
-
-    day = time.strftime("%Y-%m-%d")
-    metrics_ref = metrics_daily_doc(project_id, day)
-    metrics_ref.set(
-        {
-            "runCount": firestore.Increment(1),
-            "successCount": firestore.Increment(1),
-            f"costByProvider.{provider_key}": firestore.Increment(float(cost_usd)),
-            f"labelDist.{label}": firestore.Increment(1),
-        },
-        merge=True,
     )

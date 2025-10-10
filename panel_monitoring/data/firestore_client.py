@@ -6,6 +6,18 @@ from dotenv import load_dotenv
 
 from google.cloud import firestore
 from google.auth.exceptions import DefaultCredentialsError
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def _project() -> str | None:
+    return (
+        os.getenv("GOOGLE_CLOUD_PROJECT")
+        or os.getenv("GCLOUD_PROJECT")
+        or os.getenv("GCP_PROJECT")
+        or os.getenv("GCP_PROJECT_ID")
+    )
 
 load_dotenv()
 
@@ -18,29 +30,21 @@ def get_db() -> firestore.Client:
     if _DB is not None:
         return _DB
 
-    emulator = os.getenv("FIRESTORE_EMULATOR_HOST")
     project = os.getenv("GCP_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT")
     database = os.getenv("FIRESTORE_DATABASE_ID") or "(default)"
 
-    if emulator and not project:
-        project = "demo-dev"
+    try:
+        from panel_monitoring.app.utils import load_credentials
 
-    # Only load creds when we actually build the client
-    creds = None
-    if not emulator:
-        try:
-            # defer import to avoid circulars / import-time failures
-            from panel_monitoring.app.utils import load_credentials
-
-            creds = load_credentials() or None
-        except Exception:
-            creds = None  # fall back to ADC if available
+        creds = load_credentials()
+    except Exception:
+        creds = None
 
     try:
         _DB = firestore.Client(
             project=project,
             database=database,
-            credentials=creds,  # None => ADC
+            credentials=creds,
         )
     except DefaultCredentialsError as e:
         raise RuntimeError(
@@ -51,27 +55,21 @@ def get_db() -> firestore.Client:
     return _DB
 
 
-def project_doc(project_id: str):
-    return get_db().collection("projects").document(project_id)
+def events_col():
+    """Top-level 'events' collection. Each doc should include `project_id`."""
+    return get_db().collection("events")
 
 
-def events_col(project_id: str):
-    return project_doc(project_id).collection("events")
+def runs_col():
+    """Top-level 'runs' collection. Each doc should include `project_id` and `event_id`."""
+    return get_db().collection("runs")
 
 
-def runs_col(project_id: str, event_id: str):
-    return events_col(project_id).document(event_id).collection("runs")
+def alerts_col():
+    """Top-level 'alerts' collection. Each doc should include `project_id`."""
+    return get_db().collection("alerts")
 
 
-def alerts_col(project_id: str):
-    return project_doc(project_id).collection("alerts")
-
-
-def metrics_daily_doc(project_id: str, day: str):
-    return (
-        get_db()
-        .collection("metrics")
-        .document(f"projects_{project_id}")
-        .collection("daily")
-        .document(day)
-    )
+# (Optional) keep projects metadata as a flat collection, but no subcollections
+def projects_col():
+    return get_db().collection("projects")

@@ -104,7 +104,7 @@ TAVILY_API_KEY="your-key"
 reference: <!-- https://docs.langchain.com/langsmith/manage-datasets -->
 Run 
 ```
-uv run python testing-examples/datasets/seed_panel_cases.py
+uv run python testing-examples/datasets/seed_langsmith_dataset.py
 ``` 
 to create the **Panel Monitoring Cases** dataset in LangSmith, seeding evaluation examples aligned with GraphState for classification and action testing.
 
