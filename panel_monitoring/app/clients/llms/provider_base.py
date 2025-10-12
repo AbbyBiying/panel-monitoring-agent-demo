@@ -41,21 +41,22 @@ class SignalMeta(TypedDict, total=False):
 
 
 class ClassifierProvider(Protocol):
-    def __call__(self, event: str) -> Tuple[UserEvent, SignalMeta]: ...
-    def classify(self, event: str) -> Tuple[UserEvent, SignalMeta]: ...
+    def __call__(self, event: str) -> Tuple[Signal, SignalMeta]: ...
+    def classify(self, event: str) -> Tuple[Signal, SignalMeta]: ...
+
 
 
 class FunctionProvider:
     """
-    Wrap a function(event: str) -> Tuple[UserEvent, SignalMeta]
+    Wrap a function(event: str) -> Tuple[Signal, SignalMeta]
     as a provider object.
     """
 
-    def __init__(self, fn: Callable[[str], Tuple[UserEvent, SignalMeta]]) -> None:
+    def __init__(self, fn: Callable[[str], Tuple[Signal, SignalMeta]]) -> None:
         self._fn = fn
 
-    def __call__(self, event: str) -> Tuple[UserEvent, SignalMeta]:
+    def __call__(self, event: str) -> Tuple[Signal, SignalMeta]:
         return self._fn(event)
 
-    def classify(self, event: str) -> Tuple[UserEvent, SignalMeta]:
+    def classify(self, event: str) -> Tuple[Signal, SignalMeta]:
         return self._fn(event)
