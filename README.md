@@ -123,14 +123,7 @@ uv run python testing-examples/datasets/tag_dataset_version.py
 *  Set `LANGSMITH_API_KEY`, `LANGSMITH_TRACING=true`, `LANGSMITH_PROJECT="panel-monitoring-agent"` in your environment 
 
 
-# Run as a package:
-``` 
-uv run python -m panel_monitoring.panel_agent_openai
-uv run python -m panel_monitoring.panel_agent_vertexai 
-uv run python -m panel_monitoring.panel_agent_genai
-```
-
-# Via the unified CLI (with FunctionProvider):
+# Run via the unified CLI (with FunctionProvider):
 OpenAI
 ```
 uv run python -m panel_monitoring.scripts.panel_agent --provider openai

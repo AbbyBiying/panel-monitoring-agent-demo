@@ -8,14 +8,6 @@ from pydantic import BaseModel, Field, field_validator
 class _BaseDoc(BaseModel):
     """Shared options for Firestore documents."""
 
-    # model_config = {
-    #     # Any extra keys in Firestore docs or dynamic payloads will be silently included,
-    #     # not rejected. When you call .model_dump(), those extra fields will still appear
-    #     "extra": "allow",  # for now we allow unknown fields
-    #     # "extra": "forbid",              # reject unknown fields
-    #     "validate_assignment": True,  # revalidate on mutation
-    #     "ser_json_timedelta": "iso8601",
-    # }
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

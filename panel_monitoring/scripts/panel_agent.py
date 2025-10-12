@@ -31,7 +31,7 @@ SUPPORTED_PROVIDERS = ("openai", "genai", "gemini", "vertexai")
 
 
 def _model_from_obj_or_env(obj: Any, provider_key: str) -> str:
-    """Best-effort model name extraction for metadata."""
+    """Try to get model name from object attributes or env vars."""
     for attr in ("model_name", "model", "DEFAULT_MODEL"):
         if hasattr(obj, attr):
             val = getattr(obj, attr)
@@ -47,10 +47,7 @@ def _model_from_obj_or_env(obj: Any, provider_key: str) -> str:
 def _wrap_signals_only(
     fn: Callable[[str], UserEvent], provider_key: str
 ) -> ClassifierProvider:
-    """
-    Adapt a legacy function (event_text -> signals) into a ClassifierProvider
-    that returns (signals, meta) and captures simple latency.
-    """
+    """Wrap legacy (text -> signals) into (signals, meta) with simple latency."""
 
     def _wrapped(event_text: str) -> Tuple[UserEvent, SignalMeta]:
         t0 = time.perf_counter()
@@ -68,17 +65,15 @@ def _wrap_signals_only(
 
 def _ensure_provider(obj: Any, provider_key: str) -> ClassifierProvider:
     """
-    Normalize a provider to the (signals, meta) protocol.
+    Normalize to (signals, meta).
 
-    Supported inputs:
-      - object with .classify(text) -> signals  (legacy)          => wrapped to (signals, meta)
-      - object with .classify(text) -> (signals, meta)            => pass-through (+defaults)
-      - callable(text) -> signals  (legacy)                       => wrapped to (signals, meta)
-      - callable(text) -> (signals, meta)                         => pass-through (+defaults)
+    Supports:
+      - object.classify(text) -> signals | (signals, meta)
+      - callable(text) -> signals | (signals, meta)
     """
 
     def _attach_defaults(model_owner: Any, out: Any, dur_ms: int):
-        if isinstance(out, dict):  # legacy signals-only
+        if isinstance(out, dict):
             return out, {
                 "provider": provider_key,
                 "model": _model_from_obj_or_env(model_owner, provider_key),
@@ -91,7 +86,6 @@ def _ensure_provider(obj: Any, provider_key: str) -> ClassifierProvider:
         meta.setdefault("latency_ms", dur_ms)
         return signals, meta
 
-    # Object with .classify(...)
     if hasattr(obj, "classify") and callable(getattr(obj, "classify")):
 
         def _call(event_text: str):
@@ -102,7 +96,6 @@ def _ensure_provider(obj: Any, provider_key: str) -> ClassifierProvider:
 
         return FunctionProvider(_call)
 
-    # Plain callable
     if callable(obj):
 
         def _call(event_text: str):
@@ -135,7 +128,7 @@ def main():
     provider_key = {"gemini": "genai"}.get(args.provider, args.provider)
     logger.info(f"Using provider: {args.provider} (resolved: {provider_key})")
 
-    # Try to set up LangSmith project (non-fatal)
+    # Optional LangSmith project init
     try:
         Client().create_project(args.project, upsert=True)
         logger.info(f"Agent ready. LangSmith Project: {args.project}")
@@ -163,12 +156,17 @@ def main():
 
     # Build graph and start interactive loop
     try:
-        app = build_graph(provider)  # sets provider globally for the classify node
+        app = build_graph()
     except Exception as e:
         logger.error(f"Failed to build graph: {e}")
         sys.exit(4)
 
-    run_interactive(app, get_event_input=get_event_input, project_name=args.project)
+    run_interactive(
+        app,
+        get_event_input=get_event_input,
+        project_name=args.project,
+        provider=provider,
+    )
 
 
 if __name__ == "__main__":

@@ -18,11 +18,6 @@ class Signals(BaseModel):
         ..., description="Explanation or rationale for the classification"
     )
 
-    # model_config = {
-    #     "extra": "allow",  # keep flexible during schema evolution
-    #     "validate_assignment": True,
-    # }
-
 
 # ----------------------------
 # Metadata about model execution
@@ -41,11 +36,6 @@ class ModelMeta(BaseModel):
     cost_usd: Optional[float] = None
     error: Optional[str] = None
 
-    # model_config = {
-    #     "extra": "allow",  # allow provider-specific extras
-    #     "validate_assignment": True,
-    # }
-
 
 # ----------------------------
 # LangGraph state object
@@ -58,22 +48,17 @@ class GraphState(BaseModel):
     event_id: Optional[str] = None
 
     # Input / raw content
-    event_text: Optional[str] = None  # raw user/event input
+    event_text: Optional[str] = None
     event_data: Dict[str, Any] = Field(default_factory=dict)  # structured input payload
 
     # Classification results
-    signals: Optional[Signals] = None  # normalized Signals
-    classification: Literal["suspicious", "normal", "error"] = "error"
+    signals: Optional[Signals] = None
+    classification: Literal["pending", "suspicious", "normal", "error"] = "pending"
     confidence: Optional[float] = None
     model_meta: ModelMeta = Field(default_factory=ModelMeta)
     error: Optional[str] = None
 
     # Downstream workflow outputs
-    action: Optional[str] = None
+    action: Optional[str] = ""  # default empty to avoid None checks
     log_entry: Optional[str] = None
     explanation_report: Optional[str] = None
-
-    # model_config = {
-    #     "extra": "allow",  # tolerate additional state keys
-    #     "validate_assignment": True,
-    # }
