@@ -247,12 +247,7 @@ def logging_node(state: GraphState) -> GraphState:
     )
 
     # Build human-friendly log summary
-    preview_src = state.event_text or state.event_data or "N/A"
-    preview = (
-        preview_src
-        if isinstance(preview_src, str)
-        else json.dumps(preview_src, ensure_ascii=False)
-    )[:50]
+    preview = _event_text_from_state(state)[:50]
 
     log_summary = {
         "event_id": event_id,
