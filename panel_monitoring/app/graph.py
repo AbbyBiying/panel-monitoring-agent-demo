@@ -32,27 +32,26 @@ def build_graph():
     https://docs.langchain.com/oss/python/langgraph/graph-api#default-reducer
     """
 
-    wf = StateGraph(GraphState)
+    graph = StateGraph(GraphState)
 
-    # Nodes
-    wf.add_node("event_input", user_event_node)
-    wf.add_node("classify_signals", signal_evaluation_node)
-    wf.add_node("decide_action", action_decision_node)
-    wf.add_node("explain", explanation_node)
-    wf.add_node("log_result", logging_node)
+    graph.add_node("event_input", user_event_node)
+    graph.add_node("classify_signals", signal_evaluation_node)
+    graph.add_node("decide_action", action_decision_node)
+    graph.add_node("explain", explanation_node)
+    graph.add_node("log_result", logging_node)
 
     def route_to_action(state: GraphState) -> str:
         return "decide_action" if state.classification == "suspicious" else "explain"
 
-    wf.add_edge(START, "event_input")
-    wf.add_edge("event_input", "classify_signals")
-    wf.add_conditional_edges(
+    graph.add_edge(START, "event_input")
+    graph.add_edge("event_input", "classify_signals")
+    graph.add_conditional_edges(
         "classify_signals",
         route_to_action,
         {"decide_action": "decide_action", "explain": "explain"},
     )
-    wf.add_edge("decide_action", "explain")
-    wf.add_edge("explain", "log_result")
-    wf.add_edge("log_result", END)
+    graph.add_edge("decide_action", "explain")
+    graph.add_edge("explain", "log_result")
+    graph.add_edge("log_result", END)
 
-    return wf.compile()
+    return graph.compile()
