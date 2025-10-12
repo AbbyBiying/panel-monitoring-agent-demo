@@ -45,7 +45,6 @@ class ClassifierProvider(Protocol):
     def classify(self, event: str) -> Tuple[Signal, SignalMeta]: ...
 
 
-
 class FunctionProvider:
     """
     Wrap a function(event: str) -> Tuple[Signal, SignalMeta]

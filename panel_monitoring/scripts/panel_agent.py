@@ -73,10 +73,14 @@ def _wrap_provider(raw: Any, provider_key: str) -> ClassifierProvider:
 
 def main():
     p = argparse.ArgumentParser(description="Panel Monitoring Agent")
-    p.add_argument("--provider", choices=SUPPORTED_PROVIDERS,
-                   default=os.getenv("LLM_PROVIDER", "openai"))
-    p.add_argument("--project",
-                   default=os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"))
+    p.add_argument(
+        "--provider",
+        choices=SUPPORTED_PROVIDERS,
+        default=os.getenv("LLM_PROVIDER", "openai"),
+    )
+    p.add_argument(
+        "--project", default=os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent")
+    )
     args = p.parse_args()
 
     provider_key = {"gemini": "genai"}.get(args.provider, args.provider)
@@ -86,8 +90,10 @@ def main():
         raw = get_llm_classifier(provider_key)
         provider = _wrap_provider(raw, provider_key)
     except ValueError:
-        logger.error(f"Unknown provider '{args.provider}'. "
-                     f"Valid options: {', '.join(SUPPORTED_PROVIDERS)}")
+        logger.error(
+            f"Unknown provider '{args.provider}'. "
+            f"Valid options: {', '.join(SUPPORTED_PROVIDERS)}"
+        )
         sys.exit(2)
     except Exception as e:
         logger.error(f"Failed to initialize provider '{args.provider}': {e}")
@@ -100,8 +106,12 @@ def main():
         sys.exit(4)
 
     logger.info("Agent ready.")
-    run_interactive(app, get_event_input=get_event_input,
-                    project_name=args.project, provider=provider)
+    run_interactive(
+        app,
+        get_event_input=get_event_input,
+        project_name=args.project,
+        provider=provider,
+    )
 
 
 if __name__ == "__main__":
