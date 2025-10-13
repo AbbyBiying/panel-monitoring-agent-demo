@@ -149,7 +149,7 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
             if isinstance(out, tuple) and len(out) == 2:
                 raw_sig, raw_meta = out
             else:
-                raw_sig, raw_meta = (out or {}), {}
+                raw_sig, raw_meta = out or {}, {}
 
             signals = Signals.model_validate(raw_sig)
             meta = ModelMeta.model_validate(raw_meta or {})
