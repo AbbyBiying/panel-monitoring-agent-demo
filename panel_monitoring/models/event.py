@@ -2,6 +2,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 
+
 class EventDoc(BaseModel):
     type: str
     source: str
@@ -12,7 +13,7 @@ class EventDoc(BaseModel):
     payload: Dict[str, Any] = Field(default_factory=dict)
 
     # classification summary fields
-    status: str = "pending"   # pending | classified | error
+    status: str = "pending"  # pending | classified | error
     decision: Optional[str] = None
     confidence: Optional[float] = None
     last_run_id: Optional[str] = None

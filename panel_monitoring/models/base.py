@@ -2,7 +2,7 @@
 from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Dict, Optional
 
 
@@ -17,8 +17,9 @@ class BaseModel:
 
     id: Optional[int] = None  # filled by Postgres when inserted
     uuid: str = field(default_factory=lambda: str(uuid.uuid4()))
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    modified_at: datetime = field(default_factory=datetime.utcnow)
+
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    modified_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def touch(self) -> None:
         """Update modified_at before saving."""

@@ -2,44 +2,51 @@
 from __future__ import annotations
 
 import json
-import random
-from datetime import datetime, timezone
-from typing import Dict, Any
+from datetime import datetime, UTC
+from typing import Any, Literal, Tuple
 from uuid import uuid4
 
 from google.cloud import firestore
 from langsmith import traceable
 
-from panel_monitoring.app.schemas import GraphState, ModelMeta
+from panel_monitoring.app.schemas import GraphState, Signals, ModelMeta
 from panel_monitoring.app.utils import looks_like_automated
-from panel_monitoring.app.clients.llms.provider_base import ClassifierProvider
-from panel_monitoring.data.firestore_client import (
-    events_col,   # top-level 'events'
-    runs_col,     # top-level 'runs'
-)
+from panel_monitoring.data.firestore_client import events_col, runs_col
 
-# ----------------------------
-# Helpers
-# ----------------------------
+
+# --- helpers ---------------------------------------------------------------
+
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
-def _heuristic_fallback(event: str) -> Dict[str, Any]:
-    ev = (event or "").lower()
-    heur = any(k in ev for k in ("suspicious", "fraud", "bot", "abuse", "disposable"))
-    return {
-        "suspicious_signup": heur,
-        "normal_signup": not heur,
-        "confidence": 0.5,
-        "reason": "LLM failed, used heuristic fallback.",
-    }
+def _heuristic_fallback(text: str) -> Tuple[Signals, ModelMeta]:
+    t = (text or "").lower()
+    flagged = any(k in t for k in ("suspicious", "fraud", "bot", "abuse", "disposable"))
+    return (
+        Signals(
+            suspicious_signup=flagged,
+            normal_signup=not flagged,
+            confidence=0.5,
+            reason="LLM unavailable/invalid; simple heuristic used.",
+        ),
+        ModelMeta(provider="heuristic", model="fallback"),
+    )
 
 
-# ----------------------------
-# Nodes
-# ----------------------------
+def _event_text_from_state(state: GraphState) -> str:
+    """Produce a plain-text representation for classification & preview."""
+    if isinstance(state.event_text, str):
+        return state.event_text
+    src = state.event_data or ""
+    if isinstance(src, str):
+        return src
+    return json.dumps(src, ensure_ascii=False)
+
+
+# --- nodes -----------------------------------------------------------------
+
 
 @traceable(tags=["node"])
 def user_event_node(state: GraphState) -> GraphState:
@@ -47,20 +54,22 @@ def user_event_node(state: GraphState) -> GraphState:
     Create (or ensure) the parent event document in Firestore and prime state.
     If an event already exists (event_id provided), we don't create a new one.
     """
-    project_id = state.get("project_id") or "panel-app-dev"
-    event_text = state.get("event_text") or (state.get("event_data") or "")
+    project_id = state.project_id or "panel-app-dev"
 
-    # If caller already set event_id, just pass-through.
-    event_id = state.get("event_id")
+    # Build event_text from either raw text or structured payload
+    event_text = _event_text_from_state(state)
+
+    # If caller already set event_id, just pass-through; otherwise create one.
+    event_id = state.event_id
     if not event_id:
-        # Create minimal event doc in TOP-LEVEL 'events'
         evt_ref = events_col().document()
         evt_ref.set(
             {
                 "project_id": project_id,
-                "type": "signup",  # derive from input if you have a parser
+                "type": "signup",  # TODO: derive from input if you have a parser
                 "source": "web",
                 "received_at": firestore.SERVER_TIMESTAMP,
+                "updated_at": firestore.SERVER_TIMESTAMP,
                 "event_at": _utcnow(),
                 "status": "pending",
                 "payload": {"preview": (event_text or "")[:200]},
@@ -68,147 +77,163 @@ def user_event_node(state: GraphState) -> GraphState:
         )
         event_id = evt_ref.id
 
-    # Prime graph state
-    return {
-        "project_id": project_id,
-        "event_id": event_id,
-        "event_text": event_text,
-        "signals": {},
-        "classification": "error",
-        "action": "",
-        "log_entry": "",
-    }
+    # Seed a valid Signals to satisfy Pydantic until classifier overwrites it
+    seeded_signals = Signals(
+        suspicious_signup=False,
+        normal_signup=True,
+        confidence=0.0,
+        reason="unclassified",
+    )
+
+    # Return updated GraphState (don’t mutate dicts; keep it typed)
+    return state.model_copy(
+        update={
+            "project_id": project_id,
+            "event_id": event_id,
+            "event_text": event_text,
+            "signals": seeded_signals,
+            "classification": "error",
+            "action": "",
+            "log_entry": "",
+        }
+    )
 
 
-def make_signal_eval_node(provider: ClassifierProvider):
+@traceable(tags=["node"])
+def signal_evaluation_node(state: GraphState, runtime: Any = None) -> GraphState:
     """
-    Run the classifier provider and compute (classification, confidence).
-    Provider is expected to return (signals: dict, meta: dict).
+    Evaluate signals using provider from runtime.context (if present).
+    Falls back to lightweight heuristics when provider is absent or fails.
     """
+    # Build plain text from either raw text or structured payload
+    text = _event_text_from_state(state)
 
-    @traceable(tags=["node"])
-    def signal_evaluation_node(state: GraphState) -> GraphState:
-        event_text = state.get("event_text", "") or ""
-        model_meta: ModelMeta = {}
+    # 1) Fast-path heuristic
+    if looks_like_automated(text):
+        signals = Signals(
+            suspicious_signup=True,
+            normal_signup=False,
+            confidence=0.9,
+            reason="Automated/garbled input.",
+        )
+        meta = ModelMeta(provider="heuristic", model="shortcircuit")
 
-        # Short-circuit obvious automated noise
-        if looks_like_automated(event_text):
-            signals = {
-                "suspicious_signup": True,
-                "normal_signup": False,
-                "confidence": 0.9,
-                "reason": "Automated/garbled input.",
-            }
-            model_meta = {"provider": "heuristic", "model": "builtin-shortcircuit"}
-        else:
-            try:
-                # Provider returns (signals, meta)
-                signals, meta = (
-                    provider.classify(event_text)
-                    if hasattr(provider, "classify")
-                    else provider(event_text)
+    else:
+        # 2) Provider path with safe fallback
+        try:
+            provider = None
+            if runtime is not None and getattr(runtime, "context", None) is not None:
+                # runtime.context can be a dict or an object with attributes
+                ctx = runtime.context
+                provider = (
+                    ctx.get("provider")
+                    if isinstance(ctx, dict)
+                    else getattr(ctx, "provider", None)
                 )
-                model_meta = meta or {}
-            except Exception:
-                signals = _heuristic_fallback(event_text)
-                model_meta = {"provider": "heuristic", "model": "fallback"}
 
-        suspicious = bool(signals.get("suspicious_signup"))
-        normal = bool(signals.get("normal_signup"))
-        classification = "suspicious" if suspicious and not normal else "normal"
-        confidence = float(signals.get("confidence") or 0.0)
-        action = "no_action" if classification == "normal" else ""
+            if provider is None:
+                raise RuntimeError(
+                    "classifier provider not available in runtime.context"
+                )
 
-        return {
-            "signals": signals,
+            # Provider supports either callable or .classify(...)
+            out = (
+                provider.classify(text)
+                if hasattr(provider, "classify")
+                else provider(text)
+            )
+
+            if isinstance(out, tuple) and len(out) == 2:
+                raw_sig, raw_meta = out
+            else:
+                raw_sig, raw_meta = out or {}, {}
+
+            signals = Signals.model_validate(raw_sig)
+            meta = ModelMeta.model_validate(raw_meta or {})
+
+        except Exception:
+            signals, meta = _heuristic_fallback(text)
+
+    # Normalize outputs
+    classification: Literal["suspicious", "normal"] = (
+        "suspicious"
+        if (signals.suspicious_signup and not signals.normal_signup)
+        else "normal"
+    )
+    confidence = signals.confidence or 0.0
+    action = "hold_account" if classification == "suspicious" else "no_action"
+
+    # Return a new GraphState (typed), no intermediate dicts
+    return state.model_copy(
+        update={
+            "signals": signals,  # keep as Pydantic model
             "classification": classification,
             "confidence": confidence,
             "action": action,
-            "model_meta": model_meta,
+            "model_meta": meta,  # keep as Pydantic model
         }
-
-    return signal_evaluation_node
+    )
 
 
 @traceable(tags=["node"])
 def action_decision_node(state: GraphState) -> GraphState:
-    """
-    Placeholder decision policy. Replace with your real policy rules.
-    """
-    if state.get("classification") == "suspicious":
-        action = "remove_account" if random.random() > 0.5 else "hold_account"
-    else:
-        action = "no_action"
-    return {"action": action}
+    action = "hold_account" if state.classification == "suspicious" else "no_action"
+    return state.model_copy(update={"action": action})
 
 
 @traceable(tags=["node"])
 def explanation_node(state: GraphState) -> GraphState:
-    c = state.get("classification")
-    s = state.get("signals", {}) or {}
-    a = state.get("action") or "no_action"
-    conf = s.get("confidence")
-    conf_txt = f"{conf:.2f}" if isinstance(conf, (int, float)) else "N/A"
+    cls = state.classification
+    sig = state.signals
+    action = state.action or "no_action"
 
-    if c == "suspicious":
-        ex = (
-            f"The event was flagged as **SUSPICIOUS** (Confidence: {conf_txt}).\n"
-            f"Primary concern: **{s.get('reason', 'n/a')}**\n"
-            f"Final action: **{a}**."
-        )
-    elif c == "normal":
-        ex = (
-            f"The event was classified as **NORMAL** (Confidence: {conf_txt}). "
-            f"No sufficient evidence of fraud; action: **{a}**."
-        )
+    conf = sig.confidence if (sig and sig.confidence is not None) else None
+    conf_txt = f"{float(conf):.2f}" if isinstance(conf, (int, float)) else "N/A"
+
+    if cls == "suspicious":
+        reason = sig.reason if (sig and sig.reason) else "n/a"
+        ex = f"SUSPICIOUS (Conf {conf_txt}). Reason: {reason}. Action: {action}."
+    elif cls == "normal":
+        ex = f"NORMAL (Conf {conf_txt}). Action: {action}."
     else:
-        ex = "Classification error occurred; see logs."
-    return {"explanation_report": ex}
+        ex = "Classification error."
+
+    return state.model_copy(update={"explanation_report": ex})
 
 
 @traceable(tags=["node"])
 def logging_node(state: GraphState) -> GraphState:
-    """
-    Persist a run (top-level 'runs') and update the parent event summary.
-    Metrics rollups removed for simplicity.
-    """
-    project_id = state["project_id"]
-    event_id = state["event_id"]
+    project_id = state.project_id or "panel-app-dev"
+    event_id = state.event_id
+    if not event_id:
+        return state.model_copy(update={"error": "logging_node: missing event_id"})
+
     run_id = uuid4().hex
+    decision = state.classification or "error"
+    confidence = float(state.confidence or 0.0)
 
-    decision = state.get("classification", "error")
-    confidence = float(state.get("confidence") or 0.0)
-    signals = state.get("signals", {}) or {}
-    meta: ModelMeta = state.get("model_meta", {}) or {}
+    # Convert models to dicts for Firestore I/O
+    signals_dict = state.signals.model_dump() if state.signals else {}
+    meta = state.model_meta  # always a ModelMeta (has defaults)
 
-    # ---- Write run (TOP-LEVEL 'runs')
+    # Write run (top-level 'runs')
     runs_col().document(run_id).set(
         {
             "project_id": project_id,
             "event_id": event_id,
-
-            "provider": meta.get("provider", "vertexai"),
-            "model": meta.get("model", "gemini-2.5-pro"),
-            "temperature": meta.get("temperature", 0),
-            "max_output_tokens": meta.get("max_output_tokens"),
-            "request_timeout": meta.get("request_timeout"),
-            "max_retries": meta.get("max_retries"),
-            "usage": meta.get("usage", {}),
-            "latency_ms": meta.get("latency_ms"),
-            "cost_usd": meta.get("cost_usd"),
-
-            "event_type": "signup",  # include if you want quick filtering in runs
+            "provider": meta.provider or "vertexai",
+            "model": meta.model or "gemini-2.5-pro",
             "decision": decision,
             "confidence": confidence,
-            "signals": signals,
-
+            "signals": signals_dict,
             "started_at": firestore.SERVER_TIMESTAMP,
             "finished_at": firestore.SERVER_TIMESTAMP,
-            "error": meta.get("error"),
+            "latency_ms": meta.latency_ms,
+            "cost_usd": meta.cost_usd,
         }
     )
 
-    # ---- Update parent event summary (TOP-LEVEL 'events')
+    # Update parent event summary (top-level 'events')
     events_col().document(event_id).set(
         {
             "project_id": project_id,
@@ -221,20 +246,24 @@ def logging_node(state: GraphState) -> GraphState:
         merge=True,
     )
 
-    # ---- Build a small human-friendly log summary
-    action = state.get("action") or ("no_action" if decision == "normal" else "N/A")
-    preview = (state.get("event_text") or state.get("event_data") or "N/A")[:50]
+    # Build human-friendly log summary
+    preview = _event_text_from_state(state)[:50]
+
     log_summary = {
         "event_id": event_id,
         "run_id": run_id,
-        "event_preview": f"{preview}...",
         "classification": decision,
         "confidence": confidence,
-        "final_action": action,
-        "provider": meta.get("provider", "vertexai"),
-        "model": meta.get("model", "gemini-2.5-pro"),
-        "latency_ms": meta.get("latency_ms"),
+        "final_action": state.action
+        or ("no_action" if decision == "normal" else "N/A"),
+        "provider": meta.provider or "vertexai",
+        "model": meta.model or "gemini-2.5-pro",
+        "latency_ms": meta.latency_ms,
+        "cost_usd": meta.cost_usd,
+        "event_preview": f"{preview}...",
         "timestamp": _utcnow().isoformat(),
     }
 
-    return {"log_entry": json.dumps(log_summary, indent=2)}
+    return state.model_copy(
+        update={"log_entry": json.dumps(log_summary, ensure_ascii=False, indent=2)}
+    )

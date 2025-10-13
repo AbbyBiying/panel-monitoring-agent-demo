@@ -30,7 +30,9 @@ def main():
 
     project_id = _project()
     if not project_id:
-        raise SystemExit("No project resolved. Set GOOGLE_CLOUD_PROJECT (or GCP_PROJECT*).")
+        raise SystemExit(
+            "No project resolved. Set GOOGLE_CLOUD_PROJECT (or GCP_PROJECT*)."
+        )
 
     source = os.getenv("PM_SOURCE_ID", "S1")
     logger.info("Smoke datastore start: project=%s source=%s", project_id, source)

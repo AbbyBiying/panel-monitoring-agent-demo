@@ -7,7 +7,6 @@ from google.cloud import firestore
 from panel_monitoring.data.firestore_client import events_col, projects_col, alerts_col
 
 
-
 def main():
     project_id = "panel-app-dev"
 
@@ -52,7 +51,6 @@ def main():
         }
     )
     print(f"[ok] alert {alert_ref.id} seeded for project {project_id}")
-
 
 
 if __name__ == "__main__":
