@@ -3,12 +3,17 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, UTC
-from typing import Any, Literal, Tuple
+import os
+from typing import Literal, Tuple
 from uuid import uuid4
 
 from google.cloud import firestore
 from langsmith import traceable
 
+# from langchain_core.runnables.config import get_config
+from langchain_core.runnables.config import ensure_config
+
+from panel_monitoring.app.clients.llms import get_llm_classifier
 from panel_monitoring.app.schemas import GraphState, Signals, ModelMeta
 from panel_monitoring.app.utils import looks_like_automated
 from panel_monitoring.data.firestore_client import events_col, runs_col
@@ -100,7 +105,7 @@ def user_event_node(state: GraphState) -> GraphState:
 
 
 @traceable(tags=["node"])
-def signal_evaluation_node(state: GraphState, runtime: Any = None) -> GraphState:
+def signal_evaluation_node(state: GraphState) -> GraphState:
     """
     Evaluate signals using provider from runtime.context (if present).
     Falls back to lightweight heuristics when provider is absent or fails.
@@ -119,30 +124,28 @@ def signal_evaluation_node(state: GraphState, runtime: Any = None) -> GraphState
         meta = ModelMeta(provider="heuristic", model="shortcircuit")
 
     else:
-        # 2) Provider path with safe fallback
         try:
-            provider = None
-            if runtime is not None and getattr(runtime, "context", None) is not None:
-                # runtime.context can be a dict or an object with attributes
-                ctx = runtime.context
-                provider = (
-                    ctx.get("provider")
-                    if isinstance(ctx, dict)
-                    else getattr(ctx, "provider", None)
-                )
+            # 2) Preferred: provider injected at invoke-time
+            cfg = ensure_config()
+            classifier = (cfg.get("configurable") or {}).get("classifier")
 
-            if provider is None:
-                raise RuntimeError(
-                    "classifier provider not available in runtime.context"
-                )
+            # 3) Fallback: build provider from env if not injected (works on Cloud)
+            if classifier is None:
+                provider_key = os.getenv("PANEL_DEFAULT_PROVIDER")
+                if provider_key:
+                    provider_key = {"gemini": "genai"}.get(provider_key, provider_key)
+                    classifier = get_llm_classifier(provider_key)
+            if classifier is None:
+                raise RuntimeError("No provider available (runtime/config/env).")
 
-            # Provider supports either callable or .classify(...)
-            out = (
-                provider.classify(text)
-                if hasattr(provider, "classify")
-                else provider(text)
-            )
+            # Resolve callable: support either .classify(...) or direct callable
+            call = getattr(classifier, "classify", classifier)
+            if not callable(call):
+                raise TypeError("Classifier is not callable and has no .classify()")
 
+            out = call(text)
+
+            # Accept either dict or (dict, dict)
             if isinstance(out, tuple) and len(out) == 2:
                 raw_sig, raw_meta = out
             else:

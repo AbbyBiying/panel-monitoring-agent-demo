@@ -76,10 +76,13 @@ def main():
     p.add_argument(
         "--provider",
         choices=SUPPORTED_PROVIDERS,
-        default=os.getenv("LLM_PROVIDER", "openai"),
+        default=os.getenv("PANEL_DEFAULT_PROVIDER", "openai"),
+        help="LLM provider to use (default from PANEL_DEFAULT_PROVIDER).",
     )
     p.add_argument(
-        "--project", default=os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent")
+        "--project",
+        default=os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
+        help="LangSmith project name.",
     )
     args = p.parse_args()
 
