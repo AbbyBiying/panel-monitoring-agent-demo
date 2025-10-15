@@ -108,5 +108,5 @@ def pubsub_to_langsmith(event):
         return "OK"
     except Exception as e:
         # Raising triggers retries (use DLQ on the subscription to catch poison messages) 
-        logger.warning({"msg": "Ingested to LangSmith", "messageId": idem_key})
+        logger.warning({"msg": "Failed to ingest to LangSmith", "messageId": idem_key})
         raise 
