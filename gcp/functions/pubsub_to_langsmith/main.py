@@ -62,7 +62,7 @@ def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Union[dict, str, None]
         try:
             raw = base64.b64decode(data_b64).decode("utf-8")
             try:
-                payload = json.loads(raw) # Try JSON first; if not JSON, 
+                payload = json.loads(raw) # Try JSON first; if not JSON, keep as text
             except json.JSONDecodeError:
                 payload = raw # keep as text
 
