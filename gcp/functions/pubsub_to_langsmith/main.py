@@ -57,7 +57,7 @@ def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Union[dict, str, None]
     """
     msg = (event_data or {}).get("message") or {}
     data_b64 = msg.get("data")
-    payload = {}
+    payload = None
     if data_b64:
         try:
             raw = base64.b64decode(data_b64).decode("utf-8")
