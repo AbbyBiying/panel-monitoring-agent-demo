@@ -4,7 +4,7 @@ Cloud Run Functions requires `requirements.txt`.  Locally, we can use `uv` to in
 ```
 gcloud run functions deploy pubsub-to-langsmith \
   --region=us-central1 \
-  --runtime=python312 \
+  --runtime=python313 \
   --source=. \
   --entry-point=pubsub_to_langsmith \
   --trigger-topic=panel-events
