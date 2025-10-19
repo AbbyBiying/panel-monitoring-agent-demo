@@ -19,7 +19,11 @@ from langsmith import Client
 
 load_dotenv()
 
+logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
+
+LANGSMITH_ENDPOINT = os.getenv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com")
+LANGSMITH_PROJECT = os.getenv("LANGSMITH_PROJECT")
 
 def _get_ls_client() -> Client:
     api_key = (
@@ -27,9 +31,15 @@ def _get_ls_client() -> Client:
         or os.getenv("LANGSMITH_API_KEY")
     )
     if not api_key:
-        # Fail fast so the error is obvious in logs; Pub/Sub will retry if enabled
+        # Fail fast so the error is obvious in logs; Pub/Sub will retry if enabled 
+        logger.error(
+            {
+                "msg": "Missing LangSmith API key in environment.",
+                "checked": ["LANGSMITH_API_KEY_CLOUD_FUNCTIONS", "LANGSMITH_API_KEY"],
+            }
+        )
         raise RuntimeError("Missing LANGSMITH API key")
-    return Client(api_key=api_key, api_url=os.getenv("LANGSMITH_ENDPOINT"))
+    return Client(api_key=api_key, api_url=LANGSMITH_ENDPOINT)
 
 
 # Configure LangSmith client from env (prefer Secret Manager for the API key)
