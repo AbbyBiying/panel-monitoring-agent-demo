@@ -44,8 +44,6 @@ def _get_ls_client() -> Client:
 
 # Configure LangSmith client from env (prefer Secret Manager for the API key)
 _LS = _get_ls_client()
-_PROJECT = os.getenv("LANGSMITH_PROJECT")
-
 
 def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Union[dict, str, None], dict]:
     """
