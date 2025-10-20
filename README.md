@@ -28,6 +28,11 @@ uv venv .venv --clear
 uv sync
 ```
 
+# Activate your virtual environment
+```
+source .venv/bin/activate
+```
+
 ### Running notebooks
 If you don't have Jupyter set up, follow installation instructions [here](https://jupyter.org/install).
 ```
