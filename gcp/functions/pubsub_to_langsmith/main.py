@@ -30,6 +30,7 @@ load_dotenv()
 LANGSMITH_PROJECT = os.getenv("LANGSMITH_PROJECT")
 print(f"LANGSMITH_PROJECT: {LANGSMITH_PROJECT}")
 
+
 def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Union[dict, str, None], dict]:
     """
     Extracts and decodes Pub/Sub payload + useful metadata from an Eventarc CloudEvent.
@@ -53,20 +54,32 @@ def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Union[dict, str, None]
     msg = (event_data or {}).get("message") or {}
     data_b64 = msg.get("data")
     payload = None
-    if data_b64:
-        raw = base64.b64decode(data_b64).decode("utf-8")
-        try:
-            payload = json.loads(raw)  # JSON first
-        except json.JSONDecodeError:
-            payload = raw              # else keep as text
 
-    meta = {
-        "pubsub_message_id": msg.get("messageId"),
-        "pubsub_ordering_key": msg.get("orderingKey"),
-        "pubsub_publish_time": msg.get("publishTime"),
-        "pubsub_attributes": msg.get("attributes") or {},
-    }
-    return payload, meta
+    try:
+        if data_b64:
+            raw = base64.b64decode(data_b64).decode("utf-8")
+            try:
+                payload = json.loads(raw)
+            except json.JSONDecodeError:
+                payload = raw
+        else:
+            raw = None
+
+        meta = {
+            "pubsub_message_id": msg.get("messageId"),
+            "pubsub_ordering_key": msg.get("orderingKey"),
+            "pubsub_publish_time": msg.get("publishTime"),
+            "pubsub_attributes": msg.get("attributes") or {},
+        }
+        return payload, meta
+
+    except Exception as e:
+        print(f"[ERROR] Failed to decode Pub/Sub payload: {e}")
+        print(f"  data_b64: {data_b64!r}")
+        print(f"  msg: {msg!r}")
+        print(f"  raw: {locals().get('raw', None)!r}")
+        print(f"  event_data: {event_data!r}")
+        raise
 
 
 def _get_remote_graph() -> RemoteGraph:
