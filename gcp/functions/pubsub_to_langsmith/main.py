@@ -80,40 +80,45 @@ def _get_remote_graph() -> RemoteGraph:
     # Allow your existing key name to flow into the standard var RemoteGraph expects.
     cf_key = os.getenv("LANGSMITH_API_KEY_CLOUD_FUNCTIONS")
     if cf_key and not os.getenv("LANGSMITH_API_KEY"):
-        os.environ["LANGSMITH_API_KEY"] = cf_key  # used implicitly by RemoteGraph
+        os.environ["LANGSMITH_API_KEY"] = cf_key
 
-    url = os.environ["LG_DEPLOYMENT_URL"]
-    target = os.getenv("LG_ASSISTANT_ID") or os.getenv("LG_GRAPH_NAME")
+    url = os.environ["LG_DEPLOYMENT_URL"].rstrip("/")
+    target = os.getenv("LG_ASSISTANT_ID") or os.getenv("LG_GRAPH_NAME", "panel-agent")
     if not target:
         raise RuntimeError("Set LG_ASSISTANT_ID or LG_GRAPH_NAME in env.")
-    # RemoteGraph mirrors local graph API (invoke, stream, get_state, …)
+
+    print(f"[RemoteGraph] target={target} url={url}")
     return RemoteGraph(target, url=url)
+
+
+def _build_graph_inputs(payload: t.Union[dict, str, None], meta: dict) -> dict:
+    """Shape Pub/Sub payload to match GraphState schema (from your nodes.py)."""
+    base = {"project_id": "panel-app-dev", "meta": meta}
+    if isinstance(payload, str):
+        base["event_text"] = payload
+    elif isinstance(payload, dict):
+        base["event_data"] = payload
+    else:
+        base["event_text"] = ""
+    return base
+
 
 
 @functions_framework.cloud_event
 def pubsub_to_langsmith(event):
     """
-    Gen2 Cloud Functions entry point. Invokes your LangGraph **deployment** on LangSmith.
-
-    Flow:
-      1) Decode Pub/Sub message (CloudEvent)
-      2) Derive a thread_id (stable if provided; otherwise random)
-      3) Call deployment via RemoteGraph.invoke(inputs, config={"configurable":{"thread_id": ...}})
-      4) ACK (return 200) with a short payload
+    Cloud Run Function entry point.
+    Triggered by Pub/Sub → sends payload to LangSmith deployed graph ("panel-agent").
     """
-    print(f"[BOOT] LANGSMITH_PROJECT={LANGSMITH_PROJECT}")
     try:
-        print(f"event.data: {event.data}")
         payload, meta = _decode_pubsub_payload(event.data)
         pubsub_message_id = (meta or {}).get("pubsub_message_id") or ""
 
-        # If there is genuinely nothing to process, just return success.
         if payload in (None, "", {}):
             print({"msg": "No payload", "messageId": pubsub_message_id})
             return "No data"
 
-        # Choose a stable thread id if you want persistent state across related events.
-        attrs = (meta or {}).get("pubsub_attributes", {}) or {}
+        attrs = (meta or {}).get("pubsub_attributes") or {}
         thread_id = (
             attrs.get("thread_id")
             or attrs.get("user_id")
@@ -122,28 +127,17 @@ def pubsub_to_langsmith(event):
             or str(uuid.uuid4())
         )
 
-        # Build the inputs your graph expects.
-        # Adjust this to match your graph’s input schema.
-        graph_inputs = {
-            "messages": [
-                {"role": "user", "content": f"event: {payload}"},
-            ],
-            "meta": meta,
-            # If your graph expects different fields, map them here.
-        }
-
-        # Pass thread id using the config “configurable” channel (per docs)
+        graph_inputs = _build_graph_inputs(payload, meta)
         config = {"configurable": {"thread_id": thread_id}}
+
         remote = _get_remote_graph()
-
         print({"stage": "invoke_start", "message_id": pubsub_message_id, "thread_id": thread_id})
-        result = remote.invoke(graph_inputs, config=config)  # non-streaming for background jobs
-        print({"stage": "invoke_ok", "message_id": pubsub_message_id, "thread_id": thread_id})
 
-        # Optional: tiny sleep to keep logs ordered in short-lived containers
+        result = remote.invoke(graph_inputs, config=config)
+
+        print({"stage": "invoke_ok", "message_id": pubsub_message_id, "thread_id": thread_id})
         time.sleep(0.2)
 
-        # Return a small response (Functions Gen2 will JSON-serialize dicts)
         return {
             "ok": True,
             "message_id": pubsub_message_id,
@@ -152,7 +146,6 @@ def pubsub_to_langsmith(event):
         }
 
     except Exception as e:
-        # Log enough context for easy debugging; ACK with error payload (or rethrow to retry)
         print(
             json.dumps(
                 {
@@ -162,6 +155,5 @@ def pubsub_to_langsmith(event):
                 }
             )
         )
-        # If you want Pub/Sub retries, raise; otherwise return 200 with error info.
-        # raise
-        return {"ok": False, "error": str(e), "message_id": locals().get("pubsub_message_id", "")}
+        # raise  # uncomment if you want Pub/Sub retry behavior
+        return {"ok": False, "error": str(e)}
