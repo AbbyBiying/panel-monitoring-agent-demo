@@ -92,6 +92,7 @@ def _get_remote_graph() -> RemoteGraph:
     """
     # Allow your existing key name to flow into the standard var RemoteGraph expects.
     cf_key = os.getenv("LANGSMITH_API_KEY_CLOUD_FUNCTIONS")
+
     if cf_key and not os.getenv("LANGSMITH_API_KEY"):
         os.environ["LANGSMITH_API_KEY"] = cf_key
 
@@ -116,39 +117,53 @@ def _build_graph_inputs(payload: t.Union[dict, str, None], meta: dict) -> dict:
     return base
 
 
-
 @functions_framework.cloud_event
 def pubsub_to_langsmith(event):
     """
     Cloud Run Function entry point.
     Triggered by Pub/Sub → sends payload to LangSmith deployed graph ("panel-agent").
     """
+    print("[BOOT] pubsub_to_langsmith invoked")
+    # 1) Decode Pub/Sub envelope
+    payload, meta = _decode_pubsub_payload(event.data)
+    pubsub_message_id = (meta or {}).get("pubsub_message_id") or ""
+
+    if payload in (None, "", {}):
+        print({"msg": "No payload", "messageId": pubsub_message_id})
+        return "No data"
+
+    # 2) Build inputs for your graph
+    inputs = _build_graph_inputs(payload, meta)
+
+    attrs = (meta or {}).get("pubsub_attributes") or {}
+    thread_id = (
+        attrs.get("thread_id")
+        or attrs.get("user_id")
+        or attrs.get("ordering_key")
+        or (meta or {}).get("pubsub_ordering_key")
+        or pubsub_message_id
+        or str(uuid.uuid4())
+    )
+    # 3) Invoke the remote graph
+    remote = _get_remote_graph()
+    print(f"remote graph obtained, invoking...{remote}:{thread_id}")
     try:
-        payload, meta = _decode_pubsub_payload(event.data)
-        pubsub_message_id = (meta or {}).get("pubsub_message_id") or ""
-
-        if payload in (None, "", {}):
-            print({"msg": "No payload", "messageId": pubsub_message_id})
-            return "No data"
-
-        attrs = (meta or {}).get("pubsub_attributes") or {}
-        thread_id = (
-            attrs.get("thread_id")
-            or attrs.get("user_id")
-            or attrs.get("ordering_key")
-            or pubsub_message_id
-            or str(uuid.uuid4())
+        # If your deployment expects a thread, pass it. If not, it's ignored.
+        # Most deployments accept: .invoke(inputs, config={"thread_id": "..."})
+        result = remote.invoke(inputs, config={"thread_id": thread_id})
+        print(
+            {
+                "stage": "invoke_ok",
+                "message_id": pubsub_message_id,
+                "thread_id": thread_id,
+            }
         )
+        # Optional: log a concise result summary to avoid huge logs
+        if isinstance(result, dict):
+            print(f"[RESULT.keys] {list(result.keys())}")
+        else:
+            print(f"[RESULT.type] {type(result)}")
 
-        graph_inputs = _build_graph_inputs(payload, meta)
-        config = {"configurable": {"thread_id": thread_id}}
-
-        remote = _get_remote_graph()
-        print({"stage": "invoke_start", "message_id": pubsub_message_id, "thread_id": thread_id})
-
-        result = remote.invoke(graph_inputs, config=config)
-
-        print({"stage": "invoke_ok", "message_id": pubsub_message_id, "thread_id": thread_id})
         time.sleep(0.2)
 
         return {
@@ -157,16 +172,7 @@ def pubsub_to_langsmith(event):
             "thread_id": thread_id,
             "result": result,
         }
-
     except Exception as e:
-        print(
-            json.dumps(
-                {
-                    "stage": "invoke_error",
-                    "error": str(e),
-                    "message_id": locals().get("pubsub_message_id", ""),
-                }
-            )
-        )
-        # raise  # uncomment if you want Pub/Sub retry behavior
-        return {"ok": False, "error": str(e)}
+        # Let Eventarc decide on retries; you’ll also see errors in LangSmith traces/logs
+        print(f"[ERROR] Graph invocation failed: {e}")
+        raise

@@ -91,6 +91,19 @@ def user_event_node(state: GraphState) -> GraphState:
     )
 
     # Return updated GraphState (don’t mutate dicts; keep it typed)
+    # state is a Pydantic model instance of GraphState
+    # In Pydantic v2, .model_copy() replaces the old .copy() method from v1.
+    # new_state = state.model_copy(update={"classification": "suspicious"})
+    # same as new_state = GraphState(**state.dict(), classification="suspicious")
+    # You don’t want to mutate the original state (since multiple nodes might reference it concurrently or in branches).
+    # Instead, you return an immutable copy with the updated fields.
+    # Old state remains unchanged.
+    # New state carries your updates (e.g., classification results).
+    # LangGraph passes this new state downstream.
+    # Keeps all existing fields and values from state (anything you didn’t touch stays exactly the same).
+    # Updates only the specified fields (classification in this case).
+    # Preserves typing, defaults, and validation from the original model.
+    # Does not mutate the original state — it returns a brand-new one.
     return state.model_copy(
         update={
             "project_id": project_id,
