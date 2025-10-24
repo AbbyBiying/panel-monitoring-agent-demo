@@ -7,7 +7,7 @@ import os
 from typing import Literal, Tuple
 from uuid import uuid4
 
-from google.cloud import firestore
+# from google.cloud import firestore
 from langsmith import traceable
 
 # from langchain_core.runnables.config import get_config
@@ -16,7 +16,7 @@ from langchain_core.runnables.config import ensure_config
 from panel_monitoring.app.clients.llms import get_llm_classifier
 from panel_monitoring.app.schemas import GraphState, Signals, ModelMeta
 from panel_monitoring.app.utils import looks_like_automated
-from panel_monitoring.data.firestore_client import events_col, runs_col
+# from panel_monitoring.data.firestore_client import events_col, runs_col
 
 
 # --- helpers ---------------------------------------------------------------
