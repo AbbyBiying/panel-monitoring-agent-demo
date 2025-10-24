@@ -97,11 +97,12 @@ def _get_remote_graph() -> RemoteGraph:
         os.environ["LANGSMITH_API_KEY"] = cf_key
 
     url = os.environ["LG_DEPLOYMENT_URL"].rstrip("/")
+    print(f"LG_DEPLOYMENT_URL: {url}")
     target = os.getenv("LG_ASSISTANT_ID") or os.getenv("LG_GRAPH_NAME", "panel_agent")
     if not target:
         raise RuntimeError("Set LG_ASSISTANT_ID or LG_GRAPH_NAME in env.")
 
-    print(f"[RemoteGraph] target={target} url={url}")
+    print(f"[RemoteGraph WITH target AND URL] target={target} url={url}")
     return RemoteGraph(target, url=url)
 
 
@@ -150,7 +151,7 @@ def pubsub_to_langsmith(event):
     try:
         # If your deployment expects a thread, pass it. If not, it's ignored.
         # Most deployments accept: .invoke(inputs, config={"thread_id": "..."})
-        result = remote.invoke(inputs, config={"thread_id": thread_id})
+        result = remote.invoke(inputs, config={"thread_id": thread_id, "project_name": "panel-monitoring-agent"})
         print(
             {
                 "stage": "invoke_ok",
