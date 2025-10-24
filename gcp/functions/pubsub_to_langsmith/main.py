@@ -97,7 +97,7 @@ def _get_remote_graph() -> RemoteGraph:
         os.environ["LANGSMITH_API_KEY"] = cf_key
 
     url = os.environ["LG_DEPLOYMENT_URL"].rstrip("/")
-    target = os.getenv("LG_ASSISTANT_ID") or os.getenv("LG_GRAPH_NAME", "panel-agent")
+    target = os.getenv("LG_ASSISTANT_ID") or os.getenv("LG_GRAPH_NAME", "panel_agent")
     if not target:
         raise RuntimeError("Set LG_ASSISTANT_ID or LG_GRAPH_NAME in env.")
 
