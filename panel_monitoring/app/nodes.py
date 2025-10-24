@@ -65,22 +65,26 @@ def user_event_node(state: GraphState) -> GraphState:
     event_text = _event_text_from_state(state)
 
     # If caller already set event_id, just pass-through; otherwise create one.
-    event_id = state.event_id
-    if not event_id:
-        evt_ref = events_col().document()
-        evt_ref.set(
-            {
-                "project_id": project_id,
-                "type": "signup",  # TODO: derive from input if you have a parser
-                "source": "web",
-                "received_at": firestore.SERVER_TIMESTAMP,
-                "updated_at": firestore.SERVER_TIMESTAMP,
-                "event_at": _utcnow(),
-                "status": "pending",
-                "payload": {"preview": (event_text or "")[:200]},
-            }
-        )
-        event_id = evt_ref.id
+
+    # Generate an event_id if not provided
+    event_id = state.event_id or uuid4().hex
+    # event_id = state.event_id
+    # if not event_id:
+    #     evt_ref = events_col().document()
+    #     evt_ref.set(
+    #         {
+    #             "project_id": project_id,
+    #             "type": "signup",  # TODO: derive from input if you have a parser
+    #             "source": "web",
+    #             "received_at": firestore.SERVER_TIMESTAMP,
+
+    #             "updated_at": firestore.SERVER_TIMESTAMP,
+    #             "event_at": _utcnow(),
+    #             "status": "pending",
+    #             "payload": {"preview": (event_text or "")[:200]},
+    #         }
+    #     )
+    #     event_id = evt_ref.id
 
     # Seed a valid Signals to satisfy Pydantic until classifier overwrites it
     seeded_signals = Signals(
@@ -220,9 +224,11 @@ def explanation_node(state: GraphState) -> GraphState:
 @traceable(tags=["node"])
 def logging_node(state: GraphState) -> GraphState:
     project_id = state.project_id or "panel-app-dev"
-    event_id = state.event_id
-    if not event_id:
-        return state.model_copy(update={"error": "logging_node: missing event_id"})
+    # event_id = state.event_id
+
+    event_id = state.event_id or uuid4().hex
+    # if not event_id:
+    #     return state.model_copy(update={"error": "logging_node: missing event_id"})
 
     run_id = uuid4().hex
     decision = state.classification or "error"
@@ -233,34 +239,34 @@ def logging_node(state: GraphState) -> GraphState:
     meta = state.model_meta  # always a ModelMeta (has defaults)
 
     # Write run (top-level 'runs')
-    runs_col().document(run_id).set(
-        {
-            "project_id": project_id,
-            "event_id": event_id,
-            "provider": meta.provider or "vertexai",
-            "model": meta.model or "gemini-2.5-pro",
-            "decision": decision,
-            "confidence": confidence,
-            "signals": signals_dict,
-            "started_at": firestore.SERVER_TIMESTAMP,
-            "finished_at": firestore.SERVER_TIMESTAMP,
-            "latency_ms": meta.latency_ms,
-            "cost_usd": meta.cost_usd,
-        }
-    )
+    # runs_col().document(run_id).set(
+    #     {
+    #         "project_id": project_id,
+    #         "event_id": event_id,
+    #         "provider": meta.provider or "vertexai",
+    #         "model": meta.model or "gemini-2.5-pro",
+    #         "decision": decision,
+    #         "confidence": confidence,
+    #         "signals": signals_dict,
+    #         "started_at": firestore.SERVER_TIMESTAMP,
+    #         "finished_at": firestore.SERVER_TIMESTAMP,
+    #         "latency_ms": meta.latency_ms,
+    #         "cost_usd": meta.cost_usd,
+    #     }
+    # )
 
     # Update parent event summary (top-level 'events')
-    events_col().document(event_id).set(
-        {
-            "project_id": project_id,
-            "status": "classified" if decision != "error" else "error",
-            "decision": decision,
-            "confidence": confidence,
-            "last_run_id": run_id,
-            "updated_at": firestore.SERVER_TIMESTAMP,
-        },
-        merge=True,
-    )
+    # events_col().document(event_id).set(
+    #     {
+    #         "project_id": project_id,
+    #         "status": "classified" if decision != "error" else "error",
+    #         "decision": decision,
+    #         "confidence": confidence,
+    #         "last_run_id": run_id,
+    #         "updated_at": firestore.SERVER_TIMESTAMP,
+    #     },
+    #     merge=True,
+    # )
 
     # Build human-friendly log summary
     preview = _event_text_from_state(state)[:50]
