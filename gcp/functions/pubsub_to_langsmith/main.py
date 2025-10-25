@@ -124,14 +124,12 @@ def _runtime_config(thread_id: str) -> dict:
         "thread_id": thread_id,
         "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
         "configurable": {
-            "provider": "openai",
-            "model": "gpt-4o",
-            # "provider": os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai"),
-            # "model": os.getenv("VERTEX_MODEL", "gemini-1.5-flash"),
-            # "vertex_project": os.getenv(
-            #     "GOOGLE_CLOUD_PROJECT", "panel-monitoring-agent"
-            # ),
-            # "vertex_region": os.getenv("GOOGLE_CLOUD_REGION", "us-central1"),
+            "provider": os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai"),
+            "model": os.getenv("VERTEX_MODEL", "gemini-1.5-flash"),
+            "vertex_project": os.getenv(
+                "GOOGLE_CLOUD_PROJECT", "panel-monitoring-agent"
+            ),
+            "vertex_region": os.getenv("GOOGLE_CLOUD_REGION", "us-central1"),
         },
     }
 

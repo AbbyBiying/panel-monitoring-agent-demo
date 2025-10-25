@@ -61,12 +61,7 @@ def user_event_node(state: GraphState) -> GraphState:
     """
     project_id = state.project_id or "panel-app-dev"
 
-    # Build event_text from either raw text or structured payload
     event_text = _event_text_from_state(state)
-
-    # If caller already set event_id, just pass-through; otherwise create one.
-
-    # Generate an event_id if not provided
     event_id = state.event_id or uuid4().hex
     # event_id = state.event_id
     # if not event_id:
@@ -127,7 +122,6 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
     Evaluate signals using provider from runtime.context (if present).
     Falls back to lightweight heuristics when provider is absent or fails.
     """
-    # Build plain text from either raw text or structured payload
     text = _event_text_from_state(state)
 
     # 1) Fast-path heuristic
@@ -144,30 +138,20 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
         try:
             # 2) Preferred: provider injected at invoke-time
             cfg = ensure_config()
-            classifier = (cfg.get("configurable") or {}).get("classifier")
-            provider = cfg.get("provider") or os.getenv("PANEL_DEFAULT_PROVIDER")
-            print(f"[DEBUG] Using classifier from runtime config: {classifier}")
-            print(f"[DEBUG] Using provider from runtime config/env: {provider}")
+            # Always prefer vertexai for this deployment
+            provider = "vertexai"
+            model = os.getenv("VERTEX_MODEL", "gemini-1.5-pro")
+            project = os.getenv("GOOGLE_CLOUD_PROJECT", "panel-monitoring-agent")
+            region = os.getenv("GOOGLE_CLOUD_REGION", "us-central1")
 
-            # # extras for Vertex only (safe to pass None)
-            # project = cfg.get("vertex_project") or os.getenv("GOOGLE_CLOUD_PROJECT")
-            # region = cfg.get("vertex_region") or os.getenv("GOOGLE_CLOUD_REGION", "us-central1")
+            print(f"[INFO] Using provider: {provider}, model: {model}")
 
-            # 3) Fallback: build provider from env if not injected (works on Cloud)
+            classifier = get_llm_classifier(provider)
             if classifier is None:
-                print("[DEBUG] No classifier in runtime config, checking env...")
-                provider_key = os.getenv("PANEL_DEFAULT_PROVIDER")
-                if provider_key:
-                    provider_key = {"gemini": "genai"}.get(provider_key, provider_key)
-                    if not provider_key:
-                        provider_key = "openai"
-                        print("[DEBUG] Defaulting provider to 'openai'")
-            classifier = get_llm_classifier("openai")
-            if classifier is None:
-                print("[DEBUG] No classifier found in env either at line 66, raising error.")
-                raise RuntimeError("No provider available (runtime/config/env).")
+                raise RuntimeError("No Vertex AI classifier found.")
 
-            # Resolve callable: support either .classify(...) or direct callable
+ 
+            # Vertex classifier should handle (text) → (Signals, ModelMeta)
             call = getattr(classifier, "classify", classifier)
             if not callable(call):
                 raise TypeError("Classifier is not callable and has no .classify()")
@@ -182,8 +166,10 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
 
             signals = Signals.model_validate(raw_sig)
             meta = ModelMeta.model_validate(raw_meta or {})
-
-        except Exception:
+            meta.provider = provider
+            meta.model = model
+        except Exception as e:
+            print(f"[WARN] VertexAI classification failed: {e}")
             signals, meta = _heuristic_fallback(text)
 
     # Normalize outputs
@@ -218,7 +204,6 @@ def explanation_node(state: GraphState) -> GraphState:
     cls = state.classification
     sig = state.signals
     action = state.action or "no_action"
-
     conf = sig.confidence if (sig and sig.confidence is not None) else None
     conf_txt = f"{float(conf):.2f}" if isinstance(conf, (int, float)) else "N/A"
 
