@@ -178,6 +178,9 @@ def pubsub_to_langsmith(event):
             print(f"[RESULT.type] {type(result)}")
 
         time.sleep(0.2)
+        print("[COMPLETE] Graph invocation finished.")
+        # how to parse the result? 
+        print("result", result) 
 
         return {
             "ok": True,
