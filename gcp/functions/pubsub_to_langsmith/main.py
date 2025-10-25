@@ -118,6 +118,16 @@ def _build_graph_inputs(payload: t.Union[dict, str, None], meta: dict) -> dict:
     return base
 
 
+def _runtime_config(thread_id: str) -> dict:
+    # Pull from env so you can set them with --set-env-vars at deploy time
+    return {
+        "thread_id": thread_id,
+        "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
+        "configurable": {
+            "provider": os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai"),
+        },
+    }
+
 @functions_framework.cloud_event
 def pubsub_to_langsmith(event):
     """
@@ -149,9 +159,8 @@ def pubsub_to_langsmith(event):
     remote = _get_remote_graph()
     print(f"remote graph obtained, invoking...{remote}:{thread_id}")
     try:
-        # If your deployment expects a thread, pass it. If not, it's ignored.
-        # Most deployments accept: .invoke(inputs, config={"thread_id": "..."})
-        result = remote.invoke(inputs, config={"thread_id": thread_id, "project_name": "panel-monitoring-agent"})
+        config = _runtime_config(thread_id)
+        result = remote.invoke(inputs, config=config)
         print(
             {
                 "stage": "invoke_ok",

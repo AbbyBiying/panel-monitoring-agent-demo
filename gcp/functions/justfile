@@ -24,13 +24,13 @@ deploy-pubsub:
         --source=. \
         --entry-point=pubsub_to_langsmith \
         --trigger-topic=user-event-signups \
-        --set-env-vars=LG_DEPLOYMENT_URL="${LG_DEPLOYMENT_URL}",LANGSMITH_PROJECT="${LANGSMITH_PROJECT}",LOG_LEVEL="${LOG_LEVEL:-INFO}" \
+        --set-env-vars=LG_DEPLOYMENT_URL="$${LG_DEPLOYMENT_URL}",LANGSMITH_PROJECT="$${LANGSMITH_PROJECT}",LOG_LEVEL="$${LOG_LEVEL:-INFO}",LG_GRAPH_NAME="$${LG_GRAPH_NAME:-panel_agent}",PANEL_DEFAULT_PROVIDER="$${PANEL_DEFAULT_PROVIDER:-vertexai}",GOOGLE_CLOUD_PROJECT="$${GOOGLE_CLOUD_PROJECT:-$${PROJECT_ID:-}}",GOOGLE_CLOUD_REGION="$${GOOGLE_CLOUD_REGION:-us-central1}" \
         --set-secrets=LANGSMITH_API_KEY_CLOUD_FUNCTIONS=LANGSMITH_API_KEY_CLOUD_FUNCTIONS:latest \
 
 publish-test-event:
     #!/usr/bin/env bash
     # gcloud pubsub topics publish user-event-signups --message='Ralphxxxx from Tennessee.'
-    gcloud pubsub topics publish user-event-signups --message="dfsadasTESTINGsdfasdfads LangGraph deployment check"
+    gcloud pubsub topics publish user-event-signups --message="Now it is 10-24-2025, 7pm and it is Finally doing LangGraph deployment!"
 
 
 logs-tail:
