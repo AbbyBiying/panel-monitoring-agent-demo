@@ -4,3 +4,4 @@ langgraph>=1.0
 google-cloud-logging>=3.9
 python-dotenv>=1.0
 langchain-openai>=0.1.0
+openai>=1.40.0
