@@ -145,14 +145,26 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
             # 2) Preferred: provider injected at invoke-time
             cfg = ensure_config()
             classifier = (cfg.get("configurable") or {}).get("classifier")
+            provider = cfg.get("provider") or os.getenv("PANEL_DEFAULT_PROVIDER")
+            print(f"[DEBUG] Using classifier from runtime config: {classifier}")
+            print(f"[DEBUG] Using provider from runtime config/env: {provider}")
+
+            # # extras for Vertex only (safe to pass None)
+            # project = cfg.get("vertex_project") or os.getenv("GOOGLE_CLOUD_PROJECT")
+            # region = cfg.get("vertex_region") or os.getenv("GOOGLE_CLOUD_REGION", "us-central1")
 
             # 3) Fallback: build provider from env if not injected (works on Cloud)
             if classifier is None:
+                print("[DEBUG] No classifier in runtime config, checking env...")
                 provider_key = os.getenv("PANEL_DEFAULT_PROVIDER")
                 if provider_key:
                     provider_key = {"gemini": "genai"}.get(provider_key, provider_key)
+                    if not provider_key:
+                        provider_key = "openai"
+                        print("[DEBUG] Defaulting provider to 'openai'")
                     classifier = get_llm_classifier(provider_key)
             if classifier is None:
+                print("[DEBUG] No classifier found in env either at line 66, raising error.")
                 raise RuntimeError("No provider available (runtime/config/env).")
 
             # Resolve callable: support either .classify(...) or direct callable
