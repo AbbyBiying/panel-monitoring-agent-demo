@@ -162,7 +162,7 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
                     if not provider_key:
                         provider_key = "openai"
                         print("[DEBUG] Defaulting provider to 'openai'")
-                    classifier = get_llm_classifier(provider_key)
+            classifier = get_llm_classifier("openai")
             if classifier is None:
                 print("[DEBUG] No classifier found in env either at line 66, raising error.")
                 raise RuntimeError("No provider available (runtime/config/env).")
