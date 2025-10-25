@@ -125,8 +125,14 @@ def _runtime_config(thread_id: str) -> dict:
         "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
         "configurable": {
             "provider": os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai"),
+            "model": os.getenv("VERTEX_MODEL", "gemini-1.5-flash"),
+            "vertex_project": os.getenv(
+                "GOOGLE_CLOUD_PROJECT", "panel-monitoring-agent"
+            ),
+            "vertex_region": os.getenv("GOOGLE_CLOUD_REGION", "us-central1"),
         },
     }
+
 
 @functions_framework.cloud_event
 def pubsub_to_langsmith(event):
@@ -160,7 +166,7 @@ def pubsub_to_langsmith(event):
     print(f"remote graph obtained, invoking...{remote}:{thread_id}")
     try:
         config = _runtime_config(thread_id)
-        # print out the provider being used 
+        # print out the provider being used
         print(f"Using provider: {config['configurable']['provider']}")
         result = remote.invoke(inputs, config=config)
         print(
@@ -179,8 +185,8 @@ def pubsub_to_langsmith(event):
 
         time.sleep(0.2)
         print("[COMPLETE] Graph invocation finished.")
-        # how to parse the result? 
-        print("result", result) 
+        # how to parse the result?
+        print("result", result)
 
         return {
             "ok": True,

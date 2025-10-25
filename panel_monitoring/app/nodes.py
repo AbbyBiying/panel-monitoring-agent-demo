@@ -223,7 +223,7 @@ def explanation_node(state: GraphState) -> GraphState:
 
 @traceable(tags=["node"])
 def logging_node(state: GraphState) -> GraphState:
-    project_id = state.project_id or "panel-app-dev"
+    # project_id = state.project_id or "panel-app-dev"
     # event_id = state.event_id
 
     event_id = state.event_id or uuid4().hex
@@ -235,7 +235,7 @@ def logging_node(state: GraphState) -> GraphState:
     confidence = float(state.confidence or 0.0)
 
     # Convert models to dicts for Firestore I/O
-    signals_dict = state.signals.model_dump() if state.signals else {}
+    # signals_dict = state.signals.model_dump() if state.signals else {}
     meta = state.model_meta  # always a ModelMeta (has defaults)
 
     # Write run (top-level 'runs')

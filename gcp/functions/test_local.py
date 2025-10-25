@@ -7,6 +7,7 @@ from gcp.functions.pubsub_to_langsmith.main import pubsub_to_langsmith
 
 import gcp.functions.pubsub_to_langsmith.main as mod
 
+
 def make_event(payload_text: str):
     attrs = {
         "type": "google.cloud.pubsub.topic.v1.messagePublished",
@@ -27,11 +28,16 @@ def make_event(payload_text: str):
     }
     return CloudEvent(attrs, data)
 
+
 # --- Minimal stub so we don't call the real deployment ---
 class _FakeRemoteGraph:
     def invoke(self, inputs, config=None):
         # Return something dict-like so your concise result logging prints keys
-        return {"ok": True, "echo_keys": list(inputs.keys()), "thread_id": (config or {}).get("thread_id")}
+        return {
+            "ok": True,
+            "echo_keys": list(inputs.keys()),
+            "thread_id": (config or {}).get("thread_id"),
+        }
 
 
 if __name__ == "__main__":
