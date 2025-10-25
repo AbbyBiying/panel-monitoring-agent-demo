@@ -24,7 +24,7 @@ deploy-pubsub:
         --source=. \
         --entry-point=pubsub_to_langsmith \
         --trigger-topic=user-event-signups \
-        --set-env-vars=LG_DEPLOYMENT_URL="$${LG_DEPLOYMENT_URL}",LANGSMITH_PROJECT="$${LANGSMITH_PROJECT}",LOG_LEVEL="$${LOG_LEVEL:-INFO}",LG_GRAPH_NAME="$${LG_GRAPH_NAME:-panel_agent}",PANEL_DEFAULT_PROVIDER="$${PANEL_DEFAULT_PROVIDER:-vertexai}",GOOGLE_CLOUD_PROJECT="$${GOOGLE_CLOUD_PROJECT:-$${PROJECT_ID:-}}",GOOGLE_CLOUD_REGION="$${GOOGLE_CLOUD_REGION:-us-central1}" \
+        --set-env-vars=PANEL_DEFAULT_PROVIDER="${PANEL_DEFAULT_PROVIDER:-vertexai}",LG_GRAPH_NAME="${LG_GRAPH_NAME:-panel_agent}",LG_DEPLOYMENT_URL="${LG_DEPLOYMENT_URL}",LANGSMITH_PROJECT="${LANGSMITH_PROJECT}",LOG_LEVEL="${LOG_LEVEL:-INFO}" \
         --set-secrets=LANGSMITH_API_KEY_CLOUD_FUNCTIONS=LANGSMITH_API_KEY_CLOUD_FUNCTIONS:latest \
 
 publish-test-event:
