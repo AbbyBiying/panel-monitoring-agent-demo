@@ -126,10 +126,10 @@ def _runtime_config(thread_id: str) -> dict:
         "configurable": {
             "provider": os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai"),
             "model": os.getenv("VERTEX_MODEL", "gemini-1.5-flash"),
-            "vertex_project": os.getenv(
-                "GOOGLE_CLOUD_PROJECT", "panel-monitoring-agent"
-            ),
-            "vertex_region": os.getenv("GOOGLE_CLOUD_REGION", "us-central1"),
+            # "vertex_project": os.getenv(
+            #     "GOOGLE_CLOUD_PROJECT", "panel-monitoring-agent"
+            # ),
+            # "vertex_region": os.getenv("GOOGLE_CLOUD_REGION", "us-central1"),
         },
     }
 

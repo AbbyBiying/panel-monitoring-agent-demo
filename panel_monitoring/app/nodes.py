@@ -116,7 +116,7 @@ def user_event_node(state: GraphState) -> GraphState:
     )
 
 
-@traceable(tags=["node"])
+@traceable(name="signal_evaluation_node", tags=["node"])
 def signal_evaluation_node(state: GraphState) -> GraphState:
     """
     Evaluate signals using provider from runtime.context (if present).
@@ -137,16 +137,14 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
     else:
         try:
             # 2) Preferred: provider injected at invoke-time
-            cfg = ensure_config()
+            # cfg = ensure_config()
             # Always prefer vertexai for this deployment
             provider = "vertexai"
             model = os.getenv("VERTEX_MODEL", "gemini-1.5-pro")
-            project = os.getenv("GOOGLE_CLOUD_PROJECT", "panel-monitoring-agent")
-            region = os.getenv("GOOGLE_CLOUD_REGION", "us-central1")
 
             print(f"[INFO] Using provider: {provider}, model: {model}")
 
-            classifier = get_llm_classifier(provider)
+            classifier = get_llm_classifier("vertexai")
             if classifier is None:
                 raise RuntimeError("No Vertex AI classifier found.")
 
