@@ -170,8 +170,8 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
             print(f"[WARN] VertexAI classification failed, falling back to heuristic.")
             signals, meta = _heuristic_fallback(text)
             # surface the failure
-            meta.provider = "vertexai"
-            meta.model = os.getenv("VERTEX_MODEL", "gemini-1.5-pro")
+            # meta.provider = "vertexai"
+            # meta.model = os.getenv("VERTEX_MODEL", "gemini-1.5-pro")
 
     # Normalize outputs
     classification: Literal["suspicious", "normal"] = (
