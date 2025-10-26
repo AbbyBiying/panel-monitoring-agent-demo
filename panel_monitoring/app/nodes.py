@@ -140,7 +140,7 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
             # cfg = ensure_config()
             # Always prefer vertexai for this deployment
             provider = "vertexai"
-            model = os.getenv("VERTEX_MODEL", "gemini-1.5-pro")
+            model = os.getenv("VERTEX_MODEL", "gemini-2.5-pro")
 
             print(f"[INFO] Using provider: {provider}, model: {model}")
 

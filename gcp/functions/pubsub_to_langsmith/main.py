@@ -125,11 +125,11 @@ def _runtime_config(thread_id: str) -> dict:
         "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
         "configurable": {
             "provider": "vertexai",
-            "model": "gemini-1.5-flash",
-            # "vertex_project": os.getenv(
-            #     "GOOGLE_CLOUD_PROJECT", "panel-monitoring-agent"
-            # ),
-            # "vertex_region": os.getenv("GOOGLE_CLOUD_REGION", "us-central1"),
+            "model": "gemini-2.5-pro",
+            "vertex_project": os.getenv(
+                "GOOGLE_CLOUD_PROJECT", "panel-monitoring-agent"
+            ),
+            "vertex_region": os.getenv("GOOGLE_CLOUD_REGION", "us-central1"),
         },
     }
 
