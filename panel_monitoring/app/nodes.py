@@ -3,20 +3,18 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, UTC
-import os
 from typing import Literal, Tuple
 from uuid import uuid4
 
-from google.cloud import firestore
+# from google.cloud import firestore
 from langsmith import traceable
 
 # from langchain_core.runnables.config import get_config
-from langchain_core.runnables.config import ensure_config
 
 from panel_monitoring.app.clients.llms import get_llm_classifier
 from panel_monitoring.app.schemas import GraphState, Signals, ModelMeta
 from panel_monitoring.app.utils import looks_like_automated
-from panel_monitoring.data.firestore_client import events_col, runs_col
+# from panel_monitoring.data.firestore_client import events_col, runs_col
 
 
 # --- helpers ---------------------------------------------------------------
@@ -61,26 +59,24 @@ def user_event_node(state: GraphState) -> GraphState:
     """
     project_id = state.project_id or "panel-app-dev"
 
-    # Build event_text from either raw text or structured payload
     event_text = _event_text_from_state(state)
-
-    # If caller already set event_id, just pass-through; otherwise create one.
-    event_id = state.event_id
-    if not event_id:
-        evt_ref = events_col().document()
-        evt_ref.set(
-            {
-                "project_id": project_id,
-                "type": "signup",  # TODO: derive from input if you have a parser
-                "source": "web",
-                "received_at": firestore.SERVER_TIMESTAMP,
-                "updated_at": firestore.SERVER_TIMESTAMP,
-                "event_at": _utcnow(),
-                "status": "pending",
-                "payload": {"preview": (event_text or "")[:200]},
-            }
-        )
-        event_id = evt_ref.id
+    event_id = state.event_id or uuid4().hex
+    # event_id = state.event_id
+    # if not event_id:
+    #     evt_ref = events_col().document()
+    #     evt_ref.set(
+    #         {
+    #             "project_id": project_id,
+    #             "type": "signup",  # TODO: derive from input if you have a parser
+    #             "source": "web",
+    #             "received_at": firestore.SERVER_TIMESTAMP,
+    #             "updated_at": firestore.SERVER_TIMESTAMP,
+    #             "event_at": _utcnow(),
+    #             "status": "pending",
+    #             "payload": {"preview": (event_text or "")[:200]},
+    #         }
+    #     )
+    #     event_id = evt_ref.id
 
     # Seed a valid Signals to satisfy Pydantic until classifier overwrites it
     seeded_signals = Signals(
@@ -91,6 +87,19 @@ def user_event_node(state: GraphState) -> GraphState:
     )
 
     # Return updated GraphState (don’t mutate dicts; keep it typed)
+    # state is a Pydantic model instance of GraphState
+    # In Pydantic v2, .model_copy() replaces the old .copy() method from v1.
+    # new_state = state.model_copy(update={"classification": "suspicious"})
+    # same as new_state = GraphState(**state.dict(), classification="suspicious")
+    # You don’t want to mutate the original state (since multiple nodes might reference it concurrently or in branches).
+    # Instead, you return an immutable copy with the updated fields.
+    # Old state remains unchanged.
+    # New state carries your updates (e.g., classification results).
+    # LangGraph passes this new state downstream.
+    # Keeps all existing fields and values from state (anything you didn’t touch stays exactly the same).
+    # Updates only the specified fields (classification in this case).
+    # Preserves typing, defaults, and validation from the original model.
+    # Does not mutate the original state — it returns a brand-new one.
     return state.model_copy(
         update={
             "project_id": project_id,
@@ -104,13 +113,12 @@ def user_event_node(state: GraphState) -> GraphState:
     )
 
 
-@traceable(tags=["node"])
+@traceable(name="signal_evaluation_node", tags=["node"])
 def signal_evaluation_node(state: GraphState) -> GraphState:
     """
     Evaluate signals using provider from runtime.context (if present).
     Falls back to lightweight heuristics when provider is absent or fails.
     """
-    # Build plain text from either raw text or structured payload
     text = _event_text_from_state(state)
 
     # 1) Fast-path heuristic
@@ -126,19 +134,20 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
     else:
         try:
             # 2) Preferred: provider injected at invoke-time
-            cfg = ensure_config()
-            classifier = (cfg.get("configurable") or {}).get("classifier")
+            # cfg = ensure_config()
+            # Always prefer vertexai for this deployment
+            # provider = "vertexai"
+            provider = "openai"
+            # model = os.getenv("VERTEX_MODEL", "gemini-2.5-pro")
+            model = "gpt-4o-mini"
 
-            # 3) Fallback: build provider from env if not injected (works on Cloud)
-            if classifier is None:
-                provider_key = os.getenv("PANEL_DEFAULT_PROVIDER")
-                if provider_key:
-                    provider_key = {"gemini": "genai"}.get(provider_key, provider_key)
-                    classifier = get_llm_classifier(provider_key)
-            if classifier is None:
-                raise RuntimeError("No provider available (runtime/config/env).")
+            print(f"[INFO] Using provider: {provider}, model: {model}")
 
-            # Resolve callable: support either .classify(...) or direct callable
+            classifier = get_llm_classifier(provider)
+            if classifier is None:
+                raise RuntimeError("No LLM classifier found.")
+
+            # Vertex classifier should handle (text) → (Signals, ModelMeta)
             call = getattr(classifier, "classify", classifier)
             if not callable(call):
                 raise TypeError("Classifier is not callable and has no .classify()")
@@ -153,9 +162,13 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
 
             signals = Signals.model_validate(raw_sig)
             meta = ModelMeta.model_validate(raw_meta or {})
-
+            meta.provider = provider
+            meta.model = model
         except Exception:
+            print("[WARN] LLM classification failed, falling back to heuristic.")
             signals, meta = _heuristic_fallback(text)
+            meta.provider = provider
+            meta.model = model
 
     # Normalize outputs
     classification: Literal["suspicious", "normal"] = (
@@ -189,7 +202,6 @@ def explanation_node(state: GraphState) -> GraphState:
     cls = state.classification
     sig = state.signals
     action = state.action or "no_action"
-
     conf = sig.confidence if (sig and sig.confidence is not None) else None
     conf_txt = f"{float(conf):.2f}" if isinstance(conf, (int, float)) else "N/A"
 
@@ -206,48 +218,50 @@ def explanation_node(state: GraphState) -> GraphState:
 
 @traceable(tags=["node"])
 def logging_node(state: GraphState) -> GraphState:
-    project_id = state.project_id or "panel-app-dev"
-    event_id = state.event_id
-    if not event_id:
-        return state.model_copy(update={"error": "logging_node: missing event_id"})
+    # project_id = state.project_id or "panel-app-dev"
+    # event_id = state.event_id
+
+    event_id = state.event_id or uuid4().hex
+    # if not event_id:
+    #     return state.model_copy(update={"error": "logging_node: missing event_id"})
 
     run_id = uuid4().hex
     decision = state.classification or "error"
     confidence = float(state.confidence or 0.0)
 
     # Convert models to dicts for Firestore I/O
-    signals_dict = state.signals.model_dump() if state.signals else {}
+    # signals_dict = state.signals.model_dump() if state.signals else {}
     meta = state.model_meta  # always a ModelMeta (has defaults)
 
     # Write run (top-level 'runs')
-    runs_col().document(run_id).set(
-        {
-            "project_id": project_id,
-            "event_id": event_id,
-            "provider": meta.provider or "vertexai",
-            "model": meta.model or "gemini-2.5-pro",
-            "decision": decision,
-            "confidence": confidence,
-            "signals": signals_dict,
-            "started_at": firestore.SERVER_TIMESTAMP,
-            "finished_at": firestore.SERVER_TIMESTAMP,
-            "latency_ms": meta.latency_ms,
-            "cost_usd": meta.cost_usd,
-        }
-    )
+    # runs_col().document(run_id).set(
+    #     {
+    #         "project_id": project_id,
+    #         "event_id": event_id,
+    #         "provider": meta.provider or "vertexai",
+    #         "model": meta.model or "gemini-2.5-pro",
+    #         "decision": decision,
+    #         "confidence": confidence,
+    #         "signals": signals_dict,
+    #         "started_at": firestore.SERVER_TIMESTAMP,
+    #         "finished_at": firestore.SERVER_TIMESTAMP,
+    #         "latency_ms": meta.latency_ms,
+    #         "cost_usd": meta.cost_usd,
+    #     }
+    # )
 
     # Update parent event summary (top-level 'events')
-    events_col().document(event_id).set(
-        {
-            "project_id": project_id,
-            "status": "classified" if decision != "error" else "error",
-            "decision": decision,
-            "confidence": confidence,
-            "last_run_id": run_id,
-            "updated_at": firestore.SERVER_TIMESTAMP,
-        },
-        merge=True,
-    )
+    # events_col().document(event_id).set(
+    #     {
+    #         "project_id": project_id,
+    #         "status": "classified" if decision != "error" else "error",
+    #         "decision": decision,
+    #         "confidence": confidence,
+    #         "last_run_id": run_id,
+    #         "updated_at": firestore.SERVER_TIMESTAMP,
+    #     },
+    #     merge=True,
+    # )
 
     # Build human-friendly log summary
     preview = _event_text_from_state(state)[:50]
@@ -259,8 +273,8 @@ def logging_node(state: GraphState) -> GraphState:
         "confidence": confidence,
         "final_action": state.action
         or ("no_action" if decision == "normal" else "N/A"),
-        "provider": meta.provider or "vertexai",
-        "model": meta.model or "gemini-2.5-pro",
+        "provider": meta.provider or "NONE",
+        "model": meta.model or "NONE",
         "latency_ms": meta.latency_ms,
         "cost_usd": meta.cost_usd,
         "event_preview": f"{preview}...",

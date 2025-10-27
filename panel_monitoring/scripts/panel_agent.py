@@ -76,7 +76,7 @@ def main():
     p.add_argument(
         "--provider",
         choices=SUPPORTED_PROVIDERS,
-        default=os.getenv("PANEL_DEFAULT_PROVIDER", "openai"),
+        default=os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai"),
         help="LLM provider to use (default from PANEL_DEFAULT_PROVIDER).",
     )
     p.add_argument(

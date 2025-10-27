@@ -13,20 +13,25 @@ deploy-pubsub:
         exit 1
     fi
     # Load .env file
+
     export $(grep -v '^#' .env | xargs)
+    echo "LG_DEPLOYMENT_URL=${LG_DEPLOYMENT_URL}"
     echo "Deploying with LANGSMITH_PROJECT=${LANGSMITH_PROJECT}"
     gcloud functions deploy pubsub-to-langsmith \
+        --gen2 \
         --region=us-central1 \
-        --runtime=python313 \
+        --runtime=python311 \
         --source=. \
         --entry-point=pubsub_to_langsmith \
         --trigger-topic=user-event-signups \
-        --set-env-vars LANGSMITH_PROJECT="${LANGSMITH_PROJECT}",LOG_LEVEL="${LOG_LEVEL:-INFO}" \
-        --set-secrets LANGSMITH_API_KEY_CLOUD_FUNCTIONS=LANGSMITH_API_KEY_CLOUD_FUNCTIONS:latest
+        --set-env-vars=OPENAI_API_KEY="${OPENAI_API_KEY}",GOOGLE_CLOUD_PROJECT="${GOOGLE_CLOUD_PROJECT:-panel-monitoring-agent}",GOOGLE_CLOUD_REGION="${GOOGLE_CLOUD_REGION:-us-central1}",VERTEX_MODEL="${VERTEX_MODEL:-gemini-2.5-pro}",PANEL_DEFAULT_PROVIDER="${PANEL_DEFAULT_PROVIDER:-vertexai}",LG_GRAPH_NAME="${LG_GRAPH_NAME:-panel_agent}",LG_DEPLOYMENT_URL="${LG_DEPLOYMENT_URL}",LANGSMITH_PROJECT="${LANGSMITH_PROJECT}",LOG_LEVEL="${LOG_LEVEL:-INFO}" \
+        --set-secrets=LANGSMITH_API_KEY_CLOUD_FUNCTIONS=LANGSMITH_API_KEY_CLOUD_FUNCTIONS:latest \
 
 publish-test-event:
     #!/usr/bin/env bash
-    gcloud pubsub topics publish user-event-signups --message='Ralph from Tennessee.'
+    # gcloud pubsub topics publish user-event-signups --message='Abby from Tennessee.'
+    gcloud pubsub topics publish user-event-signups --message='i m a real worker!'
+
 
 logs-tail:
     #!/usr/bin/env bash
