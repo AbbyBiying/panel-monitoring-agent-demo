@@ -7,14 +7,16 @@ requires-python = ">=3.12"
 license = { text = "Proprietary" }
 
 dependencies = [
-  "langgraph",
+  "langgraph>=1.0.0",
+  "langchain>=1.0.0",
+  "langchain-openai>=1.0.0",
+  "langchain-anthropic>=1.0.0",
   "langgraph-prebuilt",
   "langgraph-sdk",
   "langgraph-checkpoint-sqlite",
   "langsmith",
   "langchain-community",
   "langchain-core",
-  "langchain-openai",
   "langchain-google-vertexai",
   "langchain-google-genai",
   "google-cloud-aiplatform",
@@ -28,7 +30,7 @@ dependencies = [
   "tavily-python",
   "wikipedia",
   "trustcall",
-  "langgraph-cli[inmem]",
+  "langgraph-cli[inmem]>=0.4.0",
   "notebook",
   "functions-framework>=3.9.2",
 ]

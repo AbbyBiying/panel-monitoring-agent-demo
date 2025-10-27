@@ -125,10 +125,8 @@ def _runtime_config(thread_id: str) -> dict:
         "thread_id": thread_id,
         "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
         "configurable": {
-            # "provider": "vertexai",
-            "provider": "openai",
-            # "model": "gemini-2.5-pro"
-            "model": "gpt-4o-mini",
+            "provider": os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai"),
+            "model": os.getenv("VERTEX_MODEL", "gemini-2.5-pro"),
         },
     }
 
@@ -155,7 +153,7 @@ def pubsub_to_langsmith(event):
     thread_id = (
         attrs.get("thread_id")
         or pubsub_message_id
-        or str(uuid.uuid4()) # if nothing we make a new one
+        or str(uuid.uuid4())  # if nothing we make a new one
     )
     print(f"thread_id resolved: {thread_id}")
     # 3) Invoke the remote graph
@@ -164,6 +162,7 @@ def pubsub_to_langsmith(event):
     try:
         config = _runtime_config(thread_id)
         # print out the provider being used
+        print(f"configr from _runtime_config: {config}")
         print(f"Using provider: {config['configurable']['provider']}")
         result = remote.invoke(inputs, config=config)
         print(

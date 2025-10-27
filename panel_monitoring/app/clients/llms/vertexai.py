@@ -8,6 +8,7 @@ import os
 import time
 from typing import Optional
 
+from google.oauth2 import service_account
 from dotenv import load_dotenv, find_dotenv
 from google.api_core.exceptions import GoogleAPIError, NotFound, PermissionDenied
 from pydantic import ValidationError
@@ -47,6 +48,23 @@ SAFETY_SETTINGS = {
     HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
     HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
 }
+
+
+SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
+
+
+def make_credentials_from_env():
+    raw = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    if not raw:
+        return None  # fall back to ADC
+
+    # If it's a JSON path on disk
+    if not raw.strip().startswith("{"):
+        return service_account.Credentials.from_service_account_file(raw, scopes=SCOPES)
+
+    # If it's a JSON string
+    info = json.loads(raw)
+    return service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
 
 
 class LLMClientVertexAI(LLMPredictionClient):
@@ -99,11 +117,22 @@ class LLMClientVertexAI(LLMPredictionClient):
         model = self.model or DEFAULT_MODEL
         temperature = (self.prompt_config or {}).get("temperature", 0)
         max_retries = (self.prompt_config or {}).get("max_retries", 2)
-        if os.getenv("LG_GRAPH_NAME"):
-            creds = json.loads(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-        else:
-            creds = load_credentials()
 
+        # if os.getenv("LG_GRAPH_NAME"):
+        #     creds = json.loads(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+        # else:
+        #     creds = load_credentials()
+        if os.getenv("ENVIRONMENT") == "local":
+            logger.info("Running in local environment, loading credentials from file.")
+            creds = load_credentials()
+        else:
+            creds = make_credentials_from_env()
+
+            logger.info(
+                "Running in NOT local environment, loading credentials from Path."
+            )
+
+        print("creds type:", type(creds))
         logger.info(
             "VertexAI config: project=%s location=%s model=%s",
             self.project or "<auto>",
