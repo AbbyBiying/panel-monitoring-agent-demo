@@ -124,8 +124,10 @@ def _runtime_config(thread_id: str) -> dict:
         "thread_id": thread_id,
         "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
         "configurable": {
-            "provider": "vertexai",
-            "model": "gemini-2.5-pro"
+            # "provider": "vertexai",
+            "provider": "openai",
+            # "model": "gemini-2.5-pro"
+            "model": "gpt-4o-mini",
         },
     }
 

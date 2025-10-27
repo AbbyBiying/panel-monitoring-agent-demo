@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, UTC
-import os
 from typing import Literal, Tuple
 from uuid import uuid4
 
@@ -11,7 +10,6 @@ from uuid import uuid4
 from langsmith import traceable
 
 # from langchain_core.runnables.config import get_config
-from langchain_core.runnables.config import ensure_config
 
 from panel_monitoring.app.clients.llms import get_llm_classifier
 from panel_monitoring.app.schemas import GraphState, Signals, ModelMeta
@@ -139,16 +137,17 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
             # 2) Preferred: provider injected at invoke-time
             # cfg = ensure_config()
             # Always prefer vertexai for this deployment
-            provider = "vertexai"
-            model = os.getenv("VERTEX_MODEL", "gemini-2.5-pro")
+            # provider = "vertexai"
+            provider = "openai"
+            # model = os.getenv("VERTEX_MODEL", "gemini-2.5-pro")
+            model = "gpt-4o-mini"
 
             print(f"[INFO] Using provider: {provider}, model: {model}")
 
-            classifier = get_llm_classifier("vertexai")
+            classifier = get_llm_classifier(provider)
             if classifier is None:
-                raise RuntimeError("No Vertex AI classifier found.")
+                raise RuntimeError("No LLM classifier found.")
 
- 
             # Vertex classifier should handle (text) → (Signals, ModelMeta)
             call = getattr(classifier, "classify", classifier)
             if not callable(call):
@@ -167,11 +166,10 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
             meta.provider = provider
             meta.model = model
         except Exception:
-            print(f"[WARN] VertexAI classification failed, falling back to heuristic.")
+            print("[WARN] LLM classification failed, falling back to heuristic.")
             signals, meta = _heuristic_fallback(text)
-            # surface the failure
-            # meta.provider = "vertexai"
-            # meta.model = os.getenv("VERTEX_MODEL", "gemini-1.5-pro")
+            meta.provider = provider
+            meta.model = model
 
     # Normalize outputs
     classification: Literal["suspicious", "normal"] = (
@@ -276,8 +274,8 @@ def logging_node(state: GraphState) -> GraphState:
         "confidence": confidence,
         "final_action": state.action
         or ("no_action" if decision == "normal" else "N/A"),
-        "provider": meta.provider or "vertexai",
-        "model": meta.model or "gemini-2.5-pro",
+        "provider": meta.provider or "NONE",
+        "model": meta.model or "NONE",
         "latency_ms": meta.latency_ms,
         "cost_usd": meta.cost_usd,
         "event_preview": f"{preview}...",
