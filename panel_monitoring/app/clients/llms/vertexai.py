@@ -99,7 +99,10 @@ class LLMClientVertexAI(LLMPredictionClient):
         model = self.model or DEFAULT_MODEL
         temperature = (self.prompt_config or {}).get("temperature", 0)
         max_retries = (self.prompt_config or {}).get("max_retries", 2)
-        creds = load_credentials()
+        if os.getenv("LG_GRAPH_NAME"):
+            creds = json.loads(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+        else:
+            creds = load_credentials()
 
         logger.info(
             "VertexAI config: project=%s location=%s model=%s",
