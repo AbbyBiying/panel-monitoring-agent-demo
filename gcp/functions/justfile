@@ -30,9 +30,9 @@ deploy-pubsub:
 publish-test-event:
     #!/usr/bin/env bash
     # gcloud pubsub topics publish user-event-signups --message='Abby from Tennessee.'
-    gcloud pubsub topics publish user-event-signups --message='02:00PM final test!'
+    gcloud pubsub topics publish user-event-signups --message='i m a real worker!'
 
 
 logs-tail:
     #!/usr/bin/env bash
-    gcloud functions logs read pubsub-to-langsmith --region=us-central1q
+    gcloud functions logs read pubsub-to-langsmith --region=us-central1

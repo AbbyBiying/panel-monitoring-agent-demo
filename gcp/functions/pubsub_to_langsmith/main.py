@@ -120,6 +120,7 @@ def _build_graph_inputs(payload: t.Union[dict, str, None], meta: dict) -> dict:
 
 def _runtime_config(thread_id: str) -> dict:
     # Pull from env so you can set them with --set-env-vars at deploy time
+    print(f"_runtime_config thread_id: {thread_id}")
     return {
         "thread_id": thread_id,
         "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
@@ -153,15 +154,13 @@ def pubsub_to_langsmith(event):
     attrs = (meta or {}).get("pubsub_attributes") or {}
     thread_id = (
         attrs.get("thread_id")
-        or attrs.get("user_id")
-        or attrs.get("ordering_key")
-        or (meta or {}).get("pubsub_ordering_key")
         or pubsub_message_id
-        or str(uuid.uuid4())
+        or str(uuid.uuid4()) # if nothing we make a new one
     )
+    print(f"thread_id resolved: {thread_id}")
     # 3) Invoke the remote graph
     remote = _get_remote_graph()
-    print(f"remote graph obtained, invoking...{remote}:{thread_id}")
+    print(f"remote graph obtained, invoking it with thread_id...{remote}:{thread_id}")
     try:
         config = _runtime_config(thread_id)
         # print out the provider being used

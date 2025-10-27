@@ -70,7 +70,6 @@ def user_event_node(state: GraphState) -> GraphState:
     #             "type": "signup",  # TODO: derive from input if you have a parser
     #             "source": "web",
     #             "received_at": firestore.SERVER_TIMESTAMP,
-
     #             "updated_at": firestore.SERVER_TIMESTAMP,
     #             "event_at": _utcnow(),
     #             "status": "pending",
