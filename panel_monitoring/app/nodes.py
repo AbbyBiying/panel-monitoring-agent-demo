@@ -59,7 +59,7 @@ def perform_effects_node(state: GraphState) -> GraphState:
     try:
         if state.action == "delete_account":
             # delete_account(state.account_id)
-            logger.info(f"[INFO] Deleting account for event_id={state.event_id}")
+            logger.info(f"Deleting account for event_id={state.event_id}")
     except Exception as e:
         # Downgrade to hold if effect failed, or attach an error field
         return state.model_copy(update={"effect_error": f"{type(e).__name__}: {e}"})
