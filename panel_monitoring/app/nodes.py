@@ -277,7 +277,11 @@ def human_approval_node(state: GraphState) -> GraphState | Command[Literal["expl
 
     decision = interrupt(prompt)  # pauses run until resumed
 
-    normalized = (decision or "").strip().lower()
+    if isinstance(decision, str):
+        normalized = decision.strip().lower()
+    else:
+        # If decision is not a string, default to "escalate"
+        normalized = "escalate"
     if normalized in {"yes", "y", "ok", "approved", "accept"}:
         normalized = "approve"
     elif normalized in {"no", "n", "reject", "deny", "decline"}:
