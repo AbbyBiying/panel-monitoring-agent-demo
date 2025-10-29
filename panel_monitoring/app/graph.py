@@ -37,16 +37,14 @@ def build_graph():
             "human_approval" if (state.action == "request_human_review") else "explain"
         )
 
-    # --- nodes ---
     graph.add_node("event_input", user_event_node)
     graph.add_node("classify_signals", signal_evaluation_node)
     graph.add_node("decide_action", action_decision_node)
-    graph.add_node("human_approval", human_approval_node)  # pauses if review needed
+    graph.add_node("human_approval", human_approval_node)
     graph.add_node("explain", explanation_node)
-    graph.add_node("perform_effects", perform_effects_node)  # <-- now actually used
+    graph.add_node("perform_effects", perform_effects_node)
     graph.add_node("log_result", logging_node)
 
-    # --- edges ---
     graph.add_edge(START, "event_input")
     graph.add_edge("event_input", "classify_signals")
 

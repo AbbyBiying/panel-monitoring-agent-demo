@@ -58,7 +58,6 @@ def _event_text_from_state(state: GraphState) -> str:
 def perform_effects_node(state: GraphState) -> GraphState:
     try:
         if state.action == "delete_account":
-            # TODO: call your idempotent deleter (safe on retries)
             # delete_account(state.account_id)
             logger.info(f"[INFO] Deleting account for event_id={state.event_id}")
     except Exception as e:
@@ -83,7 +82,7 @@ def user_event_node(state: GraphState) -> GraphState:
     #     evt_ref.set(
     #         {
     #             "project_id": project_id,
-    #             "type": "signup",  # TODO: derive from input if you have a parser
+    #             "type": "signup",
     #             "source": "web",
     #             "received_at": firestore.SERVER_TIMESTAMP,
     #             "updated_at": firestore.SERVER_TIMESTAMP,
@@ -155,7 +154,7 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
             if not callable(call):
                 raise TypeError("Classifier is not callable and has no .classify()")
 
-            out = call(text)  # ← if this raises, we’ll see it below
+            out = call(text)
             logger.debug("[DBG] LLM raw out: %r", out)
 
             if isinstance(out, tuple) and len(out) == 2:
@@ -286,7 +285,6 @@ def human_approval_node(state: GraphState) -> GraphState | Command[Literal["expl
     elif normalized in {"maybe", "unsure", "idk", "escalate", "needs review"}:
         normalized = "escalate"
     else:
-        # fallback to safe path instead of 400
         normalized = "escalate"
 
     if normalized == "approve":
