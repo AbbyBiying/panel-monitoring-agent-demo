@@ -148,7 +148,7 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
         try:
             classifier = get_llm_classifier(provider)
             if classifier is None:
-                raise RuntimeError("No LLM classifier found for provider='vertexai'")
+                raise RuntimeError(f"No LLM classifier found for provider='{provider}'")
 
             call = getattr(classifier, "classify", classifier)
             if not callable(call):
