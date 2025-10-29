@@ -94,7 +94,7 @@ def run_interactive(app, get_event_input, project_name: str, provider: str):
             logger.info(state.log_entry or "")
 
         except KeyboardInterrupt:
-            logger.info("\nExiting agent.")
+            logger.warning("\nExiting agent.")
             break
         except Exception as e:
-            logger.exception(f"Runtime error: {e}")
+            logger.warning(f"Runtime error: {e}")

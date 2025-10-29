@@ -257,6 +257,7 @@ class LLMClientVertexAI(LLMPredictionClient):
             data = await self.aclassify_event(prompt)
             text = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
         except PredictionError:
+            logger.debug("Re-raising PredictionError")
             raise
         except Exception as e:
             duration_ms = (time.perf_counter() - start) * 1000.0

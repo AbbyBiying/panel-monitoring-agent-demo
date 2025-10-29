@@ -61,6 +61,7 @@ def perform_effects_node(state: GraphState) -> GraphState:
             # delete_account(state.account_id)
             logger.info(f"Deleting account for event_id={state.event_id}")
     except Exception as e:
+        logger.warning("Effect execution failed.")
         # Downgrade to hold if effect failed, or attach an error field
         return state.model_copy(update={"effect_error": f"{type(e).__name__}: {e}"})
     return state
@@ -185,7 +186,7 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
             meta.model = model
 
         except Exception as e:
-            logger.exception("LLM classification failed; using heuristic fallback.")
+            logger.warning("LLM classification failed; using heuristic fallback.")
             signals, meta = _heuristic_fallback(text)
             meta.provider = provider
             meta.model = model
