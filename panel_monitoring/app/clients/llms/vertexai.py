@@ -132,7 +132,7 @@ class LLMClientVertexAI(LLMPredictionClient):
                 "Running in NOT local environment, loading credentials from Path."
             )
 
-        print("creds type:", type(creds))
+        logger.debug("creds type: %s", type(creds))
         logger.info(
             "VertexAI config: project=%s location=%s model=%s",
             self.project or "<auto>",
