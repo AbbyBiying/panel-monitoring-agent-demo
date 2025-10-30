@@ -28,6 +28,8 @@ logger = logging.getLogger(__name__)
 def _utcnow() -> datetime:
     return datetime.now(UTC)
 
+def _append_report(state: GraphState, line: str) -> str:
+    return f"{state.explanation_report}\n{line}" if state.explanation_report else line
 
 def _heuristic_fallback(text: str) -> Tuple[Signals, ModelMeta]:
     t = (text or "").lower()
@@ -56,14 +58,26 @@ def _event_text_from_state(state: GraphState) -> str:
 # --- nodes -----------------------------------------------------------------
 @traceable(name="perform_effects_node", tags=["node"])
 def perform_effects_node(state: GraphState) -> GraphState:
+    combined = state.explanation_report  # start with the existing report
+
     try:
         if state.action == "delete_account":
-            # delete_account(state.account_id)
-            logger.info(f"Deleting account for event_id={state.event_id}")
+            logger.info("Deleting account for event_id=%s", state.event_id)
+            combined = _append_report(state, "[INFO] effect:delete_account executed")
+            return state.model_copy(update={"explanation_report": combined})
+
     except Exception as e:
         logger.warning("Effect execution failed.")
-        # Downgrade to hold if effect failed, or attach an error field
-        return state.model_copy(update={"effect_error": f"{type(e).__name__}: {e}"})
+        line = f"[ERROR] effect_failed:{type(e).__name__} {e}"
+        combined = _append_report(state, line)
+        return state.model_copy(
+            update={
+                "explanation_report": combined,
+                "action": "hold_account",
+            }
+        )
+
+    # If no exception and no delete was required, just return state
     return state
 
 
@@ -122,7 +136,7 @@ def user_event_node(state: GraphState) -> GraphState:
             "event_id": event_id,
             "event_text": event_text,
             "signals": seeded_signals,
-            "classification": "error",
+            "classification": "pending",
             "action": "",
             "log_entry": "",
         }
@@ -144,7 +158,7 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
     else:
         provider = os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai")
         model = os.getenv("VERTEX_MODEL", "gemini-2.5-pro")
-        print(f"[INFO] Using provider: {provider}, model: {model}")
+        logger.info("Using provider=%s model=%s", provider, model)
 
         try:
             classifier = get_llm_classifier(provider)
@@ -236,9 +250,12 @@ def explanation_node(state: GraphState) -> GraphState:
     cls = state.classification
     sig = state.signals
     action = state.action or "no_action"
-    conf = sig.confidence if (sig and sig.confidence is not None) else None
-    conf_txt = f"{float(conf):.2f}" if isinstance(conf, (int, float)) else "N/A"
 
+    # safe confidence string
+    conf_val = (sig.confidence if (sig and sig.confidence is not None) else state.confidence)
+    conf_txt = f"{float(conf_val):.2f}" if isinstance(conf_val, (int, float)) else "N/A"
+
+    # human-friendly one-liner ("ex")
     if cls == "suspicious":
         reason = sig.reason if (sig and sig.reason) else "n/a"
         ex = f"SUSPICIOUS (Conf {conf_txt}). Reason: {reason}. Action: {action}."
@@ -250,7 +267,8 @@ def explanation_node(state: GraphState) -> GraphState:
     if action == "request_human_review" and getattr(state, "review_url", None):
         ex = f"{ex} Pending human review → {state.review_url}"
 
-    return state.model_copy(update={"explanation_report": ex})
+    combined = _append_report(state, ex)
+    return state.model_copy(update={"explanation_report": combined})
 
 
 @traceable(name="human_approval_node", tags=["node"])
@@ -373,7 +391,11 @@ def logging_node(state: GraphState) -> GraphState:
         "review_decision": getattr(state, "review_decision", None),
         "timestamp": _utcnow().isoformat(),
     }
+    
+    if state.explanation_report:
+        log_summary["explanation_report"] = state.explanation_report
 
+    logger.info(json.dumps(log_summary, separators=(",", ":")))
     return state.model_copy(
         update={"log_entry": json.dumps(log_summary, ensure_ascii=False, indent=2)}
     )

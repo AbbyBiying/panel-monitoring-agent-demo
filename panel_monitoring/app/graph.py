@@ -23,20 +23,33 @@ def build_graph():
     """
     graph = StateGraph(GraphState)
 
-    # --- routing helpers ---
+
+    def add_diag_line(state, level, msg):
+        line = f"[{level.upper()}] {msg}"
+        state.explanation_report = (state.explanation_report or "") + ("\n" if state.explanation_report else "") + line
+
+    
     def route_from_classify(state: GraphState) -> str:
-        # If the classifier said "normal", skip to explain
-        if state.classification == "normal":
+        c = (state.classification or "").lower()
+        if c == "normal":
             return "explain"
-        # For anything else (including "suspicious" or "error"), let decision logic set `action`
+        if c in ("suspicious", "error"):
+            if (state.confidence is not None) and (state.confidence < 0.30):
+                add_diag_line(state, "warning", f"low_confidence:{state.confidence:.2f}")
+            return "decide_action"
+
+        add_diag_line(state, "warning", f"unknown_classification:{state.classification}")
         return "decide_action"
 
+    
     def route_after_decide(state: GraphState) -> str:
-        # Only gate when action requests review
-        return (
-            "human_approval" if (state.action == "request_human_review") else "explain"
-        )
-
+        a = (state.action or "").lower()
+        if a == "request_human_review":
+            return "human_approval"
+        # Default to explain; effects can be no-ops if action is empty
+        return "explain"
+    
+    # --- graph construction ---
     graph.add_node("event_input", user_event_node)
     graph.add_node("classify_signals", signal_evaluation_node)
     graph.add_node("decide_action", action_decision_node)
