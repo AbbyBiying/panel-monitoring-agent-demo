@@ -118,19 +118,20 @@ class LLMClientVertexAI(LLMPredictionClient):
         temperature = (self.prompt_config or {}).get("temperature", 0)
         max_retries = (self.prompt_config or {}).get("max_retries", 2)
 
-        # if os.getenv("LG_GRAPH_NAME"):
-        #     creds = json.loads(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-        # else:
-        #     creds = load_credentials()
-        if os.getenv("ENVIRONMENT") == "local":
-            logger.info("Running in local environment, loading credentials from file.")
-            creds = load_credentials()
+        if os.getenv("LG_GRAPH_NAME"):
+            creds = json.loads(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
         else:
-            creds = make_credentials_from_env()
+            creds = load_credentials()
 
-            logger.info(
-                "Running in NOT local environment, loading credentials from Path."
-            )
+        # if os.getenv("ENVIRONMENT") == "local":
+        #     logger.info("Running in local environment, loading credentials from file.")
+        #     creds = load_credentials()
+        # else:
+        #     creds = make_credentials_from_env()
+
+        #     logger.info(
+        #         "Running in NOT local environment, loading credentials from Path."
+        #     )
 
         logger.debug("creds type: %s", type(creds))
         logger.info(

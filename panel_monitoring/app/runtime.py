@@ -21,6 +21,7 @@ def run_interactive(app, get_event_input, project_name: str, provider: str):
     - Handles LangGraph interrupts by asking for human input and resuming.
     - Shows explanation and log for each completed run.
     """
+    print("run_interactive begin...")
     logger.info("\n" + "=" * 50)
     logger.info("PANEL MONITORING AGENT READY")
     logger.info("Paste JSON or text. Type ':paste' for multi-line (end with 'END').")
@@ -52,6 +53,7 @@ def run_interactive(app, get_event_input, project_name: str, provider: str):
 
             # Stable thread_id == event_id so we can resume the same run after interrupt
             config = {"configurable": {"thread_id": event_id}}
+            print("run_interactive config begin...")
 
             with trace(
                 name=f"Manual Run - {datetime.now().strftime('%H:%M:%S')}",
@@ -61,6 +63,8 @@ def run_interactive(app, get_event_input, project_name: str, provider: str):
 
                 # First invoke
                 result = app.invoke(payload, context=ctx, config=config)
+                print("done invoke ...")
+
                 logger.info("Initial invoke complete.")
                 logger.info(result)
 

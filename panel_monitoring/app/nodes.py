@@ -212,6 +212,8 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
             meta = ModelMeta.model_validate(raw_meta or {})
             meta.provider = provider
             meta.model = model
+            print("[DBG] normalized signals:", signals)
+            print("[DBG] meta:", meta)
 
         except Exception as e:
             logger.warning("LLM classification failed; using heuristic fallback.")
