@@ -72,7 +72,6 @@ def test_golden_panel(item):
 
     expected_removed = bool(item["removed"])
     actual_removed = None
-
     # --- Golden label logic ---
     if classification in ("suspicious", "error") and confidence > 0.30:
         actual_removed = True
