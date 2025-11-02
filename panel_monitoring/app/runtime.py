@@ -61,6 +61,8 @@ def run_interactive(app, get_event_input, project_name: str, provider: str):
 
                 # First invoke
                 result = app.invoke(payload, context=ctx, config=config)
+                logger.info("Initial invoke complete.")
+                logger.info(result)
 
                 # Drain all interrupts (if any)
                 while isinstance(result, dict) and "__interrupt__" in result:

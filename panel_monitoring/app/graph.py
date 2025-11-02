@@ -19,25 +19,45 @@ from panel_monitoring.app.nodes import (
 def build_graph():
     """
     Construct the LangGraph workflow for the panel monitoring agent.
-    Compiles with a checkpointer so human-in-the-loop interrupts can pause/resume.
+    Compiles with a checkpointer so human-in-the-loop interrupts can pause/resume. 
+    It uses a Pydantic `GraphState` schema so that LangGraph can automatically
+    merge partial state updates (dict patches) returned by nodes as the graph executes.
+    https://docs.langchain.com/oss/python/langgraph/graph-api#state
+    All Nodes will emit updates to the State which are then applied using the specified reducer function.
+    https://docs.langchain.com/oss/python/langgraph/graph-api#reducers
+    Reducers are key to understanding how updates from nodes are applied to the State.
+    Each key in the State has its own independent reducer function.
+    If no reducer function is explicitly specified then
+    it is assumed that all updates to that key should override it.
+    https://docs.langchain.com/oss/python/langgraph/graph-api#default-reducer
     """
     graph = StateGraph(GraphState)
 
 
     def add_diag_line(state, level, msg):
+        # Append a diagnostic line to the explanation report in state 
         line = f"[{level.upper()}] {msg}"
         state.explanation_report = (state.explanation_report or "") + ("\n" if state.explanation_report else "") + line
 
     
     def route_from_classify(state: GraphState) -> str:
+        # Determine next node based on classification result from signal evaluation
+
         c = (state.classification or "").lower()
+        # Pending: not classified yet so run explanation or classification step
+        if c == "pending":
+            add_diag_line(state, "info", "classification_pending")
+            return "explain"
+
         if c == "normal":
             return "explain"
+        
         if c in ("suspicious", "error"):
             if (state.confidence is not None) and (state.confidence < 0.30):
                 add_diag_line(state, "warning", f"low_confidence:{state.confidence:.2f}")
             return "decide_action"
 
+        # Unexpected classification value – still go to action but log it
         add_diag_line(state, "warning", f"unknown_classification:{state.classification}")
         return "decide_action"
 
@@ -46,6 +66,9 @@ def build_graph():
         a = (state.action or "").lower()
         if a == "request_human_review":
             return "human_approval"
+        # If a review decision was already made, proceed to apply effects
+        if state.review_decision is not None:
+            return "perform_effects"
         # Default to explain; effects can be no-ops if action is empty
         return "explain"
     
@@ -70,7 +93,7 @@ def build_graph():
     graph.add_conditional_edges(
         "decide_action",
         route_after_decide,
-        {"human_approval": "human_approval", "explain": "explain"},
+        {"human_approval": "human_approval",  "perform_effects": "perform_effects", "explain": "explain"},
     )
 
     graph.add_edge("human_approval", "explain")

@@ -160,7 +160,7 @@ def pubsub_to_langsmith(event):
     print(f"remote graph obtained, invoking it with thread_id...{remote}:{thread_id}")
     try:
         config = _runtime_config(thread_id)
-        print(f"configr from _runtime_config: {config}")
+        print(f"config from _runtime_config: {config}")
         print(f"Using provider: {config['configurable']['provider']}")
         result = remote.invoke(inputs, config=config)
         print(

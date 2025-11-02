@@ -33,6 +33,7 @@ dependencies = [
   "langgraph-cli[inmem]>=0.4.0",
   "notebook",
   "functions-framework>=3.9.2",
+  "pytest>=8.4.2",
 ]
 
 [project.optional-dependencies]

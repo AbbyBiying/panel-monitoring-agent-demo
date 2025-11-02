@@ -18,7 +18,21 @@ from panel_monitoring.app.schemas import GraphState, Signals, ModelMeta
 from panel_monitoring.app.utils import looks_like_automated
 # from panel_monitoring.data.firestore_client import events_col, runs_col
 
-REVIEW_THRESHOLD = 0.70
+# --------------------------------------------------------------------
+# Confidence Thresholds for Automated Decision Making
+# --------------------------------------------------------------------
+
+# If confidence is ≥ this value → auto-approve the model’s action (no human needed)
+CONFIDENCE_AUTO_APPROVE_THRESHOLD = 0.90
+
+# If confidence is ≥ this value → require Human-In-The-Loop (HITL) review
+CONFIDENCE_REVIEW_THRESHOLD = 0.70
+
+# If confidence is between 0.30 and 0.69 → model is uncertain, hold/no-action
+CONFIDENCE_UNCERTAIN_THRESHOLD = 0.30
+
+# If confidence is < this value → treat as invalid, low-quality, or fallback required
+CONFIDENCE_LOW_THRESHOLD = 0.30
 logger = logging.getLogger(__name__)
 
 
@@ -229,13 +243,13 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
 def action_decision_node(state: GraphState) -> GraphState:
     """
     Safety-first policy:
-      - suspicious & confidence >= REVIEW_THRESHOLD -> request_human_review
-      - suspicious & confidence <  REVIEW_THRESHOLD -> hold_account
+      - suspicious & confidence >= CONFIDENCE_REVIEW_THRESHOLD -> request_human_review
+      - suspicious & confidence <  CONFIDENCE_REVIEW_THRESHOLD -> hold_account
       - normal -> no_action
     """
     conf = float(state.confidence or 0.0)
 
-    if state.classification == "suspicious" and conf >= REVIEW_THRESHOLD:
+    if state.classification == "suspicious" and conf >= CONFIDENCE_REVIEW_THRESHOLD:
         action = "request_human_review"
     elif state.classification == "suspicious":
         action = "hold_account"
