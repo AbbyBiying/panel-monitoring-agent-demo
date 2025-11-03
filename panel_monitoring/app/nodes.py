@@ -42,8 +42,10 @@ logger = logging.getLogger(__name__)
 def _utcnow() -> datetime:
     return datetime.now(UTC)
 
+
 def _append_report(state: GraphState, line: str) -> str:
     return f"{state.explanation_report}\n{line}" if state.explanation_report else line
+
 
 def _heuristic_fallback(text: str) -> Tuple[Signals, ModelMeta]:
     t = (text or "").lower()
@@ -268,7 +270,9 @@ def explanation_node(state: GraphState) -> GraphState:
     action = state.action or "no_action"
 
     # safe confidence string
-    conf_val = (sig.confidence if (sig and sig.confidence is not None) else state.confidence)
+    conf_val = (
+        sig.confidence if (sig and sig.confidence is not None) else state.confidence
+    )
     conf_txt = f"{float(conf_val):.2f}" if isinstance(conf_val, (int, float)) else "N/A"
 
     # human-friendly one-liner ("ex")
@@ -407,7 +411,7 @@ def logging_node(state: GraphState) -> GraphState:
         "review_decision": getattr(state, "review_decision", None),
         "timestamp": _utcnow().isoformat(),
     }
-    
+
     if state.explanation_report:
         log_summary["explanation_report"] = state.explanation_report
 

@@ -89,12 +89,17 @@ def test_golden_panel(item):
         assert action in {"delete_account", "hold_account", "no_action"}
 
     # Explanation must not be empty for confident decisions or final actions
-    if confidence >= CONFIDENCE_UNCERTAIN_THRESHOLD or action in {"delete_account", "hold_account"}:
+    if confidence >= CONFIDENCE_UNCERTAIN_THRESHOLD or action in {
+        "delete_account",
+        "hold_account",
+    }:
         assert explanation.strip(), "explanation_report should not be empty"
 
     # --- Validate logging ---
     log_entry = state.get("log_entry")
-    assert isinstance(log_entry, str) and log_entry.strip(), "log_entry missing or empty"
+    assert isinstance(log_entry, str) and log_entry.strip(), (
+        "log_entry missing or empty"
+    )
 
     # Light structural validation of log fields (avoid full parse)
     for k in ("event_id", "classification", "confidence", "provider", "model"):

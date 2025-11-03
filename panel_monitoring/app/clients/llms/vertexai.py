@@ -160,7 +160,6 @@ class LLMClientVertexAI(LLMPredictionClient):
             max_retries=max_retries,
         )
 
-
     # ---- primary (structured) APIs ---------------------------------------
 
     def classify_event(self, event: str) -> dict:
@@ -235,7 +234,7 @@ class LLMClientVertexAI(LLMPredictionClient):
                 e,
             )
         except Exception as e:
-            log_info("Structured output failed (unexpected %s)", type(e).__name__)  
+            log_info("Structured output failed (unexpected %s)", type(e).__name__)
             logger.debug(
                 "Structured output failed (unexpected %s): %s — falling back",
                 type(e).__name__,
@@ -247,7 +246,7 @@ class LLMClientVertexAI(LLMPredictionClient):
             raw_resp = await self.client.ainvoke(msgs)
             log_info("Raw output succeeded")
             raw_text = getattr(raw_resp, "content", None) or str(raw_resp)
-            log_info("Raw text obtained: %s", raw_text) 
+            log_info("Raw text obtained: %s", raw_text)
             return parse_signals_from_text(raw_text)
         except (ValidationError, NotFound, PermissionDenied, GoogleAPIError) as e:
             log_info("Fallback raw parse failed (%s)", type(e).__name__)

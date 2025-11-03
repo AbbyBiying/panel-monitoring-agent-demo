@@ -19,7 +19,7 @@ from panel_monitoring.app.nodes import (
 def build_graph():
     """
     Construct the LangGraph workflow for the panel monitoring agent.
-    Compiles with a checkpointer so human-in-the-loop interrupts can pause/resume. 
+    Compiles with a checkpointer so human-in-the-loop interrupts can pause/resume.
     It uses a Pydantic `GraphState` schema so that LangGraph can automatically
     merge partial state updates (dict patches) returned by nodes as the graph executes.
     https://docs.langchain.com/oss/python/langgraph/graph-api#state
@@ -33,13 +33,15 @@ def build_graph():
     """
     graph = StateGraph(GraphState)
 
-
     def add_diag_line(state, level, msg):
-        # Append a diagnostic line to the explanation report in state 
+        # Append a diagnostic line to the explanation report in state
         line = f"[{level.upper()}] {msg}"
-        state.explanation_report = (state.explanation_report or "") + ("\n" if state.explanation_report else "") + line
+        state.explanation_report = (
+            (state.explanation_report or "")
+            + ("\n" if state.explanation_report else "")
+            + line
+        )
 
-    
     def route_from_classify(state: GraphState) -> str:
         # Determine next node based on classification result from signal evaluation
 
@@ -51,17 +53,20 @@ def build_graph():
 
         if c == "normal":
             return "explain"
-        
+
         if c in ("suspicious", "error"):
             if (state.confidence is not None) and (state.confidence < 0.30):
-                add_diag_line(state, "warning", f"low_confidence:{state.confidence:.2f}")
+                add_diag_line(
+                    state, "warning", f"low_confidence:{state.confidence:.2f}"
+                )
             return "decide_action"
 
         # Unexpected classification value – still go to action but log it
-        add_diag_line(state, "warning", f"unknown_classification:{state.classification}")
+        add_diag_line(
+            state, "warning", f"unknown_classification:{state.classification}"
+        )
         return "decide_action"
 
-    
     def route_after_decide(state: GraphState) -> str:
         a = (state.action or "").lower()
         if a == "request_human_review":
@@ -71,7 +76,7 @@ def build_graph():
             return "perform_effects"
         # Default to explain; effects can be no-ops if action is empty
         return "explain"
-    
+
     # --- graph construction ---
     graph.add_node("event_input", user_event_node)
     graph.add_node("classify_signals", signal_evaluation_node)
@@ -93,7 +98,11 @@ def build_graph():
     graph.add_conditional_edges(
         "decide_action",
         route_after_decide,
-        {"human_approval": "human_approval",  "perform_effects": "perform_effects", "explain": "explain"},
+        {
+            "human_approval": "human_approval",
+            "perform_effects": "perform_effects",
+            "explain": "explain",
+        },
     )
 
     graph.add_edge("human_approval", "explain")
