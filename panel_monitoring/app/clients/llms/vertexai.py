@@ -29,9 +29,11 @@ from panel_monitoring.app.prompts import PROMPT_CLASSIFY_SYSTEM, PROMPT_CLASSIFY
 from panel_monitoring.app.utils import (
     build_classify_messages,
     load_credentials,
+    log_info,
     normalize_signals,
     parse_signals_from_text,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +111,7 @@ class LLMClientVertexAI(LLMPredictionClient):
         self.project = st.google_cloud_project or os.getenv("GOOGLE_CLOUD_PROJECT")
         if not self.project:
             raise PredictionError("GOOGLE_CLOUD_PROJECT missing", str(self.model_ref))
-
+        logger.debug("Using Google Cloud project")
         self.location = st.google_cloud_location or os.getenv(
             "GOOGLE_CLOUD_LOCATION", "us-central1"
         )
@@ -118,21 +120,27 @@ class LLMClientVertexAI(LLMPredictionClient):
         temperature = (self.prompt_config or {}).get("temperature", 0)
         max_retries = (self.prompt_config or {}).get("max_retries", 2)
 
-        if os.getenv("LG_GRAPH_NAME"):
-            creds = json.loads(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-        else:
-            creds = load_credentials()
-
-        # if os.getenv("ENVIRONMENT") == "local":
-        #     logger.info("Running in local environment, loading credentials from file.")
-        #     creds = load_credentials()
+        # if os.getenv("LG_GRAPH_NAME"):
+        #     logger.info("local is true")
+        #     # log_info("LG_GRAPH_NAME is set in environment variables.")
+        #     creds = json.loads(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
         # else:
-        #     creds = make_credentials_from_env()
+        #     logger.info("LG_GRAPH_NAME is NOT HERE")
+        #     log_info("LG_GRAPH_NAME is NOT set in environment variables.")
+        #     creds = load_credentials()
 
-        #     logger.info(
-        #         "Running in NOT local environment, loading credentials from Path."
-        #     )
+        if os.getenv("ENVIRONMENT") == "local":
+            logger.info("Running in LOCAL environment, loading credentials from file.")
+            log_info("Running in local environment, loading credentials from file.")
+            creds = load_credentials()
+        else:
+            log_info("Running in NOT LOCAL environment, loading credentials from Path.")
+            creds = make_credentials_from_env()
 
+            logger.info(
+                "Running in NOT LOCAL environment, loading credentials from Path."
+            )
+        log_info("Credentials type: %s", type(creds))
         logger.debug("creds type: %s", type(creds))
         logger.info(
             "VertexAI config: project=%s location=%s model=%s",
@@ -140,6 +148,7 @@ class LLMClientVertexAI(LLMPredictionClient):
             self.location,
             model,
         )
+        log_info("VertexAI config : project=%s location=%s model=%s")
 
         self.client = ChatVertexAI(
             model=model,
@@ -170,12 +179,14 @@ class LLMClientVertexAI(LLMPredictionClient):
             result = self.client.with_structured_output(Signals).invoke(msgs)
             return normalize_signals(result)
         except (ValidationError, NotFound, PermissionDenied, GoogleAPIError) as e:
+            log_info("Structured failed (%s)", type(e).__name__)
             logger.debug(
                 "Structured failed (%s): %s — falling back to raw JSON parse",
                 type(e).__name__,
                 e,
             )
         except Exception as e:
+            log_info("Structured failed (unexpected %s)", type(e).__name__)
             logger.debug(
                 "Structured failed (unexpected %s): %s — falling back",
                 type(e).__name__,
@@ -188,6 +199,7 @@ class LLMClientVertexAI(LLMPredictionClient):
             raw_text = getattr(raw_resp, "content", None) or str(raw_resp)
             return parse_signals_from_text(raw_text)
         except (ValidationError, NotFound, PermissionDenied, GoogleAPIError) as e:
+            log_info("Fallback raw parse failed (%s)", type(e).__name__)
             logger.debug(
                 "Fallback raw parse failed (%s): %s", type(e).__name__, e, exc_info=True
             )
@@ -214,6 +226,7 @@ class LLMClientVertexAI(LLMPredictionClient):
 
         try:
             result = await self.client.with_structured_output(Signals).ainvoke(msgs)
+            log_info("Structured output succeeded")
             return normalize_signals(result)
         except (ValidationError, NotFound, PermissionDenied, GoogleAPIError) as e:
             logger.debug(
@@ -222,6 +235,7 @@ class LLMClientVertexAI(LLMPredictionClient):
                 e,
             )
         except Exception as e:
+            log_info("Structured output failed (unexpected %s)", type(e).__name__)  
             logger.debug(
                 "Structured output failed (unexpected %s): %s — falling back",
                 type(e).__name__,
@@ -230,10 +244,13 @@ class LLMClientVertexAI(LLMPredictionClient):
             )
 
         try:
-            raw_resp = await self.client.ainvoke(msgs)  # ✅
+            raw_resp = await self.client.ainvoke(msgs)
+            log_info("Raw output succeeded")
             raw_text = getattr(raw_resp, "content", None) or str(raw_resp)
+            log_info("Raw text obtained: %s", raw_text) 
             return parse_signals_from_text(raw_text)
         except (ValidationError, NotFound, PermissionDenied, GoogleAPIError) as e:
+            log_info("Fallback raw parse failed (%s)", type(e).__name__)
             logger.debug(
                 "Fallback raw parse failed (%s): %s", type(e).__name__, e, exc_info=True
             )
@@ -289,6 +306,7 @@ def classify_with_vertexai(event: str) -> dict:
     """
     global _client_singleton
     if _client_singleton is None:
+        log_info("Initializing Vertex AI client singleton...")
         _client_singleton = LLMClientVertexAI()
         _client_singleton.setup()
     return _client_singleton.classify_event(event)
