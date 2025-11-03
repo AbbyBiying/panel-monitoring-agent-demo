@@ -15,7 +15,7 @@ import logging
 
 from panel_monitoring.app.clients.llms import get_llm_classifier
 from panel_monitoring.app.schemas import GraphState, Signals, ModelMeta
-from panel_monitoring.app.utils import looks_like_automated
+from panel_monitoring.app.utils import log_info, looks_like_automated
 # from panel_monitoring.data.firestore_client import events_col, runs_col
 
 # --------------------------------------------------------------------
@@ -186,6 +186,7 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
                 raise TypeError("Classifier is not callable and has no .classify()")
 
             out = call(text)
+            log_info(f"LLM classification output: {out}")
             logger.debug("[DBG] LLM raw out: %r", out)
 
             if isinstance(out, tuple) and len(out) == 2:
@@ -216,9 +217,12 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
             meta.model = model
             print("[DBG] normalized signals:", signals)
             print("[DBG] meta:", meta)
+            log_info(f"LLM classification signals: {signals.model_dump()}")
+            log_info(f"LLM classification meta: {meta.model_dump()}")
 
         except Exception as e:
             logger.warning("LLM classification failed; using heuristic fallback.")
+            log_info(f"LLM classification error: {e}")
             signals, meta = _heuristic_fallback(text)
             meta.provider = provider
             meta.model = model
@@ -259,7 +263,7 @@ def action_decision_node(state: GraphState) -> GraphState:
         action = "hold_account"
     else:
         action = "no_action"
-
+    log_info(f"Decided action: {action} (conf={conf:.2f})")
     return state.model_copy(update={"action": action})
 
 
