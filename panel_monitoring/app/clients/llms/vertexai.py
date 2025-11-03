@@ -58,13 +58,16 @@ SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
 def make_credentials_from_env():
     raw = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     if not raw:
+        logger.debug("No GOOGLE_APPLICATION_CREDENTIALS in env")
         return None  # fall back to ADC
 
     # If it's a JSON path on disk
     if not raw.strip().startswith("{"):
+        logger.debug("Loading GOOGLE_APPLICATION_CREDENTIALS from file path")
         return service_account.Credentials.from_service_account_file(raw, scopes=SCOPES)
 
     # If it's a JSON string
+    logger.debug("Loading GOOGLE_APPLICATION_CREDENTIALS from JSON string")
     info = json.loads(raw)
     return service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
 
@@ -119,15 +122,6 @@ class LLMClientVertexAI(LLMPredictionClient):
         model = self.model or DEFAULT_MODEL
         temperature = (self.prompt_config or {}).get("temperature", 0)
         max_retries = (self.prompt_config or {}).get("max_retries", 2)
-
-        # if os.getenv("LG_GRAPH_NAME"):
-        #     logger.info("local is true")
-        #     # log_info("LG_GRAPH_NAME is set in environment variables.")
-        #     creds = json.loads(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-        # else:
-        #     logger.info("LG_GRAPH_NAME is NOT HERE")
-        #     log_info("LG_GRAPH_NAME is NOT set in environment variables.")
-        #     creds = load_credentials()
 
         if os.getenv("ENVIRONMENT") == "local":
             logger.info("Running in LOCAL environment, loading credentials from file.")
