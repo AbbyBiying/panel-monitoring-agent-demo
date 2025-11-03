@@ -30,7 +30,7 @@ deploy-pubsub:
 publish-test-event:
     #!/usr/bin/env bash
     # gcloud pubsub topics publish user-event-signups --message='Abby from Tennessee.'
-    gcloud pubsub topics publish user-event-signups --message='hey hey 7pm nov 2nd, I m a software engineer in San Diego!'
+    gcloud pubsub topics publish user-event-signups --message='I m a software engineer in San Diego!'
 
 
 logs-tail:
