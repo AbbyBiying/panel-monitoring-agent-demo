@@ -151,6 +151,7 @@ class LLMClientVertexAI(LLMPredictionClient):
             max_retries=max_retries,
         )
 
+
     # ---- primary (structured) APIs ---------------------------------------
 
     def classify_event(self, event: str) -> dict:
