@@ -5,8 +5,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 client = Client()
-
-print([d.name for d in client.list_datasets(limit=100)])
 ds = client.read_dataset(dataset_name="Panel Monitoring Cases")
 
 # Get the latest version, then tag it "v1" (or "prod")

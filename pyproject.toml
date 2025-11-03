@@ -30,6 +30,7 @@ dependencies = [
   "trustcall",
   "langgraph-cli[inmem]",
   "notebook",
+  "functions-framework>=3.9.2",
 ]
 
 [project.optional-dependencies]

@@ -1,20 +1,64 @@
-# app/schemas.py
-from typing import Literal, TypedDict, Dict, Any
+# panel_monitoring/app/schemas.py
+from __future__ import annotations
+
+from typing import Any, Dict, Literal, Optional
 from pydantic import BaseModel, Field
 
 
+# ----------------------------
 # Structured schema for LLM output
+# ----------------------------
+
+
 class Signals(BaseModel):
     suspicious_signup: bool = Field(..., description="True if the event is suspicious")
     normal_signup: bool = Field(..., description="True if the event is normal")
-    confidence: float = Field(..., ge=0.0, le=1.0)
-    reason: str
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score [0,1]")
+    reason: str = Field(
+        ..., description="Explanation or rationale for the classification"
+    )
 
 
-class GraphState(TypedDict):
-    event_data: str
-    signals: Dict[str, Any]
-    classification: Literal["suspicious", "normal", "error"]
-    action: str
-    log_entry: str
-    explanation_report: str
+# ----------------------------
+# Metadata about model execution
+# ----------------------------
+
+
+class ModelMeta(BaseModel):
+    provider: Optional[str] = None
+    model: Optional[str] = None
+    temperature: Optional[int] = None
+    max_output_tokens: Optional[int] = None
+    request_timeout: Optional[int] = None
+    max_retries: Optional[int] = None
+    usage: Dict[str, Any] = Field(default_factory=dict)
+    latency_ms: Optional[int] = None
+    cost_usd: Optional[float] = None
+    error: Optional[str] = None
+
+
+# ----------------------------
+# LangGraph state object
+# ----------------------------
+
+
+class GraphState(BaseModel):
+    # Core identifiers
+    project_id: Optional[str] = None
+    event_id: Optional[str] = None
+
+    # Input / raw content
+    event_text: Optional[str] = None
+    event_data: Dict[str, Any] = Field(default_factory=dict)  # structured input payload
+
+    # Classification results
+    signals: Optional[Signals] = None
+    classification: Literal["pending", "suspicious", "normal", "error"] = "pending"
+    confidence: Optional[float] = None
+    model_meta: ModelMeta = Field(default_factory=ModelMeta)
+    error: Optional[str] = None
+
+    # Downstream workflow outputs
+    action: Optional[str] = ""  # default empty to avoid None checks
+    log_entry: Optional[str] = None
+    explanation_report: Optional[str] = None

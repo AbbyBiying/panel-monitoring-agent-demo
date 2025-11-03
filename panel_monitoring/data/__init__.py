@@ -11,7 +11,7 @@ Environment:
 - FIRESTORE_EMULATOR_HOST: host:port for local emulator (optional)
 
 Exports:
-- Firestore client helpers: get_db, project_doc, events_col, runs_col, alerts_col, metrics_daily_doc
+- Firestore client helpers: get_db, events_col, runs_col, alerts_col
 - Ingest helpers: upsert_event, add_run, finalize_event
 - Utility: db_info (returns {'project': ..., 'database': ...})
 """
@@ -21,11 +21,9 @@ import os
 
 from .firestore_client import (
     get_db,
-    project_doc,
     events_col,
     runs_col,
     alerts_col,
-    metrics_daily_doc,
 )
 from .ingest import (
     upsert_event,
@@ -48,11 +46,9 @@ def db_info() -> dict:
 
 __all__ = [
     "get_db",
-    "project_doc",
     "events_col",
     "runs_col",
     "alerts_col",
-    "metrics_daily_doc",
     "upsert_event",
     "add_run",
     "finalize_event",

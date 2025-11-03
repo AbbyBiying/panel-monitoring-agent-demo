@@ -28,6 +28,11 @@ uv venv .venv --clear
 uv sync
 ```
 
+# Activate your virtual environment
+```
+source .venv/bin/activate
+```
+
 ### Running notebooks
 If you don't have Jupyter set up, follow installation instructions [here](https://jupyter.org/install).
 ```
@@ -104,7 +109,7 @@ TAVILY_API_KEY="your-key"
 reference: <!-- https://docs.langchain.com/langsmith/manage-datasets -->
 Run 
 ```
-uv run python testing-examples/datasets/seed_panel_cases.py
+uv run python testing-examples/datasets/seed_langsmith_dataset.py
 ``` 
 to create the **Panel Monitoring Cases** dataset in LangSmith, seeding evaluation examples aligned with GraphState for classification and action testing.
 
@@ -123,14 +128,7 @@ uv run python testing-examples/datasets/tag_dataset_version.py
 *  Set `LANGSMITH_API_KEY`, `LANGSMITH_TRACING=true`, `LANGSMITH_PROJECT="panel-monitoring-agent"` in your environment 
 
 
-# Run as a package:
-``` 
-uv run python -m panel_monitoring.panel_agent_openai
-uv run python -m panel_monitoring.panel_agent_vertexai 
-uv run python -m panel_monitoring.panel_agent_genai
-```
-
-# Via the unified CLI (with FunctionProvider):
+# Run via the unified CLI (with FunctionProvider):
 OpenAI
 ```
 uv run python -m panel_monitoring.scripts.panel_agent --provider openai
