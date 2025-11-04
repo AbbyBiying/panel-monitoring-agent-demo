@@ -105,7 +105,7 @@ LANGSMITH_PROJECT="panel-monitoring-agent"
 # Tavily (optional web search)
 ```
 TAVILY_API_KEY="your-key"
-```
+
 reference: <!-- https://docs.langchain.com/langsmith/manage-datasets -->
 Run 
 ```
@@ -127,7 +127,9 @@ uv run python testing-examples/datasets/tag_dataset_version.py
 * and how to use it within your workflow [here](https://www.langchain.com/langsmith), and relevant library [docs](https://docs.smith.langchain.com/)!
 *  Set `LANGSMITH_API_KEY`, `LANGSMITH_TRACING=true`, `LANGSMITH_PROJECT="panel-monitoring-agent"` in your environment 
 
+### Running the Panel Monitoring Agent
 
+The Panel Monitoring Agent supports three execution modes, depending on your workflow and environment.
 # Run via the unified CLI (with FunctionProvider):
 OpenAI
 ```
@@ -174,6 +176,28 @@ for i in {1..5}; do
 done
 echo "TAVILY_API_KEY=\"$TAVILY_API_KEY\"" >> module-4/studio/.env
 ```
+
+### Production Mode via Google Cloud Event Trigger
+
+* In production, the agent runs automatically in response to real user or system events.
+
+Flow:
+
+* Pub/Sub event is published (e.g., user signup, suspicious behavior, survey action)
+
+* Cloud Function Gen2 receives the event and invokes the agent
+
+* Agent processes the event using Vertex AI
+
+* Final action is logged and pushed to downstream services (notifications, dashboards, etc.)
+
+This mode is best for:
+
+* Production automation
+
+* Scalable event-driven workflows
+
+* Real-time monitoring of panel activity
 
 ### Code Quality: Ruff (lint & format)
 
