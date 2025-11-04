@@ -62,3 +62,6 @@ class GraphState(BaseModel):
     action: Optional[str] = ""  # default empty to avoid None checks
     log_entry: Optional[str] = None
     explanation_report: Optional[str] = None
+
+    review_decision: Optional[Literal["approve", "reject", "escalate"]] = None
+    review_url: Optional[str] = None

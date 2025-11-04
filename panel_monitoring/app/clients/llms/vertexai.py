@@ -8,6 +8,7 @@ import os
 import time
 from typing import Optional
 
+from google.oauth2 import service_account
 from dotenv import load_dotenv, find_dotenv
 from google.api_core.exceptions import GoogleAPIError, NotFound, PermissionDenied
 from pydantic import ValidationError
@@ -28,9 +29,11 @@ from panel_monitoring.app.prompts import PROMPT_CLASSIFY_SYSTEM, PROMPT_CLASSIFY
 from panel_monitoring.app.utils import (
     build_classify_messages,
     load_credentials,
+    log_info,
     normalize_signals,
     parse_signals_from_text,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +50,26 @@ SAFETY_SETTINGS = {
     HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
     HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
 }
+
+
+SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
+
+
+def make_credentials_from_env():
+    raw = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    if not raw:
+        logger.debug("No GOOGLE_APPLICATION_CREDENTIALS in env")
+        return None  # fall back to ADC
+
+    # If it's a JSON path on disk
+    if not raw.strip().startswith("{"):
+        logger.debug("Loading GOOGLE_APPLICATION_CREDENTIALS from file path")
+        return service_account.Credentials.from_service_account_file(raw, scopes=SCOPES)
+
+    # If it's a JSON string
+    logger.debug("Loading GOOGLE_APPLICATION_CREDENTIALS from JSON string")
+    info = json.loads(raw)
+    return service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
 
 
 class LLMClientVertexAI(LLMPredictionClient):
@@ -91,7 +114,7 @@ class LLMClientVertexAI(LLMPredictionClient):
         self.project = st.google_cloud_project or os.getenv("GOOGLE_CLOUD_PROJECT")
         if not self.project:
             raise PredictionError("GOOGLE_CLOUD_PROJECT missing", str(self.model_ref))
-
+        logger.debug("Using Google Cloud project")
         self.location = st.google_cloud_location or os.getenv(
             "GOOGLE_CLOUD_LOCATION", "us-central1"
         )
@@ -99,17 +122,27 @@ class LLMClientVertexAI(LLMPredictionClient):
         model = self.model or DEFAULT_MODEL
         temperature = (self.prompt_config or {}).get("temperature", 0)
         max_retries = (self.prompt_config or {}).get("max_retries", 2)
-        if os.getenv("LG_GRAPH_NAME"):
-            creds = json.loads(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-        else:
-            creds = load_credentials()
 
+        if os.getenv("ENVIRONMENT") == "local":
+            logger.info("Running in LOCAL environment, loading credentials from file.")
+            log_info("Running in local environment, loading credentials from file.")
+            creds = load_credentials()
+        else:
+            log_info("Running in NOT LOCAL environment, loading credentials from Path.")
+            creds = make_credentials_from_env()
+
+            logger.info(
+                "Running in NOT LOCAL environment, loading credentials from Path."
+            )
+        log_info("Credentials type: %s", type(creds))
+        logger.debug("creds type: %s", type(creds))
         logger.info(
             "VertexAI config: project=%s location=%s model=%s",
             self.project or "<auto>",
             self.location,
             model,
         )
+        log_info("VertexAI config : project=%s location=%s model=%s")
 
         self.client = ChatVertexAI(
             model=model,
@@ -139,12 +172,14 @@ class LLMClientVertexAI(LLMPredictionClient):
             result = self.client.with_structured_output(Signals).invoke(msgs)
             return normalize_signals(result)
         except (ValidationError, NotFound, PermissionDenied, GoogleAPIError) as e:
+            log_info("Structured failed (%s)", type(e).__name__)
             logger.debug(
                 "Structured failed (%s): %s — falling back to raw JSON parse",
                 type(e).__name__,
                 e,
             )
         except Exception as e:
+            log_info("Structured failed (unexpected %s)", type(e).__name__)
             logger.debug(
                 "Structured failed (unexpected %s): %s — falling back",
                 type(e).__name__,
@@ -157,6 +192,7 @@ class LLMClientVertexAI(LLMPredictionClient):
             raw_text = getattr(raw_resp, "content", None) or str(raw_resp)
             return parse_signals_from_text(raw_text)
         except (ValidationError, NotFound, PermissionDenied, GoogleAPIError) as e:
+            log_info("Fallback raw parse failed (%s)", type(e).__name__)
             logger.debug(
                 "Fallback raw parse failed (%s): %s", type(e).__name__, e, exc_info=True
             )
@@ -183,6 +219,7 @@ class LLMClientVertexAI(LLMPredictionClient):
 
         try:
             result = await self.client.with_structured_output(Signals).ainvoke(msgs)
+            log_info("Structured output succeeded")
             return normalize_signals(result)
         except (ValidationError, NotFound, PermissionDenied, GoogleAPIError) as e:
             logger.debug(
@@ -191,6 +228,7 @@ class LLMClientVertexAI(LLMPredictionClient):
                 e,
             )
         except Exception as e:
+            log_info("Structured output failed (unexpected %s)", type(e).__name__)
             logger.debug(
                 "Structured output failed (unexpected %s): %s — falling back",
                 type(e).__name__,
@@ -199,10 +237,13 @@ class LLMClientVertexAI(LLMPredictionClient):
             )
 
         try:
-            raw_resp = await self.client.ainvoke(msgs)  # ✅
+            raw_resp = await self.client.ainvoke(msgs)
+            log_info("Raw output succeeded")
             raw_text = getattr(raw_resp, "content", None) or str(raw_resp)
+            log_info("Raw text obtained: %s", raw_text)
             return parse_signals_from_text(raw_text)
         except (ValidationError, NotFound, PermissionDenied, GoogleAPIError) as e:
+            log_info("Fallback raw parse failed (%s)", type(e).__name__)
             logger.debug(
                 "Fallback raw parse failed (%s): %s", type(e).__name__, e, exc_info=True
             )
@@ -228,6 +269,7 @@ class LLMClientVertexAI(LLMPredictionClient):
             data = await self.aclassify_event(prompt)
             text = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
         except PredictionError:
+            logger.debug("Re-raising PredictionError")
             raise
         except Exception as e:
             duration_ms = (time.perf_counter() - start) * 1000.0
@@ -257,6 +299,7 @@ def classify_with_vertexai(event: str) -> dict:
     """
     global _client_singleton
     if _client_singleton is None:
+        log_info("Initializing Vertex AI client singleton...")
         _client_singleton = LLMClientVertexAI()
         _client_singleton.setup()
     return _client_singleton.classify_event(event)

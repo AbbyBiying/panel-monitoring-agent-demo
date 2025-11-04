@@ -90,7 +90,7 @@ def _get_remote_graph() -> RemoteGraph:
       - Either LG_ASSISTANT_ID or LG_GRAPH_NAME
       - LANGSMITH_API_KEY (auth for RemoteGraph)
     """
-    # Allow your existing key name to flow into the standard var RemoteGraph expects.
+
     cf_key = os.getenv("LANGSMITH_API_KEY_CLOUD_FUNCTIONS")
 
     if cf_key and not os.getenv("LANGSMITH_API_KEY"):
@@ -119,16 +119,13 @@ def _build_graph_inputs(payload: t.Union[dict, str, None], meta: dict) -> dict:
 
 
 def _runtime_config(thread_id: str) -> dict:
-    # Pull from env so you can set them with --set-env-vars at deploy time
     print(f"_runtime_config thread_id: {thread_id}")
     return {
         "thread_id": thread_id,
         "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
         "configurable": {
-            # "provider": "vertexai",
-            "provider": "openai",
-            # "model": "gemini-2.5-pro"
-            "model": "gpt-4o-mini",
+            "provider": os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai"),
+            "model": os.getenv("VERTEX_MODEL", "gemini-2.5-pro"),
         },
     }
 
@@ -155,7 +152,7 @@ def pubsub_to_langsmith(event):
     thread_id = (
         attrs.get("thread_id")
         or pubsub_message_id
-        or str(uuid.uuid4()) # if nothing we make a new one
+        or str(uuid.uuid4())  # if nothing we make a new one
     )
     print(f"thread_id resolved: {thread_id}")
     # 3) Invoke the remote graph
@@ -163,7 +160,7 @@ def pubsub_to_langsmith(event):
     print(f"remote graph obtained, invoking it with thread_id...{remote}:{thread_id}")
     try:
         config = _runtime_config(thread_id)
-        # print out the provider being used
+        print(f"config from _runtime_config: {config}")
         print(f"Using provider: {config['configurable']['provider']}")
         result = remote.invoke(inputs, config=config)
         print(
@@ -182,8 +179,6 @@ def pubsub_to_langsmith(event):
 
         time.sleep(0.2)
         print("[COMPLETE] Graph invocation finished.")
-        # how to parse the result?
-        print("result", result)
 
         return {
             "ok": True,
