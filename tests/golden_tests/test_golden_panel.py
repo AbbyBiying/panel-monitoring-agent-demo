@@ -42,7 +42,7 @@ def load_test_data():
     return data
 
 
-@pytest.mark.parametrize("item", load_test_data()[:1])
+@pytest.mark.parametrize("item", load_test_data()[1:2])
 def test_golden_panel(item):
     """
     Golden test that validates:
@@ -57,7 +57,7 @@ def test_golden_panel(item):
 
     state = app.invoke({"event_data": item}, config=cfg)
 
-    # ⭐ Minimal reasoning print (handle dict or Pydantic Signals)
+    # ⭐ Minimal reasoning print (handles dict or Pydantic Signals)
     sig = state.get("signals")
     reason = sig.get("reason") if isinstance(sig, dict) else getattr(sig, "reason", None)
     print("\n[INITIAL] reason=", reason)
@@ -67,10 +67,9 @@ def test_golden_panel(item):
     if state.get("__interrupt__"):
         expected_removed = bool(item["removed"])
         decision = "approve" if expected_removed else "reject"
-
         state = app.invoke(Command(resume=decision), config=cfg)
 
-        # ⭐ Print after HITL if resumed (handle dict or Pydantic Signals)
+        # ⭐ Print after HITL if resumed
         sig = state.get("signals")
         reason = sig.get("reason") if isinstance(sig, dict) else getattr(sig, "reason", None)
         print("\n[AFTER HITL] reason=", reason)
@@ -84,8 +83,9 @@ def test_golden_panel(item):
 
     expected_removed = bool(item["removed"])
     actual_removed = None
-    # --- Golden label logic ---
-    if classification in ("suspicious", "error") and confidence > 0.30:
+
+    # --- ✅ Golden label logic (based on the *final action*) ---
+    if action == "delete_account":
         actual_removed = True
     elif classification == "normal" and confidence > 0.40:
         actual_removed = False
@@ -93,7 +93,7 @@ def test_golden_panel(item):
     if actual_removed is not None:
         assert actual_removed == expected_removed, (
             f"pid={item['pid']} expected_removed={expected_removed} "
-            f"got classification={classification} conf={confidence:.2f}"
+            f"got classification={classification} action={action} conf={confidence:.2f}"
         )
 
     # If HITL should have happened, ensure we ended with a final action
