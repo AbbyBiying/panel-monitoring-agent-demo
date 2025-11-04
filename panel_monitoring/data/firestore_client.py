@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from google.cloud import firestore
 from google.auth.exceptions import DefaultCredentialsError
 
+from panel_monitoring.app.utils import load_credentials, log_info, make_credentials_from_env
+
 logger = logging.getLogger(__name__)
 
 load_dotenv()
@@ -30,15 +32,20 @@ def get_db() -> firestore.Client:
         return _DB
 
     project = os.getenv("GCP_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT")
-    database = os.getenv("FIRESTORE_DATABASE_ID", "(default)")
+    database = os.getenv("FIRESTORE_DATABASE_ID", "panel-monitoring-agent-dev")
 
-    try:
-        from panel_monitoring.app.utils import load_credentials
-
+    if os.getenv("ENVIRONMENT") == "local":
+        logger.info("Running in LOCAL environment, loading credentials from file.")
+        log_info("Running in local environment, loading credentials from file.")
         creds = load_credentials()
-    except Exception as e:
-        logger.debug("Failed to load credentials via load_credentials(): %s", e)
-        creds = None
+    else:
+        log_info("Running in NOT LOCAL environment, loading credentials from Path.")
+        creds = make_credentials_from_env()
+
+        logger.info(
+            "Running in NOT LOCAL environment, loading credentials from Path."
+        )
+    logger.debug("creds type: %s", type(creds))
 
     try:
         _DB = firestore.Client(project=project, database=database, credentials=creds)

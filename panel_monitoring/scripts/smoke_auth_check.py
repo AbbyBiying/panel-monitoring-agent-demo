@@ -33,7 +33,7 @@ def main():
             "No project resolved. Set GOOGLE_CLOUD_PROJECT (or GCP_PROJECT*)."
         )
 
-    db_id = os.getenv("FIRESTORE_DATABASE_ID", "(default)")
+    db_id = os.getenv("FIRESTORE_DATABASE_ID", "panel-monitoring-agent-dev"),
     client = firestore.Client(project=project, database=db_id, credentials=creds)
     logger.info("Starting Firestore smoke check: project=%s db=%s", project, db_id)
 

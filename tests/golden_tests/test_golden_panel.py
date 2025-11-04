@@ -57,12 +57,24 @@ def test_golden_panel(item):
 
     state = app.invoke({"event_data": item}, config=cfg)
 
+    # ⭐ Minimal reasoning print (handle dict or Pydantic Signals)
+    sig = state.get("signals")
+    reason = sig.get("reason") if isinstance(sig, dict) else getattr(sig, "reason", None)
+    print("\n[INITIAL] reason=", reason)
+    print("[INITIAL] explanation=", state.get("explanation_report"))
+
     # --- Auto-resolve HITL if triggered ---
     if state.get("__interrupt__"):
         expected_removed = bool(item["removed"])
         decision = "approve" if expected_removed else "reject"
 
         state = app.invoke(Command(resume=decision), config=cfg)
+
+        # ⭐ Print after HITL if resumed (handle dict or Pydantic Signals)
+        sig = state.get("signals")
+        reason = sig.get("reason") if isinstance(sig, dict) else getattr(sig, "reason", None)
+        print("\n[AFTER HITL] reason=", reason)
+        print("[AFTER HITL] explanation=", state.get("explanation_report"))
 
     # --- Extract results ---
     classification = (state.get("classification") or "").lower()
@@ -100,6 +112,9 @@ def test_golden_panel(item):
     assert isinstance(log_entry, str) and log_entry.strip(), (
         "log_entry missing or empty"
     )
+
+    # ⭐ Print compact log entry
+    print("\n[LOG]", log_entry)
 
     # Light structural validation of log fields (avoid full parse)
     for k in ("event_id", "classification", "confidence", "provider", "model"):

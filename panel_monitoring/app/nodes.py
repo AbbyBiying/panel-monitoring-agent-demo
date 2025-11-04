@@ -7,7 +7,7 @@ import os
 from typing import Literal, Tuple
 from uuid import uuid4
 
-# from google.cloud import firestore
+from google.cloud import firestore
 from langsmith import traceable
 from langgraph.types import Command, interrupt
 
@@ -16,7 +16,7 @@ import logging
 from panel_monitoring.app.clients.llms import get_llm_classifier
 from panel_monitoring.app.schemas import GraphState, Signals, ModelMeta
 from panel_monitoring.app.utils import log_info, looks_like_automated
-# from panel_monitoring.data.firestore_client import events_col, runs_col
+from panel_monitoring.data.firestore_client import events_col, runs_col
 
 # --------------------------------------------------------------------
 # Confidence Thresholds for Automated Decision Making
@@ -31,8 +31,9 @@ CONFIDENCE_REVIEW_THRESHOLD = 0.70
 # If confidence is between 0.30 and 0.69 → model is uncertain, hold/no-action
 CONFIDENCE_UNCERTAIN_THRESHOLD = 0.30
 
-# If confidence is < this value → treat as invalid, low-quality, or fallback required
-CONFIDENCE_LOW_THRESHOLD = 0.30
+HEURISTIC_CONFIDENCE = 0.70
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -54,7 +55,7 @@ def _heuristic_fallback(text: str) -> Tuple[Signals, ModelMeta]:
         Signals(
             suspicious_signup=flagged,
             normal_signup=not flagged,
-            confidence=0.5,
+            confidence=HEURISTIC_CONFIDENCE,
             reason="LLM unavailable/invalid; simple heuristic used.",
         ),
         ModelMeta(provider="heuristic", model="fallback"),
@@ -99,32 +100,9 @@ def perform_effects_node(state: GraphState) -> GraphState:
 
 @traceable(name="user_event_node", tags=["node"])
 def user_event_node(state: GraphState) -> GraphState:
-    """
-    Create (or ensure) the parent event document in Firestore and prime state.
-    If an event already exists (event_id provided), we don't create a new one.
-    """
-    project_id = state.project_id or "panel-app-dev"
-
+    project_id = state.project_id or os.getenv("PANEL_PROJECT_ID", "panel-app-dev")
     event_text = _event_text_from_state(state)
-    event_id = state.event_id or uuid4().hex
-    # event_id = state.event_id
-    # if not event_id:
-    #     evt_ref = events_col().document()
-    #     evt_ref.set(
-    #         {
-    #             "project_id": project_id,
-    #             "type": "signup",
-    #             "source": "web",
-    #             "received_at": firestore.SERVER_TIMESTAMP,
-    #             "updated_at": firestore.SERVER_TIMESTAMP,
-    #             "event_at": _utcnow(),
-    #             "status": "pending",
-    #             "payload": {"preview": (event_text or "")[:200]},
-    #         }
-    #     )
-    #     event_id = evt_ref.id
 
-    # Seed a valid Signals to satisfy Pydantic until classifier overwrites it
     seeded_signals = Signals(
         suspicious_signup=False,
         normal_signup=True,
@@ -132,20 +110,35 @@ def user_event_node(state: GraphState) -> GraphState:
         reason="unclassified",
     )
 
-    # Return updated GraphState (don’t mutate dicts; keep it typed)
-    # state is a Pydantic model instance of GraphState
-    # In Pydantic v2, .model_copy() replaces the old .copy() method from v1.
-    # new_state = state.model_copy(update={"classification": "suspicious"})
-    # same as new_state = GraphState(**state.dict(), classification="suspicious")
-    # You don’t want to mutate the original state (since multiple nodes might reference it concurrently or in branches).
-    # Instead, you return an immutable copy with the updated fields.
-    # Old state remains unchanged.
-    # New state carries your updates (e.g., classification results).
-    # LangGraph passes this new state downstream.
-    # Keeps all existing fields and values from state (anything you didn’t touch stays exactly the same).
-    # Updates only the specified fields (classification in this case).
-    # Preserves typing, defaults, and validation from the original model.
-    # Does not mutate the original state — it returns a brand-new one.
+    if state.event_id:
+        event_id = state.event_id
+        # Only update mutable fields on existing doc
+        events_col().document(event_id).set(
+            {
+                "project_id": project_id,
+                "updated_at": firestore.SERVER_TIMESTAMP,
+                "status": "pending",
+                "payload": {"preview": (event_text or "")[:200]},
+            },
+            merge=True,
+        )
+    else:
+        # Create new doc with immutable creation fields
+        evt_ref = events_col().document()
+        evt_ref.set(
+            {
+                "project_id": project_id,
+                "type": getattr(state, "event_type", "signup"),
+                "source": getattr(state, "event_source", "web"),
+                "received_at": firestore.SERVER_TIMESTAMP,
+                "updated_at": firestore.SERVER_TIMESTAMP,
+                "event_at": _utcnow(),
+                "status": "pending",
+                "payload": {"preview": (event_text or "")[:200]},
+            }
+        )
+        event_id = evt_ref.id
+
     return state.model_copy(
         update={
             "project_id": project_id,
@@ -153,7 +146,7 @@ def user_event_node(state: GraphState) -> GraphState:
             "event_text": event_text,
             "signals": seeded_signals,
             "classification": "pending",
-            "action": "",
+            "action": None,
             "log_entry": "",
         }
     )
@@ -162,6 +155,7 @@ def user_event_node(state: GraphState) -> GraphState:
 @traceable(name="signal_evaluation_node", tags=["node"])
 def signal_evaluation_node(state: GraphState) -> GraphState:
     text = _event_text_from_state(state)
+    event_id = state.event_id or "unknown"
 
     if looks_like_automated(text):
         signals = Signals(
@@ -174,7 +168,16 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
     else:
         provider = os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai")
         model = os.getenv("VERTEX_MODEL", "gemini-2.5-pro")
-        logger.info("Using provider=%s model=%s", provider, model)
+
+        logger.info(
+            "Evaluating signals (event_id=%s, provider=%s, model=%s)",
+            event_id,
+            provider,
+            model,
+        )
+        log_info(
+            f"Evaluating signals with LLM (provider={provider}, model={model}), event_id={event_id}"
+        )
 
         try:
             classifier = get_llm_classifier(provider)
@@ -202,21 +205,33 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
                 raw_sig["suspicious_signup"] = label == "suspicious"
             if "normal_signup" not in raw_sig:
                 raw_sig["normal_signup"] = not raw_sig.get("suspicious_signup", False)
+
             if "confidence" not in raw_sig:
                 raw_sig["confidence"] = (
                     raw_sig.get("score")
                     or raw_sig.get("prob")
                     or raw_meta.get("confidence", 0.0)
                 )
+
             if "reason" not in raw_sig:
-                raw_sig["reason"] = raw_sig.get("message") or raw_meta.get("reason")
+                raw_sig["reason"] = (
+                    raw_sig.get("message") or raw_meta.get("reason") or ""
+                )
 
             signals = Signals.model_validate(raw_sig)
             meta = ModelMeta.model_validate(raw_meta or {})
-            meta.provider = provider
-            meta.model = model
-            print("[DBG] normalized signals:", signals)
-            print("[DBG] meta:", meta)
+
+            if not getattr(meta, "provider", None):
+                meta.provider = provider
+            if not getattr(meta, "model", None):
+                meta.model = model
+
+            logger.info(
+                "Normalized signals (event_id=%s): %s | meta: %s",
+                event_id,
+                signals.model_dump(),
+                meta.model_dump(),
+            )
             log_info(f"LLM classification signals: {signals.model_dump()}")
             log_info(f"LLM classification meta: {meta.model_dump()}")
 
@@ -228,12 +243,16 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
             meta.model = model
             signals.reason = f"{signals.reason} ({type(e).__name__})"
 
-    classification: Literal["suspicious", "normal"] = (
-        "suspicious"
-        if (signals.suspicious_signup and not signals.normal_signup)
-        else "normal"
-    )
-    confidence = signals.confidence or 0.0
+    # ---- Decide high-level classification; action decided later ---------------
+    if signals.suspicious_signup and not signals.normal_signup:
+        classification: Literal["suspicious", "normal", "uncertain"] = "suspicious"
+    elif signals.normal_signup and not signals.suspicious_signup:
+        classification = "normal"
+    else:
+        classification = "uncertain"
+
+    confidence = float(signals.confidence or 0.0)
+
     action = "hold_account" if classification == "suspicious" else "no_action"
 
     return state.model_copy(
@@ -279,7 +298,6 @@ def explanation_node(state: GraphState) -> GraphState:
     )
     conf_txt = f"{float(conf_val):.2f}" if isinstance(conf_val, (int, float)) else "N/A"
 
-    # human-friendly one-liner ("ex")
     if cls == "suspicious":
         reason = sig.reason if (sig and sig.reason) else "n/a"
         ex = f"SUSPICIOUS (Conf {conf_txt}). Reason: {reason}. Action: {action}."
@@ -296,7 +314,9 @@ def explanation_node(state: GraphState) -> GraphState:
 
 
 @traceable(name="human_approval_node", tags=["node"])
-def human_approval_node(state: GraphState) -> GraphState | Command[Literal["explain"]]:
+def human_approval_node(
+    state: GraphState,
+) -> GraphState | Command[Literal["explain"]]:
     """
     If we requested human review, PAUSE here and ask an admin.
     When resumed, convert the review decision into the final action.
@@ -354,48 +374,46 @@ def human_approval_node(state: GraphState) -> GraphState | Command[Literal["expl
 
 @traceable(name="logging_node", tags=["node"])
 def logging_node(state: GraphState) -> GraphState:
-    # project_id = state.project_id or "panel-app-dev"
-    # event_id = state.event_id
-
-    event_id = state.event_id or uuid4().hex
+    project_id = state.project_id or "panel-app-dev"
+    event_id = state.event_id
 
     run_id = uuid4().hex
     decision = state.classification or "error"
     confidence = float(state.confidence or 0.0)
 
     # Convert models to dicts for Firestore I/O
-    # signals_dict = state.signals.model_dump() if state.signals else {}
+    signals_dict = state.signals.model_dump() if state.signals else {}
     meta = state.model_meta  # always a ModelMeta (has defaults)
 
     # Write run (top-level 'runs')
-    # runs_col().document(run_id).set(
-    #     {
-    #         "project_id": project_id,
-    #         "event_id": event_id,
-    #         "provider": meta.provider or "vertexai",
-    #         "model": meta.model or "gemini-2.5-pro",
-    #         "decision": decision,
-    #         "confidence": confidence,
-    #         "signals": signals_dict,
-    #         "started_at": firestore.SERVER_TIMESTAMP,
-    #         "finished_at": firestore.SERVER_TIMESTAMP,
-    #         "latency_ms": meta.latency_ms,
-    #         "cost_usd": meta.cost_usd,
-    #     }
-    # )
+    runs_col().document(run_id).set(
+        {
+            "project_id": project_id,
+            "event_id": event_id,
+            "provider": meta.provider or "vertexai",
+            "model": meta.model or "gemini-2.5-pro",
+            "decision": decision,
+            "confidence": confidence,
+            "signals": signals_dict,
+            "started_at": firestore.SERVER_TIMESTAMP,
+            "finished_at": firestore.SERVER_TIMESTAMP,
+            "latency_ms": meta.latency_ms,
+            "cost_usd": meta.cost_usd,
+        }
+    )
 
     # Update parent event summary (top-level 'events')
-    # events_col().document(event_id).set(
-    #     {
-    #         "project_id": project_id,
-    #         "status": "classified" if decision != "error" else "error",
-    #         "decision": decision,
-    #         "confidence": confidence,
-    #         "last_run_id": run_id,
-    #         "updated_at": firestore.SERVER_TIMESTAMP,
-    #     },
-    #     merge=True,
-    # )
+    events_col().document(event_id).set(
+        {
+            "project_id": project_id,
+            "status": "classified" if decision != "error" else "error",
+            "decision": decision,
+            "confidence": confidence,
+            "last_run_id": run_id,
+            "updated_at": firestore.SERVER_TIMESTAMP,
+        },
+        merge=True,
+    )
 
     # Build human-friendly log summary
     preview = _event_text_from_state(state)[:50]
