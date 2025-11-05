@@ -1,0 +1,187 @@
+[{
+    "pid": "iPa3c2cacca3",
+    "removed": false,
+    "story": {
+      "user_panelist_id": "iPa3c2cacca3",
+      "primary_email": {
+        "value": "swampbabybutterbean@gmail.com",
+        "verified": true
+      },
+      "primary_phone": {
+        "value": null,
+        "verified": false
+      },
+      "primary_phone_carrier": null,
+      "primary_phone_carrier_type": null,
+      "ip_address": "166.181.81.176",
+      "ip_address_country": "United States",
+      "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0.1 Mobile/15E148 Safari/604.1",
+      "recruitment_campaign": {
+        "name": "Organic",
+        "id": 5
+      },
+      "recruitment_source": {
+        "name": "Organic/unknown",
+        "id": 1
+      },
+      "joined_timestamp_utc": "2025-10-28T21:31:57Z",
+      "profile": {
+        "age": null,
+        "year_of_birth": null,
+        "gender": null,
+        "location": {
+          "msa": null,
+          "timezone": null
+        },
+        "heard_about_us": null
+      },
+      "email_first_seen_online": "2024-11-25",
+      "demographics": []
+    }
+  },
+  {
+    "pid": "iP7bb1447733",
+    "removed": false,
+    "story": {
+      "user_panelist_id": "iP7bb1447733",
+      "primary_email": {
+        "value": "baotoan122@gmail.com",
+        "verified": true
+      },
+      "primary_phone": {
+        "value": "6263495852",
+        "verified": false
+      },
+      "primary_phone_carrier": null,
+      "primary_phone_carrier_type": null,
+      "ip_address": "47.229.137.106",
+      "ip_address_country": "United States",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+      "recruitment_campaign": {
+        "name": "Organic",
+        "id": 5
+      },
+      "recruitment_source": {
+        "name": "Organic/unknown",
+        "id": 1
+      },
+      "joined_timestamp_utc": "2025-10-27T00:03:55Z",
+      "profile": {
+        "age": 28,
+        "year_of_birth": 1997,
+        "gender": "Male",
+        "location": {
+          "msa": "Los Angeles-Riverside-Orange County CA",
+          "timezone": "Pacific (GMT -08:00)"
+        },
+        "heard_about_us": "Reddit"
+      },
+      "email_first_seen_online": "2013-04-02",
+      "demographics": [
+        {
+          "question": "usa_resident",
+          "type": "multi_choice",
+          "prompt": "Do you live in the United States?",
+          "answer": "Yes"
+        },
+        {
+          "question": "yob",
+          "type": "number",
+          "prompt": "What is your year of birth? Please enter the 4-digit year only.",
+          "answer": 1997
+        },
+        {
+          "question": "gender",
+          "type": "multi_choice",
+          "prompt": "What is your gender?",
+          "answer": "Male"
+        },
+        {
+          "question": "zip",
+          "type": "short_text",
+          "prompt": "What is your home zip code?",
+          "answer": "91776"
+        },
+        {
+          "question": "state",
+          "type": "multi_choice",
+          "prompt": "State",
+          "answer": "California"
+        },
+        {
+          "question": "msa",
+          "type": "multi_choice",
+          "prompt": "Metropolitan Statistical Area",
+          "answer": "Los Angeles-Riverside-Orange County CA"
+        },
+        {
+          "question": "region",
+          "type": "multi_choice",
+          "prompt": "Region",
+          "answer": "West"
+        },
+        {
+          "question": "division",
+          "type": "multi_choice",
+          "prompt": "Census Division",
+          "answer": "Pacific"
+        },
+        {
+          "question": "cbsa_type",
+          "type": "multi_choice",
+          "prompt": "Core Based Statistical Area Type (Metro or Micro)",
+          "answer": "Metro - Population 50,000 or more"
+        },
+        {
+          "question": "pets",
+          "type": "multi_choice",
+          "prompt": "Which of the following pets, if any, do you currently have in your household?",
+          "answer": "None of the above"
+        },
+        {
+          "question": "refer_source",
+          "type": "short_text",
+          "prompt": "How did you first learn about Forthright?",
+          "answer": "Reddit"
+        },
+        {
+          "question": "age",
+          "type": "number",
+          "prompt": "What is your age?",
+          "answer": 28
+        },
+        {
+          "question": "age_group",
+          "type": "multi_choice",
+          "prompt": "Age Group",
+          "answer": "25-34"
+        },
+        {
+          "question": "time_zone",
+          "type": "multi_choice",
+          "prompt": "Time Zone",
+          "answer": "Pacific (GMT -08:00)"
+        },
+        {
+          "question": "dma",
+          "type": "multi_choice",
+          "prompt": "Designated Market Area. Geographic areas in which local television viewing is measured by The Nielsen Company.",
+          "answer": "LOS ANGELES"
+        },
+        {
+          "question": "csa",
+          "type": "multi_choice",
+          "prompt": "Core Statistical Area. This area is a group of MSA's combined into a population core area.",
+          "answer": "Los Angeles-Long Beach, CA"
+        },
+        {
+          "question": "target_region",
+          "type": "multi_choice",
+          "prompt": "Target Region",
+          "answer": "Midwest"
+        }
+      ]
+    }
+  }
+  
+]

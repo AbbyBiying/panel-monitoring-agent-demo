@@ -239,8 +239,6 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
             logger.warning("LLM classification failed; using heuristic fallback.")
             log_info(f"LLM classification error: {e}")
             signals, meta = _heuristic_fallback(text)
-            meta.provider = provider
-            meta.model = model
             signals.reason = f"{signals.reason} ({type(e).__name__})"
 
     # ---- Decide high-level classification; action decided later ---------------
