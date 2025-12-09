@@ -139,8 +139,7 @@ def test_golden_panel(item):
     if explanation:
         print("[EXPLANATION]", explanation[:400], "..." if len(explanation) > 400 else "")
 
-    # ---- STRICT assertion: classification -> removed mapping ----
-    # Map final model classification to a boolean "removed" truth
+
     class_to_removed = {"suspicious": True, "normal": False}
     assert classification in class_to_removed, f"Unknown classification: {classification!r}"
 
@@ -158,7 +157,6 @@ def test_golden_panel(item):
     }:
         assert explanation, "explanation_report should not be empty"
 
-    # ---- Light logging validation (string presence + key hints) ----
     log_entry = state.get("log_entry")
     assert isinstance(log_entry, str) and log_entry.strip(), "log_entry missing or empty"
     for k in ("event_id", "classification", "confidence", "provider", "model"):
