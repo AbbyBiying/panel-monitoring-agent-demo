@@ -239,7 +239,6 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
             signals, meta = _heuristic_fallback(text)
             signals.reason = f"{signals.reason} ({type(e).__name__})"
     # ---- Rule-based post-processing / guardrails -----------------------------
-    # Convert Signals → dict, apply rule base, then validate back to Signals.
     raw_signals_dict = signals.model_dump()
     raw_signals_dict = apply_occupation_rules(
         raw_signals_dict,
