@@ -1,9 +1,9 @@
 {
     "dockerfile_lines": [],
     "graphs": {
-      "panel_agent": "./panel_agent.py:graph"
+      "panel_agent": "panel_monitoring.app.graph:build_graph"
     },
-    "python_version": "3.11",
+    "python_version": "3.12",
     "dependencies": [
       "."
     ]

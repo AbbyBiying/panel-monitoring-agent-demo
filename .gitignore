@@ -1,0 +1,63 @@
+# -------------------------
+# Environment & secrets
+# -------------------------
+.env
+.env.*
+*.key
+*.pem
+
+# -------------------------
+# System / editor files
+# -------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# -------------------------
+# Logs
+# -------------------------
+*.log
+logs/
+
+# -------------------------
+# Python artifacts
+# -------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.sqlite3
+db.sqlite3
+
+# -------------------------
+# Virtual environments
+# -------------------------
+.venv/
+venv/
+env/
+
+# -------------------------
+# Testing / coverage
+# -------------------------
+.mypy_cache/
+.pytest_cache/
+.tox/
+.coverage
+coverage.xml
+htmlcov/
+
+# -------------------------
+# Jupyter
+# -------------------------
+.ipynb_checkpoints/
+__pypackages__/
+
+# -------------------------
+# LangGraph Studio / API
+# -------------------------
+.langgraph_api/
+credentials/
+
+test-data.json
