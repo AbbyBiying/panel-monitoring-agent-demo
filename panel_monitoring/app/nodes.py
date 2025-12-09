@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, UTC
 import os
-from typing import Literal, Tuple
+from typing import Dict, Literal, Optional, Tuple, Any
 from uuid import uuid4
 
 from google.cloud import firestore
@@ -14,8 +14,9 @@ from langgraph.types import Command, interrupt
 import logging
 
 from panel_monitoring.app.clients.llms import get_llm_classifier
+from panel_monitoring.app.rules import apply_occupation_rules
 from panel_monitoring.app.schemas import GraphState, Signals, ModelMeta
-from panel_monitoring.app.utils import log_info, looks_like_automated
+from panel_monitoring.app.utils import build_llm_decision_summary_from_signals, log_info, looks_like_automated
 from panel_monitoring.data.firestore_client import events_col, runs_col
 
 # --------------------------------------------------------------------
@@ -169,12 +170,6 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
         provider = os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai")
         model = os.getenv("VERTEX_MODEL", "gemini-2.5-pro")
 
-        logger.info(
-            "Evaluating signals (event_id=%s, provider=%s, model=%s)",
-            event_id,
-            provider,
-            model,
-        )
         log_info(
             f"Evaluating signals with LLM (provider={provider}, model={model}), event_id={event_id}"
         )
@@ -189,13 +184,14 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
                 raise TypeError("Classifier is not callable and has no .classify()")
 
             out = call(text)
-            log_info(f"LLM classification output: {out}")
-            logger.debug("[DBG] LLM raw out: %r", out)
 
             if isinstance(out, tuple) and len(out) == 2:
                 raw_sig, raw_meta = out
             else:
                 raw_sig, raw_meta = (out or {}), {}
+
+            if not isinstance(raw_sig, dict):
+                raw_sig = {}
 
             # normalize a few common variants
             label = (
@@ -226,22 +222,30 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
             if not getattr(meta, "model", None):
                 meta.model = model
 
-            logger.info(
-                "Normalized signals (event_id=%s): %s | meta: %s",
-                event_id,
-                signals.model_dump(),
-                meta.model_dump(),
+            llm_decision_summary = build_llm_decision_summary_from_signals(
+                signals,
+                confidence_fallback=float(raw_sig.get("confidence") or 0.0),
             )
             log_info(f"LLM classification signals: {signals.model_dump()}")
             log_info(f"LLM classification meta: {meta.model_dump()}")
+            log_info(
+                "LLM decision summary: %s",
+                json.dumps(llm_decision_summary, ensure_ascii=False),
+            )
 
         except Exception as e:
             logger.warning("LLM classification failed; using heuristic fallback.")
             log_info(f"LLM classification error: {e}")
             signals, meta = _heuristic_fallback(text)
-            meta.provider = provider
-            meta.model = model
             signals.reason = f"{signals.reason} ({type(e).__name__})"
+    # ---- Rule-based post-processing / guardrails -----------------------------
+    raw_signals_dict = signals.model_dump()
+    raw_signals_dict = apply_occupation_rules(
+        raw_signals_dict,
+        event_text=text,
+        event_id=event_id,
+    )
+    signals = Signals.model_validate(raw_signals_dict)
 
     # ---- Decide high-level classification; action decided later ---------------
     if signals.suspicious_signup and not signals.normal_signup:
@@ -383,11 +387,15 @@ def logging_node(state: GraphState) -> GraphState:
 
     # Convert models to dicts for Firestore I/O
     signals_dict = state.signals.model_dump() if state.signals else {}
-    meta = state.model_meta  # always a ModelMeta (has defaults)
+    meta = state.model_meta
 
-    # Write run (top-level 'runs')
+    llm_decision_summary = build_llm_decision_summary_from_signals(
+        state.signals,
+        confidence_fallback=confidence,
+    )
     runs_col().document(run_id).set(
-        {
+        { 
+            "run_id": run_id,
             "project_id": project_id,
             "event_id": event_id,
             "provider": meta.provider or "vertexai",
@@ -395,10 +403,13 @@ def logging_node(state: GraphState) -> GraphState:
             "decision": decision,
             "confidence": confidence,
             "signals": signals_dict,
-            "started_at": firestore.SERVER_TIMESTAMP,
-            "finished_at": firestore.SERVER_TIMESTAMP,
             "latency_ms": meta.latency_ms,
             "cost_usd": meta.cost_usd,
+            "status": "success" if decision != "error" else "error",
+            "logs": [],
+            "llm_decision_summary": llm_decision_summary,
+            "started_at": firestore.SERVER_TIMESTAMP,
+            "finished_at": firestore.SERVER_TIMESTAMP,
         }
     )
 
@@ -432,6 +443,7 @@ def logging_node(state: GraphState) -> GraphState:
         "event_preview": f"{preview}...",
         "review_decision": getattr(state, "review_decision", None),
         "timestamp": _utcnow().isoformat(),
+        "llm_decision_summary": llm_decision_summary,
     }
 
     if state.explanation_report:
