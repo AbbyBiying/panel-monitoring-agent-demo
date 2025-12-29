@@ -16,7 +16,11 @@ class Signals(BaseModel):
     normal_signup: bool = Field(..., description="True if the event is normal")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score [0,1]")
     reason: str = Field(
-        ..., description="Explanation or rationale for the classification"
+        ..., description="Explanation or rationale for the classification")
+        # Add this field to force the LLM to show its work
+    analysis_steps: list[str] = Field(
+        ..., 
+        description="Step-by-step reasoning: 1. Identity check, 2. Network check, 3. Intent check."
     )
 
 

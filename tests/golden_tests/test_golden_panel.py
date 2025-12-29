@@ -139,7 +139,13 @@ def test_golden_panel(item):
     if explanation:
         print("[EXPLANATION]", explanation[:400], "..." if len(explanation) > 400 else "")
 
-
+    print(f"\n{'='*20} AGENT THOUGHT PROCESS {'='*20}")
+    if hasattr(signals, 'analysis_steps'):
+        for i, step in enumerate(signals.analysis_steps, 1):
+            print(f"{i}. {step}")
+    else:
+        print(f"Reason: {getattr(signals, 'reason', 'No reason provided.')}")
+    print(f"{'='*60}\n")    
     class_to_removed = {"suspicious": True, "normal": False}
     assert classification in class_to_removed, f"Unknown classification: {classification!r}"
 
@@ -150,7 +156,7 @@ def test_golden_panel(item):
         f"but classification={classification} (conf={confidence:.2f}, action={action})"
     )
 
-    # ---- Sanity: explanation/logging must exist for review+ confidence or final actions ----
+    # ---- Sanity: explanation/logging must exist for review confidence or final actions ----
     if confidence >= CONFIDENCE_UNCERTAIN_THRESHOLD or action in {
         "delete_account",
         "hold_account",
