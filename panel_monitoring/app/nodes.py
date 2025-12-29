@@ -364,14 +364,17 @@ def human_approval_node(
         final_action = "hold_account"
     else:
         final_action = "hold_account"
-
+    
+    # https://docs.langchain.com/oss/python/langgraph/graph-api#command
     return Command(
         update=state.model_copy(
+            # state update
             update={
                 "review_decision": normalized,
                 "action": final_action,
             }
         ),
+        # control flow
         goto="explain",
     )
 

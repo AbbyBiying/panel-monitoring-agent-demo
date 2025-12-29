@@ -1,6 +1,7 @@
 # panel_monitoring/app/schemas.py
 from __future__ import annotations
-
+import operator # Required for the reducer
+from typing import Annotated, Any, Dict, Literal, Optional
 from typing import Any, Dict, Literal, Optional
 from pydantic import BaseModel, Field
 
@@ -61,7 +62,11 @@ class GraphState(BaseModel):
     # Downstream workflow outputs
     action: Optional[str] = ""  # default empty to avoid None checks
     log_entry: Optional[str] = None
-    explanation_report: Optional[str] = None
 
+    # explanation_report: Optional[str] = None
+    # We wrap the type in 'Annotated' and provide 'operator.add' as the reducer.
+    # This tells LangGraph: "When multiple nodes return this key, add them together without overwriting previous insights."
+    explanation_report: Annotated[str, operator.add] = ""
+    
     review_decision: Optional[Literal["approve", "reject", "escalate"]] = None
     review_url: Optional[str] = None
