@@ -20,7 +20,8 @@ os.environ.setdefault("PANEL_DEFAULT_PROVIDER", "vertexai")
 os.environ.setdefault("VERTEX_MODEL", "gemini-2.5-pro")
 
 HERE = pathlib.Path(__file__).parent
-TEST_DATA = HERE / "cleaned_test.json"
+# TEST_DATA = HERE / "cleaned_test.json"
+TEST_DATA = HERE / "formatted-test-data.json"
 
 
 def load_test_data() -> list[Dict[str, Any]]:
@@ -94,7 +95,8 @@ def _build_event_payload(item: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # Change slice if you want to run a subset: e.g., [:1], [1:2], etc.
-PARAM_ITEMS = load_test_data()[0:2]
+# PARAM_ITEMS = load_test_data()[0:2]
+PARAM_ITEMS = load_test_data() 
 
 
 @pytest.mark.parametrize("item", PARAM_ITEMS)
