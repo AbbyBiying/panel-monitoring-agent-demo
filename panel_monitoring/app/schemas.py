@@ -17,9 +17,8 @@ class Signals(BaseModel):
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score [0,1]")
     reason: str = Field(
         ..., description="Explanation or rationale for the classification")
-        # Add this field to force the LLM to show its work
     analysis_steps: list[str] = Field(
-        ..., 
+        default_factory=list, # This prevents the "Field required" crash
         description="Step-by-step reasoning: 1. Identity check, 2. Network check, 3. Intent check."
     )
 

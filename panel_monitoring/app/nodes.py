@@ -44,10 +44,12 @@ logger = logging.getLogger(__name__)
 def _utcnow() -> datetime:
     return datetime.now(UTC)
 
-
+ 
 def _append_report(state: GraphState, line: str) -> str:
+    # If the line is already in the report, don't add it again
+    if state.explanation_report and line in state.explanation_report:
+        return state.explanation_report
     return f"{state.explanation_report}\n{line}" if state.explanation_report else line
-
 
 def _heuristic_fallback(text: str) -> Tuple[Signals, ModelMeta]:
     t = (text or "").lower()
@@ -312,6 +314,10 @@ def explanation_node(state: GraphState) -> GraphState:
 
     if action == "request_human_review" and getattr(state, "review_url", None):
         ex = f"{ex} Pending human review → {state.review_url}"
+ 
+    # Only update the report if this specific line isn't already there.
+    if state.explanation_report and ex in state.explanation_report:
+        return state
 
     combined = _append_report(state, ex)
     return state.model_copy(update={"explanation_report": combined})
