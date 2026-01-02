@@ -1,0 +1,333 @@
+[  {
+    "id": "iPac5104883b",
+    "input": {
+        "identity": {
+            "panelist_id": "iPac5104883b",
+            "primary_email_domain": "gmail.com",
+            "primary_email_verified": true,
+            "primary_phone_verified": false,
+            "primary_phone_carrier": "N/A",
+            "primary_phone_carrier_type": "N/A",
+            "primary_phone_mobile": false,
+            "primary_phone_sms_opt_in": false
+        },
+        "network_device": {
+            "ip_address": "2607:fb92:1e0b:8431:c81:7637:f76f:14ec",
+            "ip_country": "United States",
+            "user_agent": "Mozilla/5.0 (Android 16; Mobile; rv:144.0) Gecko/144.0 Firefox/144.0"
+        },
+        "recruitment": {
+            "sign_up_timestamp_utc": "2025-10-22T02:57:05Z",
+            "campaign_name": "Organic",
+            "campaign_id": 5,
+            "source_name": "Organic/unknown",
+            "source_id": 1
+        },
+        "registration_profile": {
+            "year_of_birth": "1962",
+            "age": "63",
+            "gender": "Male",
+            "state": "California",
+            "msa": "Los Angeles-Riverside-Orange County CA",
+            "timezone": "Pacific (GMT -08:00)",
+            "where_heard_about_us": "YouTube video"
+        },
+        "third_party_signals": {
+            "email_first_seen_online": "2019-05-27",
+            "minfraud_risk_score": "0.47",
+            "recaptcha_score": "0.7"
+        },
+        "additional_profile_answers": [
+            {
+                "question_name": "yob",
+                "question_prompt": "What is your year of birth? Please enter the 4-digit year only.",
+                "question_type": "number",
+                "answer": "1962"
+            },
+            {
+                "question_name": "gender",
+                "question_prompt": "What is your gender?",
+                "question_type": "multi_choice",
+                "answer": "Male"
+            },
+            {
+                "question_name": "age",
+                "question_prompt": "What is your age?",
+                "question_type": "number",
+                "answer": "63"
+            },
+            {
+                "question_name": "age_group",
+                "question_prompt": "Age Group",
+                "question_type": "multi_choice",
+                "answer": "55-64"
+            },
+            {
+                "question_name": "education",
+                "question_prompt": "What is the highest degree or level of school you have completed?",
+                "question_type": "multi_choice",
+                "answer": "Some college credit, no degree"
+            },
+            {
+                "question_name": "employment",
+                "question_prompt": "Which of the following best describes your employment?",
+                "question_type": "multi_choice",
+                "answer": "Work full time"
+            },
+            {
+                "question_name": "ethnicity",
+                "question_prompt": "Which of the following best describes your ethnic background? If you are from multiple ethnic backgrounds, please select all the responses that apply.",
+                "question_type": "multi_choice",
+                "answer": "White/Caucasian"
+            },
+            {
+                "question_name": "hispanic",
+                "question_prompt": "Are you of Hispanic, Latino or Spanish origin or descent?",
+                "question_type": "multi_choice",
+                "answer": "No"
+            },
+            {
+                "question_name": "home",
+                "question_prompt": "Which of the following best describes your current home?",
+                "question_type": "multi_choice",
+                "answer": "Rented house"
+            },
+            {
+                "question_name": "income",
+                "question_prompt": "Which of the following ranges includes your total annual household income from all sources?",
+                "question_type": "multi_choice",
+                "answer": "$75,000 to $99,999"
+            }
+        ],
+        "rule_based_flags": [
+            "Verified a Phone with Flagged Carrier"
+        ]
+    },
+    "ground_truth": {
+        "removed": false,
+        "label": "normal",
+        "action": "no_action"
+    }
+},  {
+    "id": "iP3ecf654a1c",
+    "input": {
+        "identity": {
+            "panelist_id": "iP3ecf654a1c",
+            "primary_email_domain": "gmail.com",
+            "primary_email_verified": true,
+            "primary_phone_verified": false,
+            "primary_phone_carrier": "N/A",
+            "primary_phone_carrier_type": "N/A",
+            "primary_phone_mobile": false,
+            "primary_phone_sms_opt_in": false
+        },
+        "network_device": {
+            "ip_address": "35.33.128.92",
+            "ip_country": "United States",
+            "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+        },
+        "recruitment": {
+            "sign_up_timestamp_utc": "2025-10-15T22:51:50Z",
+            "campaign_name": "Organic",
+            "campaign_id": 5,
+            "source_name": "Organic/unknown",
+            "source_id": 1
+        },
+        "registration_profile": {
+            "year_of_birth": "1963",
+            "age": "62",
+            "gender": "Female",
+            "state": "Indiana",
+            "msa": "Indianapolis IN MSA",
+            "timezone": "Eastern (GMT -05:00)",
+            "where_heard_about_us": "Internet "
+        },
+        "third_party_signals": {
+            "email_first_seen_online": "2025-10-15",
+            "minfraud_risk_score": "15.52",
+            "recaptcha_score": "0.9"
+        },
+        "additional_profile_answers": [
+            {
+                "question_name": "yob",
+                "question_prompt": "What is your year of birth? Please enter the 4-digit year only.",
+                "question_type": "number",
+                "answer": "1963"
+            },
+            {
+                "question_name": "gender",
+                "question_prompt": "What is your gender?",
+                "question_type": "multi_choice",
+                "answer": "Female"
+            },
+            {
+                "question_name": "age",
+                "question_prompt": "What is your age?",
+                "question_type": "number",
+                "answer": "62"
+            },
+            {
+                "question_name": "age_group",
+                "question_prompt": "Age Group",
+                "question_type": "multi_choice",
+                "answer": "55-64"
+            },
+            {
+                "question_name": "income",
+                "question_prompt": "Which of the following ranges includes your total annual household income from all sources?",
+                "question_type": "multi_choice",
+                "answer": "Less than $25,000"
+            },
+            {
+                "question_name": "ethnicity",
+                "question_prompt": "Which of the following best describes your ethnic background? If you are from multiple ethnic backgrounds, please select all the responses that apply.",
+                "question_type": "multi_choice",
+                "answer": "White/Caucasian"
+            },
+            {
+                "question_name": "hispanic",
+                "question_prompt": "Are you of Hispanic, Latino or Spanish origin or descent?",
+                "question_type": "multi_choice",
+                "answer": "No"
+            },
+            {
+                "question_name": "education",
+                "question_prompt": "What is the highest degree or level of school you have completed?",
+                "question_type": "multi_choice",
+                "answer": "High school graduate, diploma or the equivalent (for example: GED)"
+            },
+            {
+                "question_name": "employment",
+                "question_prompt": "Which of the following best describes your employment?",
+                "question_type": "multi_choice",
+                "answer": "Retired"
+            },
+            {
+                "question_name": "home",
+                "question_prompt": "Which of the following best describes your current home?",
+                "question_type": "multi_choice",
+                "answer": "Rented house"
+            }
+        ],
+        "rule_based_flags": [
+            "Moderate Minfraud Risk Score",
+            "Attempted to Sign Up with Another Email Address"
+        ]
+    },
+    "ground_truth": {
+        "removed": false,
+        "label": "normal",
+        "action": "no_action"
+    }
+},  {
+    "id": "iPc5186c2082",
+    "input": {
+        "identity": {
+            "panelist_id": "iPc5186c2082",
+            "primary_email_domain": "gmail.com",
+            "primary_email_verified": true,
+            "primary_phone_verified": false,
+            "primary_phone_carrier": "N/A",
+            "primary_phone_carrier_type": "N/A",
+            "primary_phone_mobile": false,
+            "primary_phone_sms_opt_in": false
+        },
+        "network_device": {
+            "ip_address": "50.43.180.113",
+            "ip_country": "United States",
+            "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0"
+        },
+        "recruitment": {
+            "sign_up_timestamp_utc": "2025-10-22T08:45:12Z",
+            "campaign_name": "Organic",
+            "campaign_id": 5,
+            "source_name": "Organic/unknown",
+            "source_id": 1
+        },
+        "registration_profile": {
+            "year_of_birth": "1983",
+            "age": "42",
+            "gender": "Male",
+            "state": "Ohio",
+            "msa": "",
+            "timezone": "Eastern (GMT -05:00)",
+            "where_heard_about_us": "beermoney subreddit"
+        },
+        "third_party_signals": {
+            "email_first_seen_online": "2025-10-22",
+            "minfraud_risk_score": "13.72",
+            "recaptcha_score": "0.9"
+        },
+        "additional_profile_answers": [
+            {
+                "question_name": "yob",
+                "question_prompt": "What is your year of birth? Please enter the 4-digit year only.",
+                "question_type": "number",
+                "answer": "1983"
+            },
+            {
+                "question_name": "gender",
+                "question_prompt": "What is your gender?",
+                "question_type": "multi_choice",
+                "answer": "Male"
+            },
+            {
+                "question_name": "age",
+                "question_prompt": "What is your age?",
+                "question_type": "number",
+                "answer": "42"
+            },
+            {
+                "question_name": "age_group",
+                "question_prompt": "Age Group",
+                "question_type": "multi_choice",
+                "answer": "35-44"
+            },
+            {
+                "question_name": "education",
+                "question_prompt": "What is the highest degree or level of school you have completed?",
+                "question_type": "multi_choice",
+                "answer": "Bachelor's degree"
+            },
+            {
+                "question_name": "employment",
+                "question_prompt": "Which of the following best describes your employment?",
+                "question_type": "multi_choice",
+                "answer": "Other"
+            },
+            {
+                "question_name": "ethnicity",
+                "question_prompt": "Which of the following best describes your ethnic background? If you are from multiple ethnic backgrounds, please select all the responses that apply.",
+                "question_type": "multi_choice",
+                "answer": "White/Caucasian"
+            },
+            {
+                "question_name": "hispanic",
+                "question_prompt": "Are you of Hispanic, Latino or Spanish origin or descent?",
+                "question_type": "multi_choice",
+                "answer": "No"
+            },
+            {
+                "question_name": "home",
+                "question_prompt": "Which of the following best describes your current home?",
+                "question_type": "multi_choice",
+                "answer": "Owned house"
+            },
+            {
+                "question_name": "income",
+                "question_prompt": "Which of the following ranges includes your total annual household income from all sources?",
+                "question_type": "multi_choice",
+                "answer": "Less than $25,000"
+            }
+        ],
+        "rule_based_flags": [
+            "Moderate Minfraud Risk Score"
+        ]
+    },
+    "ground_truth": {
+        "removed": false,
+        "label": "normal",
+        "action": "no_action"
+    }
+}
+]
