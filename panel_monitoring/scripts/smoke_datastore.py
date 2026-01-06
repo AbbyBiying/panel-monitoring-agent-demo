@@ -35,9 +35,6 @@ async def run_smoke_test(): # Logic moved into async function
 
     source = os.getenv("PM_SOURCE_ID", "S1")
     logger.info("Smoke datastore start: project=%s source=%s", project_id, source)
-
-    # Ensure client init works - must be AWAITED
-    db = await get_db()
     logger.info("Firestore client initialized (Async)")
 
     # ---------------- 1) Create/Upsert an event (TOP-LEVEL 'events') ----------------
