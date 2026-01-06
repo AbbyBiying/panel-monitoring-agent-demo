@@ -3,14 +3,14 @@ from __future__ import annotations
 
 import os
 import logging
+import asyncio # Added for async support
 from datetime import datetime, timezone
 from dotenv import load_dotenv
-from google.cloud import firestore
+from google.cloud import firestore # Used for SERVER_TIMESTAMP
 
 from panel_monitoring.data.firestore_client import get_db, events_col, runs_col
 
 logger = logging.getLogger(__name__)
-
 
 def _project() -> str | None:
     return (
@@ -20,8 +20,7 @@ def _project() -> str | None:
         or os.getenv("GCP_PROJECT_ID")
     )
 
-
-def main():
+async def run_smoke_test(): # Logic moved into async function
     load_dotenv()
     logging.basicConfig(
         level=os.getenv("LOG_LEVEL", "INFO"),
@@ -37,17 +36,21 @@ def main():
     source = os.getenv("PM_SOURCE_ID", "S1")
     logger.info("Smoke datastore start: project=%s source=%s", project_id, source)
 
-    # Ensure client init works
-    get_db()
-    logger.info("Firestore client initialized")
+    # Ensure client init works - must be AWAITED
+    db = await get_db()
+    logger.info("Firestore client initialized (Async)")
 
     # ---------------- 1) Create/Upsert an event (TOP-LEVEL 'events') ----------------
     masked_payload = {"content": "masked: user *** emailed ***"}
     meta = {"ip": "1.2.3.4", "ua": "smoke"}
 
-    evt_ref = events_col().document()  # auto-id
+    # Get collection reference - must be AWAITED
+    col_ref = await events_col()
+    evt_ref = col_ref.document()  # auto-id
     event_id = evt_ref.id
-    evt_ref.set(
+    
+    # Writing to DB - must be AWAITED
+    await evt_ref.set(
         {
             "project_id": project_id,
             "source_id": source,
@@ -76,9 +79,13 @@ def main():
         "meta": {},
     }
 
-    run_ref = runs_col().document()  # auto-id
+    # Get collection reference - must be AWAITED
+    run_col_ref = await runs_col()
+    run_ref = run_col_ref.document()  # auto-id
     attempt_id = run_ref.id
-    run_ref.set(
+    
+    # Writing to DB - must be AWAITED
+    await run_ref.set(
         {
             "project_id": project_id,
             "event_id": event_id,
@@ -103,9 +110,13 @@ def main():
         "updated_at": firestore.SERVER_TIMESTAMP,
         "last_run_id": attempt_id,
     }
-    evt_ref.set(finalize_fields, merge=True)
+    # Finalize - must be AWAITED
+    await evt_ref.set(finalize_fields, merge=True)
     logger.info("Event finalized: id=%s", event_id)
 
+def main():
+    # Use asyncio.run to bridge sync main to async logic
+    asyncio.run(run_smoke_test())
 
 if __name__ == "__main__":
     main()
