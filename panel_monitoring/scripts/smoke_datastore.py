@@ -3,12 +3,12 @@ from __future__ import annotations
 
 import os
 import logging
-import asyncio # Added for async support
+import asyncio
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 from google.cloud import firestore # Used for SERVER_TIMESTAMP
 
-from panel_monitoring.data.firestore_client import get_db, events_col, runs_col
+from panel_monitoring.data.firestore_client import events_col, runs_col
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ def _project() -> str | None:
         or os.getenv("GCP_PROJECT_ID")
     )
 
-async def run_smoke_test(): # Logic moved into async function
+async def run_smoke_test():
     load_dotenv()
     logging.basicConfig(
         level=os.getenv("LOG_LEVEL", "INFO"),
@@ -41,12 +41,10 @@ async def run_smoke_test(): # Logic moved into async function
     masked_payload = {"content": "masked: user *** emailed ***"}
     meta = {"ip": "1.2.3.4", "ua": "smoke"}
 
-    # Get collection reference - must be AWAITED
     col_ref = await events_col()
     evt_ref = col_ref.document()  # auto-id
     event_id = evt_ref.id
     
-    # Writing to DB - must be AWAITED
     await evt_ref.set(
         {
             "project_id": project_id,
@@ -76,12 +74,10 @@ async def run_smoke_test(): # Logic moved into async function
         "meta": {},
     }
 
-    # Get collection reference - must be AWAITED
     run_col_ref = await runs_col()
     run_ref = run_col_ref.document()  # auto-id
     attempt_id = run_ref.id
     
-    # Writing to DB - must be AWAITED
     await run_ref.set(
         {
             "project_id": project_id,
@@ -107,12 +103,10 @@ async def run_smoke_test(): # Logic moved into async function
         "updated_at": firestore.SERVER_TIMESTAMP,
         "last_run_id": attempt_id,
     }
-    # Finalize - must be AWAITED
     await evt_ref.set(finalize_fields, merge=True)
     logger.info("Event finalized: id=%s", event_id)
 
 def main():
-    # Use asyncio.run to bridge sync main to async logic
     asyncio.run(run_smoke_test())
 
 if __name__ == "__main__":

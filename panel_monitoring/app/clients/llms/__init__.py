@@ -48,5 +48,4 @@ def get_initialized_client():
 async def aclassify_event(event_data: Dict[str, Any]) -> Dict[str, Any]:
     """Production Async Entrypoint."""
     client = get_initialized_client()
-    # Ensure we await the async method of the client
     return await client.aclassify_event(event_data)
