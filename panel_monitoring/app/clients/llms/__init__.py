@@ -7,6 +7,10 @@ from .openai import LLMClientOpenAI
 from .gemini import LLMClientGemini
 from .vertexai import LLMClientVertexAI
 
+from .openai import classify_with_openai
+from .gemini import classify_with_genai
+from .vertexai import classify_with_vertexai
+
 
 # Pre-initialized client singleton (initialized at startup, before async)
 _initialized_client: Optional[object] = None
@@ -65,11 +69,6 @@ async def aclassify_event(event: str) -> dict:
     client = get_initialized_client()
     return await client.aclassify_event(event)
 
-
-# Keep backward-compatible sync functions for non-async use cases
-from .openai import classify_with_openai
-from .gemini import classify_with_genai
-from .vertexai import classify_with_vertexai
 
 _CLASSIFIERS = {
     "openai": classify_with_openai,

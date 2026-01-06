@@ -9,7 +9,7 @@ import time
 from typing import Optional
 
 from langchain_google_vertexai import ChatVertexAI, HarmBlockThreshold, HarmCategory
-from panel_monitoring.app.clients.llms.base import LLMPredictionClient, PredictionError, PredictionResult
+from panel_monitoring.app.clients.llms.base import LLMPredictionClient, PredictionResult
 from panel_monitoring.app.config import get_settings
 from panel_monitoring.app.schemas import Signals
 from panel_monitoring.app.prompts import PROMPT_CLASSIFY_SYSTEM, PROMPT_CLASSIFY_USER

@@ -7,10 +7,6 @@ from typing import Any, Dict
 
 from langgraph.types import Command
 from panel_monitoring.app.graph import build_graph
-from panel_monitoring.app.nodes import (
-    CONFIDENCE_REVIEW_THRESHOLD,
-    CONFIDENCE_UNCERTAIN_THRESHOLD,
-)
 
 # Stable env for CI
 os.environ.setdefault("OPENAI_MODEL", "gpt-4o-mini")

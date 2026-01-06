@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, UTC
 import os
-from typing import Dict, Literal, Optional, Tuple, Any
+from typing import Literal, Tuple
 from uuid import uuid4
 
 from google.cloud import firestore

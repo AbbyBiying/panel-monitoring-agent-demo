@@ -6,7 +6,6 @@ import os
 import logging
 from typing import Optional
 
-from google.cloud import firestore
 from google.cloud.firestore_v1.async_client import AsyncClient
 from google.cloud.firestore_v1.async_collection import AsyncCollectionReference
 from google.auth.exceptions import DefaultCredentialsError
