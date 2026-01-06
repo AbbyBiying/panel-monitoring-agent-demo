@@ -1,3 +1,5 @@
+# panel-monitoring-agent/gcp/functions/pubsub_to_langsmith/main.py
+
 # Cloud Run Functions (Gen2 on Cloud Run) – Pub/Sub → LangSmith (RemoteGraph)
 # Deploy (example):
 # gcloud functions deploy pubsub-to-langsmith \
@@ -9,10 +11,10 @@
 #   --trigger-topic=user-event-signups \
 #   --set-env-vars=LANGSMITH_API_KEY=***,LG_DEPLOYMENT_URL=https://<your-deployment-host>,LG_GRAPH_NAME=<your-graph-name>,LANGSMITH_PROJECT=<your-project>
 
+import asyncio
 import base64
 import json
 import os
-import time
 import typing as t
 import uuid
 
@@ -131,7 +133,7 @@ def _runtime_config(thread_id: str) -> dict:
 
 
 @functions_framework.cloud_event
-def pubsub_to_langsmith(event):
+async def pubsub_to_langsmith(event):
     """
     Cloud Run Function entry point.
     Triggered by Pub/Sub → sends payload to LangSmith deployed graph ("panel-agent").
@@ -162,7 +164,7 @@ def pubsub_to_langsmith(event):
         config = _runtime_config(thread_id)
         print(f"config from _runtime_config: {config}")
         print(f"Using provider: {config['configurable']['provider']}")
-        result = remote.invoke(inputs, config=config)
+        result = await remote.ainvoke(inputs, config=config)
         print(
             {
                 "stage": "invoke_ok",
@@ -177,7 +179,7 @@ def pubsub_to_langsmith(event):
         else:
             print(f"[RESULT.type] {type(result)}")
 
-        time.sleep(0.2)
+        await asyncio.sleep(0.2)
         print("[COMPLETE] Graph invocation finished.")
 
         return {
