@@ -13,7 +13,7 @@ from langgraph.types import Command, interrupt
 
 import logging
 
-from panel_monitoring.app.clients.llms import get_llm_classifier
+from panel_monitoring.app.clients.llms import aclassify_event
 from panel_monitoring.app.rules import apply_occupation_rules
 from panel_monitoring.app.schemas import GraphState, Signals, ModelMeta
 from panel_monitoring.app.utils import build_llm_decision_summary_from_signals, log_info, looks_like_automated
@@ -77,7 +77,7 @@ def _event_text_from_state(state: GraphState) -> str:
 
 # --- nodes -----------------------------------------------------------------
 @traceable(name="perform_effects_node", tags=["node"])
-def perform_effects_node(state: GraphState) -> GraphState:
+async def perform_effects_node(state: GraphState) -> GraphState:
     combined = state.explanation_report  # start with the existing report
 
     try:
@@ -102,7 +102,7 @@ def perform_effects_node(state: GraphState) -> GraphState:
 
 
 @traceable(name="user_event_node", tags=["node"])
-def user_event_node(state: GraphState) -> GraphState:
+async def user_event_node(state: GraphState) -> GraphState:
     project_id = state.project_id or os.getenv("PANEL_PROJECT_ID", "panel-app-dev")
     event_text = _event_text_from_state(state)
 
@@ -113,10 +113,11 @@ def user_event_node(state: GraphState) -> GraphState:
         reason="unclassified",
     )
 
+    events = await events_col()
     if state.event_id:
         event_id = state.event_id
         # Only update mutable fields on existing doc
-        events_col().document(event_id).set(
+        await events.document(event_id).set(
             {
                 "project_id": project_id,
                 "updated_at": firestore.SERVER_TIMESTAMP,
@@ -127,8 +128,8 @@ def user_event_node(state: GraphState) -> GraphState:
         )
     else:
         # Create new doc with immutable creation fields
-        evt_ref = events_col().document()
-        evt_ref.set(
+        evt_ref = events.document()
+        await evt_ref.set(
             {
                 "project_id": project_id,
                 "type": getattr(state, "event_type", "signup"),
@@ -156,7 +157,7 @@ def user_event_node(state: GraphState) -> GraphState:
 
 
 @traceable(name="signal_evaluation_node", tags=["node"])
-def signal_evaluation_node(state: GraphState) -> GraphState:
+async def signal_evaluation_node(state: GraphState) -> GraphState:
     text = _event_text_from_state(state)
     event_id = state.event_id or "unknown"
 
@@ -177,15 +178,7 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
         )
 
         try:
-            classifier = get_llm_classifier(provider)
-            if classifier is None:
-                raise RuntimeError(f"No LLM classifier found for provider='{provider}'")
-
-            call = getattr(classifier, "classify", classifier)
-            if not callable(call):
-                raise TypeError("Classifier is not callable and has no .classify()")
-
-            out = call(text)
+            out = await aclassify_event(text)
 
             if isinstance(out, tuple) and len(out) == 2:
                 raw_sig, raw_meta = out
@@ -273,7 +266,7 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
 
 
 @traceable(name="action_decision_node", tags=["node"])
-def action_decision_node(state: GraphState) -> GraphState:
+async def action_decision_node(state: GraphState) -> GraphState:
     """
     Safety-first policy:
       - suspicious & confidence >= CONFIDENCE_REVIEW_THRESHOLD -> request_human_review
@@ -293,7 +286,7 @@ def action_decision_node(state: GraphState) -> GraphState:
 
 
 @traceable(name="explanation_node", tags=["node"])
-def explanation_node(state: GraphState) -> GraphState:
+async def explanation_node(state: GraphState) -> GraphState:
     cls = state.classification
     sig = state.signals
     action = state.action or "no_action"
@@ -324,7 +317,7 @@ def explanation_node(state: GraphState) -> GraphState:
 
 
 @traceable(name="human_approval_node", tags=["node"])
-def human_approval_node(
+async def human_approval_node(
     state: GraphState,
 ) -> GraphState | Command[Literal["explain"]]:
     """
@@ -386,7 +379,7 @@ def human_approval_node(
 
 
 @traceable(name="logging_node", tags=["node"])
-def logging_node(state: GraphState) -> GraphState:
+async def logging_node(state: GraphState) -> GraphState:
     project_id = state.project_id or "panel-app-dev"
     event_id = state.event_id
 
@@ -402,8 +395,9 @@ def logging_node(state: GraphState) -> GraphState:
         state.signals,
         confidence_fallback=confidence,
     )
-    runs_col().document(run_id).set(
-        { 
+    runs = await runs_col()
+    await runs.document(run_id).set(
+        {
             "run_id": run_id,
             "project_id": project_id,
             "event_id": event_id,
@@ -423,7 +417,8 @@ def logging_node(state: GraphState) -> GraphState:
     )
 
     # Update parent event summary (top-level 'events')
-    events_col().document(event_id).set(
+    events = await events_col()
+    await events.document(event_id).set(
         {
             "project_id": project_id,
             "status": "classified" if decision != "error" else "error",

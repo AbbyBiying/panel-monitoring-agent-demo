@@ -1,25 +1,27 @@
 # panel_monitoring/data/firestore_client.py
 from __future__ import annotations
 
+import asyncio
 import os
 import logging
 from typing import Optional
-from dotenv import load_dotenv
+
 from google.cloud import firestore
+from google.cloud.firestore_v1.async_client import AsyncClient
+from google.cloud.firestore_v1.async_collection import AsyncCollectionReference
 from google.auth.exceptions import DefaultCredentialsError
 
 from panel_monitoring.app.utils import load_credentials, log_info, make_credentials_from_env
 
 logger = logging.getLogger(__name__)
 
-load_dotenv()
+_DB: Optional[AsyncClient] = None
+_DB_LOCK = asyncio.Lock()
 
-_DB: Optional[firestore.Client] = None
 
-
-def get_db() -> firestore.Client:
+async def get_db() -> AsyncClient:
     """
-    Return a singleton Firestore client with support for emulator and non-default DB.
+    Return a singleton async Firestore client with support for emulator and non-default DB.
 
     Environment variables:
         GCP_PROJECT or GOOGLE_CLOUD_PROJECT - Firestore project ID
@@ -31,52 +33,61 @@ def get_db() -> firestore.Client:
     if _DB is not None:
         return _DB
 
-    project = os.getenv("GCP_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT")
-    database = os.getenv("FIRESTORE_DATABASE_ID", "panel-monitoring-agent-dev")
+    async with _DB_LOCK:
+        # Double-check after acquiring lock
+        if _DB is not None:
+            return _DB
 
-    if os.getenv("ENVIRONMENT") == "local":
-        logger.info("Running in LOCAL environment, loading credentials from file.")
-        log_info("Running in local environment, loading credentials from file.")
-        creds = load_credentials()
-    else:
-        log_info("Running in NOT LOCAL environment, loading credentials from Path.")
-        creds = make_credentials_from_env()
+        project = os.getenv("GCP_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT")
+        database = os.getenv("FIRESTORE_DATABASE_ID", "panel-monitoring-agent-dev")
 
-        logger.info(
-            "Running in NOT LOCAL environment, loading credentials from Path."
-        )
-    logger.debug("creds type: %s", type(creds))
+        # Load credentials in a thread to avoid blocking
+        if os.getenv("ENVIRONMENT") == "local":
+            logger.info("Running in LOCAL environment, loading credentials from file.")
+            log_info("Running in local environment, loading credentials from file.")
+            creds = await asyncio.to_thread(load_credentials)
+        else:
+            log_info("Running in NOT LOCAL environment, loading credentials from Path.")
+            creds = await asyncio.to_thread(make_credentials_from_env)
+            logger.info(
+                "Running in NOT LOCAL environment, loading credentials from Path."
+            )
+        logger.debug("creds type: %s", type(creds))
 
-    try:
-        _DB = firestore.Client(project=project, database=database, credentials=creds)
-        logger.info(
-            "Initialized Firestore client for project '%s' (DB: %s)", project, database
-        )
-    except DefaultCredentialsError as e:
-        raise RuntimeError(
-            "Firestore credentials not found. Please set GOOGLE_APPLICATION_CREDENTIALS "
-            "and GCP_PROJECT/GOOGLE_CLOUD_PROJECT, or run `gcloud auth application-default login`, "
-            "or set FIRESTORE_EMULATOR_HOST."
-        ) from e
+        try:
+            _DB = AsyncClient(project=project, database=database, credentials=creds)
+            logger.info(
+                "Initialized async Firestore client for project '%s' (DB: %s)", project, database
+            )
+        except DefaultCredentialsError as e:
+            raise RuntimeError(
+                "Firestore credentials not found. Please set GOOGLE_APPLICATION_CREDENTIALS "
+                "and GCP_PROJECT/GOOGLE_CLOUD_PROJECT, or run `gcloud auth application-default login`, "
+                "or set FIRESTORE_EMULATOR_HOST."
+            ) from e
 
-    return _DB
+        return _DB
 
 
-def events_col() -> firestore.CollectionReference:
+async def events_col() -> AsyncCollectionReference:
     """Return reference to top-level 'events' collection. Each doc includes `project_id`."""
-    return get_db().collection("events")
+    db = await get_db()
+    return db.collection("events")
 
 
-def runs_col() -> firestore.CollectionReference:
+async def runs_col() -> AsyncCollectionReference:
     """Return reference to top-level 'runs' collection. Each doc includes `project_id` and `event_id`."""
-    return get_db().collection("runs")
+    db = await get_db()
+    return db.collection("runs")
 
 
-def alerts_col() -> firestore.CollectionReference:
+async def alerts_col() -> AsyncCollectionReference:
     """Return reference to top-level 'alerts' collection. Each doc includes `project_id`."""
-    return get_db().collection("alerts")
+    db = await get_db()
+    return db.collection("alerts")
 
 
-def projects_col() -> firestore.CollectionReference:
+async def projects_col() -> AsyncCollectionReference:
     """Return reference to flat 'projects' collection for metadata."""
-    return get_db().collection("projects")
+    db = await get_db()
+    return db.collection("projects")

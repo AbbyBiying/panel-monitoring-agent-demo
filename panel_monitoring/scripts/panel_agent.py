@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import logging
 import os
 import sys
@@ -109,12 +110,12 @@ def main():
         sys.exit(4)
 
     logger.info("Agent ready.")
-    run_interactive(
+    asyncio.run(run_interactive(
         app,
         get_event_input=get_event_input,
         project_name=args.project,
         provider=provider,
-    )
+    ))
 
 
 if __name__ == "__main__":

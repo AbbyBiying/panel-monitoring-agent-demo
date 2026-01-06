@@ -1,4 +1,5 @@
-[  {
+[  
+    {
     "id": "iPac5104883b",
     "input": {
         "identity": {
@@ -108,7 +109,8 @@
         "label": "normal",
         "action": "no_action"
     }
-},  {
+}, 
+ {
     "id": "iP3ecf654a1c",
     "input": {
         "identity": {

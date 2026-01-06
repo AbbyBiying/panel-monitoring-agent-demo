@@ -14,6 +14,11 @@ from panel_monitoring.app.nodes import (
     explanation_node,
     logging_node,
 )
+from panel_monitoring.app.clients.llms import init_llm_client
+
+# Pre-initialize LLM client at module import time (before async event loop)
+# This ensures all blocking I/O (credentials, .env files) happens synchronously
+init_llm_client()
 
 
 def build_graph():

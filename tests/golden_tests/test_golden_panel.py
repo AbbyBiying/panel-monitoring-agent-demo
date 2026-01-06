@@ -98,20 +98,21 @@ def _build_event_payload(item: Dict[str, Any]) -> Dict[str, Any]:
 PARAM_ITEMS = load_test_data()
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize("item", PARAM_ITEMS,
     ids=[it["id"] for it in PARAM_ITEMS])
-def test_golden_panel(item):
+async def test_golden_panel(item):
     pid = item["id"]
     gt = item["ground_truth"]
     thread_id = f"golden:{pid}"
     cfg = {"configurable": {"thread_id": thread_id}}
     app = build_graph()
 
-    state = app.invoke({"event_data": _build_event_payload(item)}, config=cfg)
+    state = await app.ainvoke({"event_data": _build_event_payload(item)}, config=cfg)
 
     if state.get("__interrupt__"):
         decision = "approve" if bool(gt["removed"]) else "reject"
-        state = app.invoke(Command(resume=decision), config=cfg)
+        state = await app.ainvoke(Command(resume=decision), config=cfg)
 
     # ---- Minimal Extraction ----
     classification = (state.get("classification") or "").upper()

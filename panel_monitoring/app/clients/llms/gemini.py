@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import time
@@ -118,26 +119,12 @@ class LLMClientGemini(LLMPredictionClient):
 
     async def aclassify_event(self, event: str) -> dict:
         """
-        Async structured classification.
-        """
-        if self.client is None:
-            raise PredictionError(
-                "Model not initialized. Call setup() first.", str(self.model_ref)
-            )
+        Async classification that runs the sync version in a thread pool.
 
-        msgs = build_classify_messages(event)
-        try:
-            result = await self.client.with_structured_output(Signals).ainvoke(msgs)
-            return normalize_signals(result)
-        except ValidationError as e:
-            raise PredictionError(
-                f"Schema validation failed: {e}", str(self.model_ref)
-            ) from e
-        except Exception as e:
-            raise PredictionError(
-                f"GenAI classification error: {type(e).__name__}: {e}",
-                str(self.model_ref),
-            ) from e
+        The underlying langchain library may perform blocking I/O even in
+        async methods. Running in a thread pool avoids blocking the event loop.
+        """
+        return await asyncio.to_thread(self.classify_event, event)
 
     # ---- base.py-required async predict ----------------------------------
 
@@ -179,7 +166,8 @@ _client_singleton: Optional[LLMClientGemini] = None
 
 def classify_with_genai(event: str) -> dict:
     """
-    Back-compat thin wrapper that uses a singleton LLMClientGemini.
+    Back-compat sync wrapper for old call sites.
+    For async usage, use aclassify_event() from the llms module instead.
     """
     global _client_singleton
     if _client_singleton is None:
