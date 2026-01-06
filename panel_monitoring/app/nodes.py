@@ -252,7 +252,7 @@ async def signal_evaluation_node(state: GraphState) -> GraphState:
 
     confidence = float(signals.confidence or 0.0)
 
-    action = "hold_account" if classification == "suspicious" else "no_action"
+    action = "no_action"
 
     return state.model_copy(
         update={
