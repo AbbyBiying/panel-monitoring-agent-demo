@@ -94,7 +94,7 @@ def _build_event_payload(item: Dict[str, Any]) -> Dict[str, Any]:
 PARAM_ITEMS = load_test_data()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("item", PARAM_ITEMS,
     ids=[it["id"] for it in PARAM_ITEMS])
 async def test_golden_panel(item):
