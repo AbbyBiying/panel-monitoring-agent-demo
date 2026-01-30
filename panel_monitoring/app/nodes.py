@@ -139,6 +139,8 @@ async def user_event_node(state: GraphState) -> dict:
         "classification": "pending",
         "action": None,
         "log_entry": "",
+        # RESET the report so old decisions don't stick around
+        "explanation_report": []
     }
 
 
