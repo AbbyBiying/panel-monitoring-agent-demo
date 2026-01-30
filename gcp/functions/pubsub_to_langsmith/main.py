@@ -14,6 +14,7 @@
 import asyncio
 import base64
 import json
+import logging
 import os
 import typing as t
 import uuid
@@ -29,8 +30,16 @@ from langgraph.pregel.remote import RemoteGraph
 # Load local env only when running locally; no-op on Cloud Run/Functions
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 LANGSMITH_PROJECT = os.getenv("LANGSMITH_PROJECT")
-print(f"LANGSMITH_PROJECT: {LANGSMITH_PROJECT}")
+logger.info("LANGSMITH_PROJECT: %s", LANGSMITH_PROJECT)
+
+# ── RemoteGraph singleton ──────────────────────────────────────────────
+# Cloud Run Gen2 instances handle concurrent requests. Reusing one
+# RemoteGraph (and its underlying HTTP pool) avoids per-request TCP
+# handshake overhead — critical under high Pub/Sub throughput.
+_remote_graph: t.Optional[RemoteGraph] = None
 
 
 def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Union[dict, str, None], dict]:
@@ -76,36 +85,49 @@ def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Union[dict, str, None]
         return payload, meta
 
     except Exception as e:
-        print(f"[ERROR] Failed to decode Pub/Sub payload: {e}")
-        print(f"  data_b64: {data_b64!r}")
-        print(f"  msg: {msg!r}")
-        print(f"  raw: {locals().get('raw', None)!r}")
-        print(f"  event_data: {event_data!r}")
+        logger.error("Failed to decode Pub/Sub payload: %s", e, extra={
+            "data_b64": data_b64,
+            "msg": msg,
+            "raw": locals().get("raw"),
+            "event_data": event_data,
+        })
         raise
 
 
-def _get_remote_graph() -> RemoteGraph:
+def _init_remote_graph() -> None:
     """
-    Builds a RemoteGraph bound to your LangSmith Deployment.
+    Synchronous startup initializer — call at module level to exploit
+    Cloud Run Gen2's CPU-boosted warm-up phase.
     Required env:
       - LG_DEPLOYMENT_URL: https://<your-deployment-host>
       - Either LG_ASSISTANT_ID or LG_GRAPH_NAME
       - LANGSMITH_API_KEY (auth for RemoteGraph)
     """
+    global _remote_graph
+
+    if _remote_graph is not None:
+        return
 
     cf_key = os.getenv("LANGSMITH_API_KEY_CLOUD_FUNCTIONS")
-
     if cf_key and not os.getenv("LANGSMITH_API_KEY"):
         os.environ["LANGSMITH_API_KEY"] = cf_key
 
     url = os.environ["LG_DEPLOYMENT_URL"].rstrip("/")
-    print(f"LG_DEPLOYMENT_URL: {url}")
     target = os.getenv("LG_ASSISTANT_ID") or os.getenv("LG_GRAPH_NAME", "panel_agent")
     if not target:
         raise RuntimeError("Set LG_ASSISTANT_ID or LG_GRAPH_NAME in env.")
 
-    print(f"[RemoteGraph WITH target AND URL] target={target} url={url}")
-    return RemoteGraph(target, url=url)
+    logger.info("Initializing RemoteGraph: target=%s url=%s", target, url)
+    _remote_graph = RemoteGraph(target, url=url)
+
+
+def _get_remote_graph() -> RemoteGraph:
+    """Returns the pre-initialized singleton. Fails loud if startup was skipped."""
+    if _remote_graph is None:
+        raise RuntimeError(
+            "RemoteGraph not initialized. _init_remote_graph() must run at module load."
+        )
+    return _remote_graph
 
 
 def _build_graph_inputs(payload: t.Union[dict, str, None], meta: dict) -> dict:
@@ -121,7 +143,6 @@ def _build_graph_inputs(payload: t.Union[dict, str, None], meta: dict) -> dict:
 
 
 def _runtime_config(thread_id: str) -> dict:
-    print(f"_runtime_config thread_id: {thread_id}")
     return {
         "thread_id": thread_id,
         "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
@@ -138,13 +159,12 @@ async def pubsub_to_langsmith(event):
     Cloud Run Function entry point.
     Triggered by Pub/Sub → sends payload to LangSmith deployed graph ("panel-agent").
     """
-    print("[BOOT] pubsub_to_langsmith invoked")
     # 1) Decode Pub/Sub envelope
     payload, meta = _decode_pubsub_payload(event.data)
     pubsub_message_id = (meta or {}).get("pubsub_message_id") or ""
 
     if payload in (None, "", {}):
-        print({"msg": "No payload", "messageId": pubsub_message_id})
+        logger.info("No payload, messageId=%s", pubsub_message_id)
         return "No data"
 
     # 2) Build inputs for your graph
@@ -154,33 +174,18 @@ async def pubsub_to_langsmith(event):
     thread_id = (
         attrs.get("thread_id")
         or pubsub_message_id
-        or str(uuid.uuid4())  # if nothing we make a new one
+        or str(uuid.uuid4())
     )
-    print(f"thread_id resolved: {thread_id}")
-    # 3) Invoke the remote graph
+
+    # 3) Invoke the remote graph (singleton, reuses HTTP pool)
     remote = _get_remote_graph()
-    print(f"remote graph obtained, invoking it with thread_id...{remote}:{thread_id}")
     try:
         config = _runtime_config(thread_id)
-        print(f"config from _runtime_config: {config}")
-        print(f"Using provider: {config['configurable']['provider']}")
-        result = await remote.ainvoke(inputs, config=config)
-        print(
-            {
-                "stage": "invoke_ok",
-                "message_id": pubsub_message_id,
-                "thread_id": thread_id,
-            }
+        result = await asyncio.wait_for(
+            remote.ainvoke(inputs, config=config),
+            timeout=float(os.getenv("GRAPH_INVOKE_TIMEOUT_SECS", "300")),
         )
-        # Optional: log a concise result summary to avoid huge logs
-        if isinstance(result, dict):
-            print(f"[RESULT.keys] {list(result.keys())}")
-            print(f"log_entry - {result.get('log_entry', '')[:200]!r}...")
-        else:
-            print(f"[RESULT.type] {type(result)}")
-
-        await asyncio.sleep(0.2)
-        print("[COMPLETE] Graph invocation finished.")
+        logger.info("invoke_ok message_id=%s thread_id=%s", pubsub_message_id, thread_id)
 
         return {
             "ok": True,
@@ -188,7 +193,22 @@ async def pubsub_to_langsmith(event):
             "thread_id": thread_id,
             "result": result,
         }
-    except Exception as e:
-        # Let Eventarc decide on retries; you’ll also see errors in LangSmith traces/logs
-        print(f"[ERROR] Graph invocation failed: {e}")
+    except asyncio.TimeoutError:
+        logger.error("Graph invocation timed out: message_id=%s thread_id=%s",
+                      pubsub_message_id, thread_id)
         raise
+    except Exception as e:
+        logger.error("Graph invocation failed: %s", e, extra={
+            "message_id": pubsub_message_id,
+            "thread_id": thread_id,
+        })
+        raise
+
+
+# ── Module-level warm-up ──────────────────────────────────────────────
+# Cloud Run Gen2 provides CPU boost during container startup.
+# Initialize the RemoteGraph here so the first Pub/Sub message
+# doesn't pay the cold-start penalty.
+# K_SERVICE is set automatically by Cloud Run; skip when running locally.
+if os.getenv("K_SERVICE"):
+    _init_remote_graph()

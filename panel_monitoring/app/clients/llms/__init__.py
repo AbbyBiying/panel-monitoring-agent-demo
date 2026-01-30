@@ -1,46 +1,55 @@
 # panel_monitoring/app/clients/llms/__init__.py
 
 import os
-import asyncio
+import logging
+import threading
 from typing import Optional, Dict, Any
 
 from .openai import LLMClientOpenAI
 from .gemini import LLMClientGemini
 from .vertexai import LLMClientVertexAI
 
+logger = logging.getLogger(__name__)
+
 # Pre-initialized client singleton
 _initialized_client: Any = None
 _initialized_provider: Optional[str] = None
-_init_lock = asyncio.Lock() # Guard for async environments
+_init_lock = threading.Lock()
 
 def init_llm_client(provider: Optional[str] = None) -> None:
     """Synchronous initialization for startup/cli."""
+    # In cloud environments like GCP Cloud Run, reusing the client is critical.
     global _initialized_client, _initialized_provider
 
     if _initialized_client is not None:
         return
 
-    provider = (provider or os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai")).lower()
+    with _init_lock:
+        # Double-check after acquiring lock
+        if _initialized_client is not None:
+            return
 
-    clients = {
-        "vertexai": LLMClientVertexAI,
-        "genai": LLMClientGemini,
-        "gemini": LLMClientGemini,
-        "openai": LLMClientOpenAI
-    }
+        provider = (provider or os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai")).lower()
 
-    if provider not in clients:
-        raise ValueError(f"Invalid provider: {provider}. Options: {list(clients.keys())}")
+        clients = {
+            "vertexai": LLMClientVertexAI,
+            "genai": LLMClientGemini,
+            "gemini": LLMClientGemini,
+            "openai": LLMClientOpenAI
+        }
 
-    client = clients[provider]()
-    client.setup() # Blocking setup performed at startup
+        if provider not in clients:
+            raise ValueError(f"Invalid provider: {provider}. Options: {list(clients.keys())}")
 
-    _initialized_client = client
-    _initialized_provider = provider
+        client = clients[provider]()
+        client.setup() # Blocking setup performed at startup
+
+        _initialized_client = client
+        _initialized_provider = provider
 
 def get_initialized_client():
     if _initialized_client is None:
-        # Fallback for dynamic init if forgot to call at startup
+        logger.warning("LLM client not explicitly initialized; falling back to default provider.")
         init_llm_client()
     return _initialized_client
 
