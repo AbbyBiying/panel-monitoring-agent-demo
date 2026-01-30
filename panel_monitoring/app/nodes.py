@@ -75,17 +75,17 @@ async def perform_effects_node(state: GraphState) -> dict:
     try:
         if state.action == "delete_account":
             logger.info("Deleting account for event_id=%s", state.event_id)
-            return {"explanation_report": "\n[INFO] effect:delete_account executed"}
+            # Wrap string in a list []
+            return {"explanation_report": ["[INFO] effect:delete_account executed"]}
 
     except Exception as e:
         logger.warning("Effect execution failed.")
-        line = f"\n[ERROR] effect_failed:{type(e).__name__} {e}"
+        line = f"[ERROR] effect_failed:{type(e).__name__} {e}"
+        # Wrap string in a list []
         return {
-            "explanation_report": line,
+            "explanation_report": [line],
             "action": "hold_account",
         }
-
-    # If no exception and no delete was required, return empty update
     return {}
 
 
@@ -292,12 +292,10 @@ async def explanation_node(state: GraphState) -> dict:
     if action == "request_human_review" and getattr(state, "review_url", None):
         ex = f"{ex} Pending human review → {state.review_url}"
  
-    # Only update the report if this specific line isn't already there.
-    if state.explanation_report and ex in state.explanation_report:
+    if ex in state.explanation_report:
         return {}
 
-    prefix = "\n" if state.explanation_report else ""
-    return {"explanation_report": f"{prefix}{ex}"}
+    return {"explanation_report": [ex]}
 
 
 @traceable(name="human_approval_node", tags=["node"])

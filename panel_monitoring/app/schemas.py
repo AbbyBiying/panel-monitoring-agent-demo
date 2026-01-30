@@ -44,6 +44,18 @@ class ModelMeta(BaseModel):
 # LangGraph state object
 # ----------------------------
 
+def merge_dict(existing: Any, new: Any) -> dict:
+    """
+    Safe merge for dictionaries. 
+    Handles cases where 'new' might accidentally be a non-dict.
+    """
+    if not isinstance(existing, dict):
+        existing = {}
+    if not isinstance(new, dict):
+        # If a node returns a string or None, we ignore it to prevent a crash
+        return existing
+    
+    return {**existing, **new}
 
 class GraphState(BaseModel):
     # Core identifiers
@@ -52,8 +64,9 @@ class GraphState(BaseModel):
 
     # Input / raw content
     event_text: Optional[str] = None
-    event_data: Dict[str, Any] = Field(default_factory=dict)  # structured input payload
-
+    # This prevents the "last-node-wins" overwrite bug.
+    event_data: Annotated[Dict[str, Any], merge_dict] = Field(default_factory=dict)
+    
     # Classification results
     signals: Optional[Signals] = None
     classification: Literal["pending", "suspicious", "normal", "error"] = "pending"
@@ -68,7 +81,7 @@ class GraphState(BaseModel):
     # explanation_report: Optional[str] = None
     # We wrap the type in 'Annotated' and provide 'operator.add' as the reducer.
     # This tells LangGraph: "When multiple nodes return this key, add them together without overwriting previous insights."
-    explanation_report: Annotated[str, operator.add] = ""
+    explanation_report: Annotated[list[str], operator.add]
     
     review_decision: Optional[Literal["approve", "reject", "escalate"]] = None
     review_url: Optional[str] = None
