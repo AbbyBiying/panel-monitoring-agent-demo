@@ -44,12 +44,6 @@ logger = logging.getLogger(__name__)
 def _utcnow() -> datetime:
     return datetime.now(UTC)
 
- 
-def _append_report(state: GraphState, line: str) -> str:
-    # If the line is already in the report, don't add it again
-    if state.explanation_report and line in state.explanation_report:
-        return state.explanation_report
-    return f"{state.explanation_report}\n{line}" if state.explanation_report else line
 
 def _heuristic_fallback(text: str) -> Tuple[Signals, ModelMeta]:
     t = (text or "").lower()
@@ -77,32 +71,26 @@ def _event_text_from_state(state: GraphState) -> str:
 
 # --- nodes -----------------------------------------------------------------
 @traceable(name="perform_effects_node", tags=["node"])
-async def perform_effects_node(state: GraphState) -> GraphState:
-    combined = state.explanation_report  # start with the existing report
-
+async def perform_effects_node(state: GraphState) -> dict:
     try:
         if state.action == "delete_account":
             logger.info("Deleting account for event_id=%s", state.event_id)
-            combined = _append_report(state, "[INFO] effect:delete_account executed")
-            return state.model_copy(update={"explanation_report": combined})
+            return {"explanation_report": "\n[INFO] effect:delete_account executed"}
 
     except Exception as e:
         logger.warning("Effect execution failed.")
-        line = f"[ERROR] effect_failed:{type(e).__name__} {e}"
-        combined = _append_report(state, line)
-        return state.model_copy(
-            update={
-                "explanation_report": combined,
-                "action": "hold_account",
-            }
-        )
+        line = f"\n[ERROR] effect_failed:{type(e).__name__} {e}"
+        return {
+            "explanation_report": line,
+            "action": "hold_account",
+        }
 
-    # If no exception and no delete was required, just return state
-    return state
+    # If no exception and no delete was required, return empty update
+    return {}
 
 
 @traceable(name="user_event_node", tags=["node"])
-async def user_event_node(state: GraphState) -> GraphState:
+async def user_event_node(state: GraphState) -> dict:
     project_id = state.project_id or os.getenv("PANEL_PROJECT_ID", "panel-app-dev")
     event_text = _event_text_from_state(state)
 
@@ -143,21 +131,19 @@ async def user_event_node(state: GraphState) -> GraphState:
         )
         event_id = evt_ref.id
 
-    return state.model_copy(
-        update={
-            "project_id": project_id,
-            "event_id": event_id,
-            "event_text": event_text,
-            "signals": seeded_signals,
-            "classification": "pending",
-            "action": None,
-            "log_entry": "",
-        }
-    )
+    return {
+        "project_id": project_id,
+        "event_id": event_id,
+        "event_text": event_text,
+        "signals": seeded_signals,
+        "classification": "pending",
+        "action": None,
+        "log_entry": "",
+    }
 
 
 @traceable(name="signal_evaluation_node", tags=["node"])
-async def signal_evaluation_node(state: GraphState) -> GraphState:
+async def signal_evaluation_node(state: GraphState) -> dict:
     text = _event_text_from_state(state)
     event_id = state.event_id or "unknown"
 
@@ -254,19 +240,17 @@ async def signal_evaluation_node(state: GraphState) -> GraphState:
 
     action = "no_action"
 
-    return state.model_copy(
-        update={
-            "signals": signals,
-            "classification": classification,
-            "confidence": confidence,
-            "action": action,
-            "model_meta": meta,
-        }
-    )
+    return {
+        "signals": signals,
+        "classification": classification,
+        "confidence": confidence,
+        "action": action,
+        "model_meta": meta,
+    }
 
 
 @traceable(name="action_decision_node", tags=["node"])
-async def action_decision_node(state: GraphState) -> GraphState:
+async def action_decision_node(state: GraphState) -> dict:
     """
     Safety-first policy:
       - suspicious & confidence >= CONFIDENCE_REVIEW_THRESHOLD -> request_human_review
@@ -282,11 +266,11 @@ async def action_decision_node(state: GraphState) -> GraphState:
     else:
         action = "no_action"
     log_info(f"Decided action: {action} (conf={conf:.2f})")
-    return state.model_copy(update={"action": action})
+    return {"action": action}
 
 
 @traceable(name="explanation_node", tags=["node"])
-async def explanation_node(state: GraphState) -> GraphState:
+async def explanation_node(state: GraphState) -> dict:
     cls = state.classification
     sig = state.signals
     action = state.action or "no_action"
@@ -310,23 +294,23 @@ async def explanation_node(state: GraphState) -> GraphState:
  
     # Only update the report if this specific line isn't already there.
     if state.explanation_report and ex in state.explanation_report:
-        return state
+        return {}
 
-    combined = _append_report(state, ex)
-    return state.model_copy(update={"explanation_report": combined})
+    prefix = "\n" if state.explanation_report else ""
+    return {"explanation_report": f"{prefix}{ex}"}
 
 
 @traceable(name="human_approval_node", tags=["node"])
 async def human_approval_node(
     state: GraphState,
-) -> GraphState | Command[Literal["explain"]]:
+) -> dict | Command[Literal["explain"]]:
     """
     If we requested human review, PAUSE here and ask an admin.
     When resumed, convert the review decision into the final action.
     """
     if state.action != "request_human_review":
         # Not a gated path; continue downstream
-        return state
+        return {}
 
     preview = (state.event_text or "")[:200]
     prompt = {
@@ -366,20 +350,13 @@ async def human_approval_node(
     
     # https://docs.langchain.com/oss/python/langgraph/graph-api#command
     return Command(
-        update=state.model_copy(
-            # state update
-            update={
-                "review_decision": normalized,
-                "action": final_action,
-            }
-        ),
-        # control flow
+        update={"review_decision": normalized, "action": final_action},
         goto="explain",
     )
 
 
 @traceable(name="logging_node", tags=["node"])
-async def logging_node(state: GraphState) -> GraphState:
+async def logging_node(state: GraphState) -> dict:
     project_id = state.project_id or "panel-app-dev"
     event_id = state.event_id
 
@@ -454,6 +431,4 @@ async def logging_node(state: GraphState) -> GraphState:
         log_summary["explanation_report"] = state.explanation_report
 
     logger.info(json.dumps(log_summary, separators=(",", ":")))
-    return state.model_copy(
-        update={"log_entry": json.dumps(log_summary, ensure_ascii=False, indent=2)}
-    )
+    return {"log_entry": json.dumps(log_summary, ensure_ascii=False, indent=2)}
