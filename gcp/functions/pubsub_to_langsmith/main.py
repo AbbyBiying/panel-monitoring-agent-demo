@@ -73,7 +73,7 @@ def pubsub_to_langsmith(cloud_event):
     Sync entry point for GCP Cloud Functions.
     Bridges the Secret Manager env var to the expected SDK name.
     """
-    # Map Secret Manager variable to standard SDK name
+
     if "LANGSMITH_API_KEY" not in os.environ:
         os.environ["LANGSMITH_API_KEY"] = os.getenv(
             "LANGSMITH_API_KEY_CLOUD_FUNCTIONS", ""
@@ -101,7 +101,6 @@ async def async_handler(cloud_event):
         return "No data"
 
     # 3) Thread ID & Inputs
-    # UUID5 ensures thread_id is a valid UUID format (fixes UnprocessableEntityError).
     inputs = _build_graph_inputs(payload, meta)
     attrs = (meta or {}).get("pubsub_attributes") or {}
 
@@ -115,7 +114,6 @@ async def async_handler(cloud_event):
     url = os.environ["LG_DEPLOYMENT_URL"].rstrip("/")
     target = os.getenv("LG_ASSISTANT_ID") or os.getenv("LG_GRAPH_NAME", "panel_agent")
 
-    # Instantiate inside handler to avoid 'Event loop is closed' errors in Gen2
     remote = RemoteGraph(target, url=url, api_key=api_key)
 
     try:
