@@ -97,19 +97,23 @@ def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Union[dict, str, None]
 @functions_framework.cloud_event
 def pubsub_to_langsmith(cloud_event):
     """
-    Sync entry point for Cloud Functions. 
-    asyncio.run() creates a fresh loop for every request.
+    Sync entry point.
     """
+    # Bridge the secret name immediately
     if "LANGSMITH_API_KEY" not in os.environ:
         os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY_CLOUD_FUNCTIONS", "")
-    return asyncio.run(async_handler(cloud_event))
+    
+    return asyncio.run(async_handler(cloud_event)) 
+
 
 async def async_handler(cloud_event):
     """
     Main logic: Decodes Pub/Sub and calls the remote graph.
     """
-
-    # 1) Decode Pub/Sub payload
+    api_key = os.getenv("LANGSMITH_API_KEY")
+    if not api_key:
+        logger.error("LANGSMITH_API_KEY is missing. Check Secret Manager / Env Vars.")
+        return {"ok": False, "error": "Missing API Key"}
     payload, meta = _decode_pubsub_payload(cloud_event.data)
     pubsub_message_id = (meta or {}).get("pubsub_message_id") or "unknown"
 
@@ -127,7 +131,7 @@ async def async_handler(cloud_event):
     target = os.getenv("LG_ASSISTANT_ID") or os.getenv("LG_GRAPH_NAME", "panel_agent")
     
     # Client is created fresh for this request's event loop
-    remote = RemoteGraph(target, url=url)
+    remote = RemoteGraph(target, url=url,api_key=api_key)
 
     try:
         config = {
