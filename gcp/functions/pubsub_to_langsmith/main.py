@@ -93,122 +93,82 @@ def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Union[dict, str, None]
         })
         raise
 
-
-def _init_remote_graph() -> None:
-    """
-    Synchronous startup initializer — call at module level to exploit
-    Cloud Run Gen2's CPU-boosted warm-up phase.
-    Required env:
-      - LG_DEPLOYMENT_URL: https://<your-deployment-host>
-      - Either LG_ASSISTANT_ID or LG_GRAPH_NAME
-      - LANGSMITH_API_KEY (auth for RemoteGraph)
-    """
-    global _remote_graph
-
-    if _remote_graph is not None:
-        return
-
-    cf_key = os.getenv("LANGSMITH_API_KEY_CLOUD_FUNCTIONS")
-    if cf_key and not os.getenv("LANGSMITH_API_KEY"):
-        os.environ["LANGSMITH_API_KEY"] = cf_key
-
-    url = os.environ["LG_DEPLOYMENT_URL"].rstrip("/")
-    target = os.getenv("LG_ASSISTANT_ID") or os.getenv("LG_GRAPH_NAME", "panel_agent")
-    if not target:
-        raise RuntimeError("Set LG_ASSISTANT_ID or LG_GRAPH_NAME in env.")
-
-    logger.info("Initializing RemoteGraph: target=%s url=%s", target, url)
-    _remote_graph = RemoteGraph(target, url=url)
-
-
-def _get_remote_graph() -> RemoteGraph:
-    """Returns the pre-initialized singleton. Fails loud if startup was skipped."""
-    if _remote_graph is None:
-        raise RuntimeError(
-            "RemoteGraph not initialized. _init_remote_graph() must run at module load."
-        )
-    return _remote_graph
-
-
-def _build_graph_inputs(payload: t.Union[dict, str, None], meta: dict) -> dict:
-    """Shape Pub/Sub payload to match GraphState schema (from your nodes.py)."""
-    base = {"project_id": "panel-app-dev", "meta": meta}
-    if isinstance(payload, str):
-        base["event_text"] = payload
-    elif isinstance(payload, dict):
-        base["event_data"] = payload
-    else:
-        base["event_text"] = ""
-    return base
-
-
-def _runtime_config(thread_id: str) -> dict:
-    return {
-        "thread_id": thread_id,
-        "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
-        "configurable": {
-            "provider": os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai"),
-            "model": os.getenv("VERTEX_MODEL", "gemini-2.5-pro"),
-        },
-    }
-
-
+ 
 @functions_framework.cloud_event
-async def pubsub_to_langsmith(event):
+def pubsub_to_langsmith(cloud_event):
     """
-    Cloud Run Function entry point.
-    Triggered by Pub/Sub → sends payload to LangSmith deployed graph ("panel-agent").
+    Sync entry point for Cloud Functions. 
+    asyncio.run() creates a fresh loop for every request.
     """
-    # 1) Decode Pub/Sub envelope
-    payload, meta = _decode_pubsub_payload(event.data)
-    pubsub_message_id = (meta or {}).get("pubsub_message_id") or ""
+    return asyncio.run(async_handler(cloud_event))
+
+async def async_handler(cloud_event):
+    """
+    Main logic: Decodes Pub/Sub and calls the remote graph.
+    """
+    # 1) Decode Pub/Sub payload
+    payload, meta = _decode_pubsub_payload(cloud_event.data)
+    pubsub_message_id = (meta or {}).get("pubsub_message_id") or "unknown"
 
     if payload in (None, "", {}):
-        logger.info("No payload, messageId=%s", pubsub_message_id)
+        logger.info("No payload found in message %s", pubsub_message_id)
         return "No data"
 
-    # 2) Build inputs for your graph
+    # 2) Prep inputs and thread_id
     inputs = _build_graph_inputs(payload, meta)
+    thread_id = (meta.get("pubsub_attributes", {}).get("thread_id") 
+                 or pubsub_message_id)
+    if "LANGSMITH_API_KEY" not in os.environ:
+        os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY_CLOUD_FUNCTIONS", "")
+    # 3) Initialize RemoteGraph INSIDE the async handler
+    # This prevents the "Event loop is closed" error.
+    url = os.environ["LG_DEPLOYMENT_URL"].rstrip("/")
+    target = os.getenv("LG_ASSISTANT_ID") or os.getenv("LG_GRAPH_NAME", "panel_agent")
+    
+    # Client is created fresh for this request's event loop
+    remote = RemoteGraph(target, url=url)
 
-    attrs = (meta or {}).get("pubsub_attributes") or {}
-    thread_id = (
-        attrs.get("thread_id")
-        or pubsub_message_id
-        or str(uuid.uuid4())
-    )
-
-    # 3) Invoke the remote graph (singleton, reuses HTTP pool)
-    remote = _get_remote_graph()
     try:
-        config = _runtime_config(thread_id)
+        config = {
+            "configurable": {"thread_id": thread_id},
+            "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent")
+        }
+
+        # 4) Invoke the Remote Graph
         result = await asyncio.wait_for(
             remote.ainvoke(inputs, config=config),
             timeout=float(os.getenv("GRAPH_INVOKE_TIMEOUT_SECS", "300")),
         )
-        logger.info("invoke_ok message_id=%s thread_id=%s", pubsub_message_id, thread_id)
+        
+        logger.info("Invoke success | thread_id=%s", thread_id)
+        return {"ok": True, "result": result}
 
-        return {
-            "ok": True,
-            "message_id": pubsub_message_id,
-            "thread_id": thread_id,
-            "result": result,
-        }
-    except asyncio.TimeoutError:
-        logger.error("Graph invocation timed out: message_id=%s thread_id=%s",
-                      pubsub_message_id, thread_id)
-        raise
     except Exception as e:
-        logger.error("Graph invocation failed: %s", e, extra={
-            "message_id": pubsub_message_id,
-            "thread_id": thread_id,
-        })
+        logger.error("Invoke failed: %s | thread_id=%s", e, thread_id)
         raise
 
+# ── Utilities ───────────────────────────────────────────────────────
 
-# ── Module-level warm-up ──────────────────────────────────────────────
-# Cloud Run Gen2 provides CPU boost during container startup.
-# Initialize the RemoteGraph here so the first Pub/Sub message
-# doesn't pay the cold-start penalty.
-# K_SERVICE is set automatically by Cloud Run; skip when running locally.
-if os.getenv("K_SERVICE"):
-    _init_remote_graph()
+def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Any, dict]:
+    msg = (event_data or {}).get("message") or {}
+    data_b64 = msg.get("data")
+    payload = None
+    if data_b64:
+        raw = base64.b64decode(data_b64).decode("utf-8")
+        try:
+            payload = json.loads(raw)
+        except:
+            payload = raw
+    
+    meta = {
+        "pubsub_message_id": msg.get("messageId"),
+        "pubsub_attributes": msg.get("attributes") or {},
+    }
+    return payload, meta
+
+def _build_graph_inputs(payload, meta) -> dict:
+    return {
+        "event_data": payload if isinstance(payload, dict) else {},
+        "event_text": payload if isinstance(payload, str) else "",
+        "meta": meta
+    }
