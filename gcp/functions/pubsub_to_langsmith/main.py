@@ -106,6 +106,9 @@ async def async_handler(cloud_event):
     """
     Main logic: Decodes Pub/Sub and calls the remote graph.
     """
+
+    if "LANGSMITH_API_KEY" not in os.environ:
+        os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY_CLOUD_FUNCTIONS", "")
     # 1) Decode Pub/Sub payload
     payload, meta = _decode_pubsub_payload(cloud_event.data)
     pubsub_message_id = (meta or {}).get("pubsub_message_id") or "unknown"
@@ -118,8 +121,6 @@ async def async_handler(cloud_event):
     inputs = _build_graph_inputs(payload, meta)
     thread_id = (meta.get("pubsub_attributes", {}).get("thread_id") 
                  or pubsub_message_id)
-    if "LANGSMITH_API_KEY" not in os.environ:
-        os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY_CLOUD_FUNCTIONS", "")
     # 3) Initialize RemoteGraph INSIDE the async handler
     # This prevents the "Event loop is closed" error.
     url = os.environ["LG_DEPLOYMENT_URL"].rstrip("/")
