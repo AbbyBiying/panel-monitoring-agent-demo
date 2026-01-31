@@ -146,25 +146,7 @@ async def async_handler(cloud_event):
     except Exception as e:
         logger.error("Invoke failed: %s | thread_id=%s", e, thread_id)
         raise
-
-# ── Utilities ───────────────────────────────────────────────────────
-
-def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Any, dict]:
-    msg = (event_data or {}).get("message") or {}
-    data_b64 = msg.get("data")
-    payload = None
-    if data_b64:
-        raw = base64.b64decode(data_b64).decode("utf-8")
-        try:
-            payload = json.loads(raw)
-        except:
-            payload = raw
-    
-    meta = {
-        "pubsub_message_id": msg.get("messageId"),
-        "pubsub_attributes": msg.get("attributes") or {},
-    }
-    return payload, meta
+ 
 
 def _build_graph_inputs(payload, meta) -> dict:
     return {
