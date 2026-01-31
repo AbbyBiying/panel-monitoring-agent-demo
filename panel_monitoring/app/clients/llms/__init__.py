@@ -16,6 +16,7 @@ _initialized_client: Any = None
 _initialized_provider: Optional[str] = None
 _init_lock = threading.Lock()
 
+
 def init_llm_client(provider: Optional[str] = None) -> None:
     """Synchronous initialization for startup/cli."""
     # In cloud environments like GCP Cloud Run, reusing the client is critical.
@@ -35,21 +36,26 @@ def init_llm_client(provider: Optional[str] = None) -> None:
             "vertexai": LLMClientVertexAI,
             "genai": LLMClientGemini,
             "gemini": LLMClientGemini,
-            "openai": LLMClientOpenAI
+            "openai": LLMClientOpenAI,
         }
 
         if provider not in clients:
-            raise ValueError(f"Invalid provider: {provider}. Options: {list(clients.keys())}")
+            raise ValueError(
+                f"Invalid provider: {provider}. Options: {list(clients.keys())}"
+            )
 
         client = clients[provider]()
-        client.setup() # Blocking setup performed at startup
+        client.setup()  # Blocking setup performed at startup
 
         _initialized_client = client
         _initialized_provider = provider
 
+
 def get_initialized_client():
     if _initialized_client is None:
-        logger.warning("LLM client not explicitly initialized; falling back to default provider.")
+        logger.warning(
+            "LLM client not explicitly initialized; falling back to default provider."
+        )
         init_llm_client()
     return _initialized_client
 

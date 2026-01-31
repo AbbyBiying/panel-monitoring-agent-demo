@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 SUPPORTED_PROVIDERS = ("openai", "genai", "gemini", "vertexai")
 
+
 def main():
     p = argparse.ArgumentParser(description="Panel Monitoring Agent")
     p.add_argument(
@@ -62,12 +63,15 @@ def main():
     logger.info("Agent ready (Async Mode).")
 
     # 3. Run the async event loop
-    asyncio.run(run_interactive(
-        app,
-        get_event_input=get_event_input,
-        project_name=args.project,
-        provider=provider_key,
-    ))
+    asyncio.run(
+        run_interactive(
+            app,
+            get_event_input=get_event_input,
+            project_name=args.project,
+            provider=provider_key,
+        )
+    )
+
 
 if __name__ == "__main__":
     main()

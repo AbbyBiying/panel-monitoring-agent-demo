@@ -31,6 +31,8 @@ from langgraph.pregel.remote import RemoteGraph
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+
+
 def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Union[dict, str, None], dict]:
     """
     Extracts and decodes Pub/Sub payload + metadata from an Eventarc CloudEvent.
@@ -61,7 +63,9 @@ def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Union[dict, str, None]
         logger.error("Failed to decode Pub/Sub payload: %s", e)
         raise
 
+
 # ── Entry Points ────────────────────────────────────────────────────────
+
 
 @functions_framework.cloud_event
 def pubsub_to_langsmith(cloud_event):
@@ -71,8 +75,10 @@ def pubsub_to_langsmith(cloud_event):
     """
     # Map Secret Manager variable to standard SDK name
     if "LANGSMITH_API_KEY" not in os.environ:
-        os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY_CLOUD_FUNCTIONS", "")
-    
+        os.environ["LANGSMITH_API_KEY"] = os.getenv(
+            "LANGSMITH_API_KEY_CLOUD_FUNCTIONS", ""
+        )
+
     return asyncio.run(async_handler(cloud_event))
 
 
@@ -98,24 +104,24 @@ async def async_handler(cloud_event):
     # UUID5 ensures thread_id is a valid UUID format (fixes UnprocessableEntityError).
     inputs = _build_graph_inputs(payload, meta)
     attrs = (meta or {}).get("pubsub_attributes") or {}
-    
+
     # Use existing thread_id if provided, otherwise the pubsub message id
     seed_id = attrs.get("thread_id") or pubsub_message_id
-    
+
     # Deterministic UUID ensures idempotency on retries
     thread_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, str(seed_id)))
 
     # 4) Initialize RemoteGraph
     url = os.environ["LG_DEPLOYMENT_URL"].rstrip("/")
     target = os.getenv("LG_ASSISTANT_ID") or os.getenv("LG_GRAPH_NAME", "panel_agent")
-    
+
     # Instantiate inside handler to avoid 'Event loop is closed' errors in Gen2
     remote = RemoteGraph(target, url=url, api_key=api_key)
 
     try:
         config = {
             "configurable": {"thread_id": thread_id},
-            "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent")
+            "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
         }
 
         # 5) Invoke the Remote Graph
@@ -123,7 +129,7 @@ async def async_handler(cloud_event):
             remote.ainvoke(inputs, config=config),
             timeout=float(os.getenv("GRAPH_INVOKE_TIMEOUT_SECS", "300")),
         )
-        
+
         logger.info("Invoke success | thread_id=%s", thread_id)
         return {"ok": True, "result": result}
 
@@ -131,10 +137,11 @@ async def async_handler(cloud_event):
         logger.error("Invoke failed: %s | thread_id=%s", e, thread_id)
         raise
 
+
 def _build_graph_inputs(payload, meta) -> dict:
     """Formats the payload for the LangGraph state schema."""
     return {
         "event_data": payload if isinstance(payload, dict) else {},
         "event_text": payload if isinstance(payload, str) else "",
-        "meta": meta
+        "meta": meta,
     }

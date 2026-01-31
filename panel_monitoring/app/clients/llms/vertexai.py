@@ -58,8 +58,10 @@ class LLMClientVertexAI(LLMPredictionClient):
         """Performed at startup. Redundant load_dotenv removed."""
         st = get_settings()
         project = st.google_cloud_project or os.getenv("GOOGLE_CLOUD_PROJECT")
-        location = st.google_cloud_location or os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
-        
+        location = st.google_cloud_location or os.getenv(
+            "GOOGLE_CLOUD_LOCATION", "us-central1"
+        )
+
         # Determine credentials once at setup
         if os.getenv("ENVIRONMENT") == "local":
             creds = load_credentials()
@@ -79,9 +81,9 @@ class LLMClientVertexAI(LLMPredictionClient):
         """The core synchronous logic that might block on I/O."""
         if not self.client:
             raise RuntimeError("Client not setup.")
-        
+
         msgs = build_classify_messages(event)
-        
+
         try:
             # Attempt structured output
             result = self.client.with_structured_output(Signals).invoke(msgs)
@@ -94,7 +96,7 @@ class LLMClientVertexAI(LLMPredictionClient):
 
     async def aclassify_event(self, event: str) -> dict:
         """
-        Async entry point. Offloads the blocking sync_classify 
+        Async entry point. Offloads the blocking sync_classify
         to a separate thread pool.
         """
         # This keeps LangGraph's event loop completely free!
@@ -108,7 +110,7 @@ class LLMClientVertexAI(LLMPredictionClient):
             model_ref=self.model_ref,
             prompt=prompt,
             text=str(data),
-            duration_ms=(time.perf_counter() - start) * 1000.0
+            duration_ms=(time.perf_counter() - start) * 1000.0,
         )
 
     def classify_event(self, event: str) -> dict:

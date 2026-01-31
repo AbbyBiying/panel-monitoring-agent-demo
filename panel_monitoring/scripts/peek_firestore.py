@@ -11,6 +11,7 @@ from panel_monitoring.data.firestore_client import events_col
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 async def peek_latest(project_id: str = "panel-app-dev", window: int = 50):
     """
     Asynchronously fetches the latest events for a specific project.
@@ -23,9 +24,8 @@ async def peek_latest(project_id: str = "panel-app-dev", window: int = 50):
 
     # 3. Build the query
     # Note: .stream() in AsyncClient returns an AsyncIterator
-    query = (
-        col.order_by("received_at", direction=firestore.Query.DESCENDING)
-        .limit(window)
+    query = col.order_by("received_at", direction=firestore.Query.DESCENDING).limit(
+        window
     )
 
     logger.info("Peeking at last %d events for project: %s", window, project_id)
@@ -40,9 +40,12 @@ async def peek_latest(project_id: str = "panel-app-dev", window: int = 50):
             print(f"Data: {data}\n")
             found = True
             return d.id
-    
+
     if not found:
-        logger.info("No events found for project %s in the last %d records.", project_id, window)
+        logger.info(
+            "No events found for project %s in the last %d records.", project_id, window
+        )
+
 
 def main():
     """Entry point using the asyncio bridge."""
@@ -51,6 +54,7 @@ def main():
     except Exception as e:
         logger.error("Peek failed: %s", e)
         raise SystemExit(1)
+
 
 if __name__ == "__main__":
     main()

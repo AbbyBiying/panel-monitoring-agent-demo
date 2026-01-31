@@ -14,6 +14,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 load_dotenv()
 
+
 async def run_seed():
     """Asynchronous seeding logic for Firestore."""
     project_id = "panel-app-dev"
@@ -22,7 +23,7 @@ async def run_seed():
     # We await the collection helper to get the reference
     p_col = await projects_col()
     proj_ref = p_col.document(project_id)
-    
+
     # We await the .set() operation
     await proj_ref.set(
         {
@@ -66,6 +67,7 @@ async def run_seed():
     )
     logger.info("[ok] alert %s seeded for project %s", alert_ref.id, project_id)
 
+
 def main():
     """Entry point using asyncio bridge."""
     try:
@@ -73,6 +75,7 @@ def main():
     except Exception as e:
         logger.error("Seeding failed: %s", e)
         raise SystemExit(1)
+
 
 if __name__ == "__main__":
     main()

@@ -40,7 +40,7 @@ def db_info() -> dict:
     db = get_db()
     return {
         "project": db.project,
-        "database": os.getenv("FIRESTORE_DATABASE_ID", "panel-monitoring-agent-dev")
+        "database": os.getenv("FIRESTORE_DATABASE_ID", "panel-monitoring-agent-dev"),
     }
 
 

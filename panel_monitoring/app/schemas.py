@@ -1,6 +1,6 @@
 # panel_monitoring/app/schemas.py
 from __future__ import annotations
-import operator # Required for the reducer
+import operator  # Required for the reducer
 from typing import Annotated, Any, Dict, Literal, Optional
 from pydantic import BaseModel, Field
 
@@ -15,10 +15,11 @@ class Signals(BaseModel):
     normal_signup: bool = Field(..., description="True if the event is normal")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score [0,1]")
     reason: str = Field(
-        ..., description="Explanation or rationale for the classification")
+        ..., description="Explanation or rationale for the classification"
+    )
     analysis_steps: list[str] = Field(
-        default_factory=list, # This prevents the "Field required" crash
-        description="Step-by-step reasoning: 1. Identity check, 2. Network check, 3. Intent check."
+        default_factory=list,  # This prevents the "Field required" crash
+        description="Step-by-step reasoning: 1. Identity check, 2. Network check, 3. Intent check.",
     )
 
 
@@ -44,9 +45,10 @@ class ModelMeta(BaseModel):
 # LangGraph state object
 # ----------------------------
 
+
 def merge_dict(existing: Any, new: Any) -> dict:
     """
-    Safe merge for dictionaries. 
+    Safe merge for dictionaries.
     Handles cases where 'new' might accidentally be a non-dict.
     """
     if not isinstance(existing, dict):
@@ -54,8 +56,9 @@ def merge_dict(existing: Any, new: Any) -> dict:
     if not isinstance(new, dict):
         # If a node returns a string or None, we ignore it to prevent a crash
         return existing
-    
+
     return {**existing, **new}
+
 
 class GraphState(BaseModel):
     # Core identifiers
@@ -66,7 +69,7 @@ class GraphState(BaseModel):
     event_text: Optional[str] = None
     # This prevents the "last-node-wins" overwrite bug.
     event_data: Annotated[Dict[str, Any], merge_dict] = Field(default_factory=dict)
-    
+
     # Classification results
     signals: Optional[Signals] = None
     classification: Literal["pending", "suspicious", "normal", "error"] = "pending"
@@ -82,6 +85,6 @@ class GraphState(BaseModel):
     # We wrap the type in 'Annotated' and provide 'operator.add' as the reducer.
     # This tells LangGraph: "When multiple nodes return this key, add them together without overwriting previous insights."
     explanation_report: Annotated[list[str], operator.add]
-    
+
     review_decision: Optional[Literal["approve", "reject", "escalate"]] = None
     review_url: Optional[str] = None

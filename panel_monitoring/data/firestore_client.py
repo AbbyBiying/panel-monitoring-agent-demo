@@ -10,7 +10,11 @@ from google.cloud.firestore_v1.async_client import AsyncClient
 from google.cloud.firestore_v1.async_collection import AsyncCollectionReference
 from google.auth.exceptions import DefaultCredentialsError
 
-from panel_monitoring.app.utils import load_credentials, log_info, make_credentials_from_env
+from panel_monitoring.app.utils import (
+    load_credentials,
+    log_info,
+    make_credentials_from_env,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +60,9 @@ async def get_db() -> AsyncClient:
         try:
             _DB = AsyncClient(project=project, database=database, credentials=creds)
             logger.info(
-                "Initialized async Firestore client for project '%s' (DB: %s)", project, database
+                "Initialized async Firestore client for project '%s' (DB: %s)",
+                project,
+                database,
             )
         except DefaultCredentialsError as e:
             raise RuntimeError(

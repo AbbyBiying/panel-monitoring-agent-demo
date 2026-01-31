@@ -19,6 +19,7 @@ HERE = pathlib.Path(__file__).parent
 # TEST_DATA = HERE / "formatted-test-data.json"
 TEST_DATA = HERE / "formatted-edge-test-data.json"
 
+
 def load_test_data() -> list[Dict[str, Any]]:
     """
     Expect cleaned_test.json in this format:
@@ -37,7 +38,9 @@ def load_test_data() -> list[Dict[str, Any]]:
     ]
     """
     if not TEST_DATA.exists():
-        raise FileNotFoundError(f"cleaned_test.json not found at: {TEST_DATA.resolve()}")
+        raise FileNotFoundError(
+            f"cleaned_test.json not found at: {TEST_DATA.resolve()}"
+        )
 
     with open(TEST_DATA, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -88,36 +91,48 @@ def _build_event_payload(item: Dict[str, Any]) -> Dict[str, Any]:
     """
     return item["input"]
 
+
 def calculate_human_signal_score(item: Dict[str, Any]) -> int:
     """Heuristic to track if the data looks human before the Agent sees it."""
     score = 0
     signals = item.get("input", {}).get("third_party_signals", {})
-    
+
     # 1. Email Age
     email_date = signals.get("email_first_seen_online", "2026-01-01")
     try:
         year = int(email_date.split("-")[0])
-        if year <= 2020: score += 40
-        elif year <= 2023: score += 20
-    except: pass
+        if year <= 2020:
+            score += 40
+        elif year <= 2023:
+            score += 20
+    except:
+        pass
 
     # 2. MinFraud (Low risk is high human signal)
     try:
         risk = float(signals.get("minfraud_risk_score", 100))
-        if risk < 1.0: score += 30
-        elif risk < 10.0: score += 15
-    except: pass
+        if risk < 1.0:
+            score += 30
+        elif risk < 10.0:
+            score += 15
+    except:
+        pass
 
     # 3. reCAPTCHA
     try:
         captcha = float(signals.get("recaptcha_score", 0))
-        if captcha >= 0.7: score += 30
-    except: pass
+        if captcha >= 0.7:
+            score += 30
+    except:
+        pass
 
     return min(score, 100)
+
+
 # Change slice if you want to run a subset: e.g., [:1], [1:2], etc.
 # PARAM_ITEMS = load_test_data()[0:2]
 PARAM_ITEMS = load_test_data()
+
 
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("item", PARAM_ITEMS, ids=[it["id"] for it in PARAM_ITEMS])
@@ -127,7 +142,7 @@ async def test_golden_panel(item):
     thread_id = f"golden:{pid}"
     cfg = {"configurable": {"thread_id": thread_id}}
     app = build_graph()
-    
+
     signal_strength = calculate_human_signal_score(item)
     state = await app.ainvoke({"event_data": item["input"]}, config=cfg)
 
@@ -148,18 +163,18 @@ async def test_golden_panel(item):
         steps = getattr(signals_obj, "analysis_steps", [])
 
     # ---- CLEAN CONSOLE OUTPUT ----
-    print(f"\nID: {pid} | VERDICT: {classification} ({confidence*100:.0f}%)")
+    print(f"\nID: {pid} | VERDICT: {classification} ({confidence * 100:.0f}%)")
     print(f"  [SIGNAL STRENGTH: {signal_strength}/100 | GT_REMOVED: {gt['removed']}]")
-    
+
     for i, step in enumerate(steps, 1):
         print(f"    {i}. {step}")
-    
+
     print("-" * 40)
 
     # ---- ERROR ANALYSIS & ASSERTIONS ----
     class_to_removed = {"SUSPICIOUS": True, "NORMAL": False}
     actual_removed = class_to_removed.get(classification, False)
-    
+
     # Check for Mismatch
     is_mismatch = actual_removed != bool(gt["removed"])
 
@@ -170,9 +185,11 @@ async def test_golden_panel(item):
 
     if is_mismatch:
         # If it's a False Positive on a Senior
-        if is_senior and actual_removed is True and not bool(gt["removed"]):            
-            print(f"      BIAS ALERT: Potential Age-Bias detected for ID {pid} (Age: {user_age}).")
-            print(f"      The Agent flagged this senior despite 'Normal' Ground Truth.")
+        if is_senior and actual_removed is True and not bool(gt["removed"]):
+            print(
+                f"      BIAS ALERT: Potential Age-Bias detected for ID {pid} (Age: {user_age})."
+            )
+            print("      The Agent flagged this senior despite 'Normal' Ground Truth.")
             print(f"      Signal Strength: {signal_strength}/100")
 
         last_reason = steps[-1] if steps else "No steps provided"
@@ -190,7 +207,7 @@ async def test_golden_panel(item):
     thread_id = f"golden:{pid}"
     cfg = {"configurable": {"thread_id": thread_id}}
     app = build_graph()
-    
+
     # Calculate our "Ground Truth" signal strength before running the agent
     signal_strength = calculate_human_signal_score(item)
 
@@ -206,9 +223,9 @@ async def test_golden_panel(item):
     signals = state.get("signals")
 
     # ---- DEBUG OUTPUT ----
-    print(f"\nID: {pid} | VERDICT: {classification} ({confidence*100:.0f}%)")
+    print(f"\nID: {pid} | VERDICT: {classification} ({confidence * 100:.0f}%)")
     print(f"  [SIGNAL STRENGTH: {signal_strength}/100 | GT_REMOVED: {gt['removed']}]")
-    
+
     steps = []
     if isinstance(signals, dict):
         steps = signals.get("analysis_steps", [])
@@ -219,9 +236,13 @@ async def test_golden_panel(item):
         for i, step in enumerate(steps, 1):
             print(f"  {i}. {step}")
     else:
-        reason = signals.get("reason") if isinstance(signals, dict) else getattr(signals, "reason", "N/A")
+        reason = (
+            signals.get("reason")
+            if isinstance(signals, dict)
+            else getattr(signals, "reason", "N/A")
+        )
         print(f"  Note: {reason}")
-    
+
     print("-" * 40)
 
     # ---- Assertions (Silent unless they fail) ----
@@ -237,6 +258,8 @@ async def test_golden_panel(item):
     assert actual_removed == bool(gt["removed"]), f"Mismatch on {pid}"
     if actual_removed != bool(gt["removed"]):
         if signal_strength > 60 and actual_removed == True:
-            print(f"  !!! ALERT: Agent is being too paranoid. Signal Strength is high ({signal_strength}).")
-        
+            print(
+                f"  !!! ALERT: Agent is being too paranoid. Signal Strength is high ({signal_strength})."
+            )
+
         assert actual_removed == bool(gt["removed"]), msg

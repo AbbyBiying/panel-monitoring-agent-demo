@@ -16,7 +16,11 @@ import logging
 from panel_monitoring.app.clients.llms import aclassify_event
 from panel_monitoring.app.rules import apply_occupation_rules
 from panel_monitoring.app.schemas import GraphState, Signals, ModelMeta
-from panel_monitoring.app.utils import build_llm_decision_summary_from_signals, log_info, looks_like_automated
+from panel_monitoring.app.utils import (
+    build_llm_decision_summary_from_signals,
+    log_info,
+    looks_like_automated,
+)
 from panel_monitoring.data.firestore_client import events_col, runs_col
 
 # --------------------------------------------------------------------
@@ -140,7 +144,7 @@ async def user_event_node(state: GraphState) -> dict:
         "action": None,
         "log_entry": "",
         # RESET the report so old decisions don't stick around
-        "explanation_report": []
+        "explanation_report": [],
     }
 
 
@@ -293,7 +297,7 @@ async def explanation_node(state: GraphState) -> dict:
 
     if action == "request_human_review" and getattr(state, "review_url", None):
         ex = f"{ex} Pending human review → {state.review_url}"
- 
+
     if ex in state.explanation_report:
         return {}
 
@@ -347,7 +351,7 @@ async def human_approval_node(
         final_action = "hold_account"
     else:
         final_action = "hold_account"
-    
+
     # https://docs.langchain.com/oss/python/langgraph/graph-api#command
     return Command(
         update={"review_decision": normalized, "action": final_action},

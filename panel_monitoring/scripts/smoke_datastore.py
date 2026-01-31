@@ -6,11 +6,12 @@ import logging
 import asyncio
 from datetime import datetime, timezone
 from dotenv import load_dotenv
-from google.cloud import firestore # Used for SERVER_TIMESTAMP
+from google.cloud import firestore  # Used for SERVER_TIMESTAMP
 
 from panel_monitoring.data.firestore_client import events_col, runs_col
 
 logger = logging.getLogger(__name__)
+
 
 def _project() -> str | None:
     return (
@@ -19,6 +20,7 @@ def _project() -> str | None:
         or os.getenv("GCP_PROJECT")
         or os.getenv("GCP_PROJECT_ID")
     )
+
 
 async def run_smoke_test():
     load_dotenv()
@@ -44,7 +46,7 @@ async def run_smoke_test():
     col_ref = await events_col()
     evt_ref = col_ref.document()  # auto-id
     event_id = evt_ref.id
-    
+
     await evt_ref.set(
         {
             "project_id": project_id,
@@ -77,7 +79,7 @@ async def run_smoke_test():
     run_col_ref = await runs_col()
     run_ref = run_col_ref.document()  # auto-id
     attempt_id = run_ref.id
-    
+
     await run_ref.set(
         {
             "project_id": project_id,
@@ -106,8 +108,10 @@ async def run_smoke_test():
     await evt_ref.set(finalize_fields, merge=True)
     logger.info("Event finalized: id=%s", event_id)
 
+
 def main():
     asyncio.run(run_smoke_test())
+
 
 if __name__ == "__main__":
     main()
