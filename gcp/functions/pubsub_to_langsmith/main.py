@@ -100,6 +100,8 @@ def pubsub_to_langsmith(cloud_event):
     Sync entry point for Cloud Functions. 
     asyncio.run() creates a fresh loop for every request.
     """
+    if "LANGSMITH_API_KEY" not in os.environ:
+        os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY_CLOUD_FUNCTIONS", "")
     return asyncio.run(async_handler(cloud_event))
 
 async def async_handler(cloud_event):
@@ -107,8 +109,6 @@ async def async_handler(cloud_event):
     Main logic: Decodes Pub/Sub and calls the remote graph.
     """
 
-    if "LANGSMITH_API_KEY" not in os.environ:
-        os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY_CLOUD_FUNCTIONS", "")
     # 1) Decode Pub/Sub payload
     payload, meta = _decode_pubsub_payload(cloud_event.data)
     pubsub_message_id = (meta or {}).get("pubsub_message_id") or "unknown"
