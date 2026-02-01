@@ -35,6 +35,23 @@ logger = logging.getLogger(__name__)
 
 def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Union[dict, str, None], dict]:
     """
+    Extracts and decodes Pub/Sub payload + useful metadata from an Eventarc CloudEvent.
+
+    Eventarc (Pub/Sub) CloudEvent data shape:
+    {
+      "message": {
+        "data": "base64-encoded",
+        "messageId": "123",
+        "orderingKey": "key-1",
+        "publishTime": "2025-01-01T00:00:00Z",
+        "attributes": { ... }   # optional
+      },
+      "subscription": "projects/.../subscriptions/..."
+    }
+
+    Returns (payload, meta) where:
+      - payload: dict if JSON, str if not JSON, or None.
+      - meta:    pubsub IDs + attributes for tracing.
     Extracts and decodes Pub/Sub payload + metadata from an Eventarc CloudEvent.
     """
     msg = (event_data or {}).get("message") or {}
