@@ -30,6 +30,7 @@ from langgraph.pregel.remote import RemoteGraph
 # Load local env only when running locally; no-op on Cloud Run/Functions
 load_dotenv()
 
+logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO").upper())
 logger = logging.getLogger(__name__)
 
 
