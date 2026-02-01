@@ -27,42 +27,6 @@ deploy-pubsub:
         --set-env-vars=OPENAI_API_KEY="${OPENAI_API_KEY}",GOOGLE_CLOUD_PROJECT="${GOOGLE_CLOUD_PROJECT:-panel-monitoring-agent}",GOOGLE_CLOUD_REGION="${GOOGLE_CLOUD_REGION:-us-central1}",VERTEX_MODEL="${VERTEX_MODEL:-gemini-2.5-pro}",PANEL_DEFAULT_PROVIDER="${PANEL_DEFAULT_PROVIDER:-vertexai}",LG_GRAPH_NAME="${LG_GRAPH_NAME:-panel_agent}",LG_DEPLOYMENT_URL="${LG_DEPLOYMENT_URL}",LANGSMITH_PROJECT="${LANGSMITH_PROJECT}",LOG_LEVEL="${LOG_LEVEL:-INFO}" \
         --set-secrets=LANGSMITH_API_KEY_CLOUD_FUNCTIONS=LANGSMITH_API_KEY_CLOUD_FUNCTIONS:latest \
 
-        "panelist_id": "iPc5186c2082",
-        "primary_email_domain": "gmail.com",
-        "primary_email_verified": true,
-        "primary_phone_verified": false,
-        "primary_phone_carrier": "N/A",
-        "primary_phone_carrier_type": "N/A",
-        "primary_phone_mobile": false,
-        "primary_phone_sms_opt_in": false
-      },
-      "network_device": {
-        "ip_address": "50.43.180.113",
-        "ip_country": "United States",
-        "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0"
-      },
-      "recruitment": {
-        "sign_up_timestamp_utc": "2025-10-22T08:45:12Z",
-        "campaign_name": "Organic",
-        "campaign_id": 5,
-        "source_name": "Organic/unknown",
-        "source_id": 1
-      },
-      "registration_profile": {
-        "year_of_birth": "1983",
-        "age": "42",
-        "gender": "Male",
-        "state": "Ohio",
-        "msa": "",
-        "timezone": "Eastern (GMT -05:00)",
-        "where_heard_about_us": "beermoney subreddit"
-      },
-      "third_party_signals": {
-        "email_first_seen_online": "2025-10-22",
-        "minfraud_risk_score": "13.72",
-        "recaptcha_score": "0.9"
-      }
-      ]
 publish-test-event:
     #!/usr/bin/env bash
     # gcloud pubsub topics publish user-event-signups --message=test_data
@@ -72,4 +36,3 @@ publish-test-event:
 logs-tail:
     #!/usr/bin/env bash
     gcloud functions logs read pubsub-to-langsmith --region=us-central1
-
