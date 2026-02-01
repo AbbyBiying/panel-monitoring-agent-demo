@@ -105,7 +105,7 @@ def calculate_human_signal_score(item: Dict[str, Any]) -> int:
             score += 40
         elif year <= 2023:
             score += 20
-    except:
+    except Exception:
         pass
 
     # 2. MinFraud (Low risk is high human signal)
@@ -115,7 +115,7 @@ def calculate_human_signal_score(item: Dict[str, Any]) -> int:
             score += 30
         elif risk < 10.0:
             score += 15
-    except:
+    except Exception:
         pass
 
     # 3. reCAPTCHA
@@ -123,7 +123,7 @@ def calculate_human_signal_score(item: Dict[str, Any]) -> int:
         captcha = float(signals.get("recaptcha_score", 0))
         if captcha >= 0.7:
             score += 30
-    except:
+    except Exception:
         pass
 
     return min(score, 100)
@@ -257,7 +257,7 @@ async def test_golden_panel(item):
     )
     assert actual_removed == bool(gt["removed"]), f"Mismatch on {pid}"
     if actual_removed != bool(gt["removed"]):
-        if signal_strength > 60 and actual_removed == True:
+        if signal_strength > 60 and actual_removed:
             print(
                 f"  !!! ALERT: Agent is being too paranoid. Signal Strength is high ({signal_strength})."
             )
