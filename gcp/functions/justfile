@@ -26,8 +26,7 @@ deploy-pubsub:
         --trigger-topic=user-event-signups \
         --set-env-vars=OPENAI_API_KEY="${OPENAI_API_KEY}",GOOGLE_CLOUD_PROJECT="${GOOGLE_CLOUD_PROJECT:-panel-monitoring-agent}",GOOGLE_CLOUD_REGION="${GOOGLE_CLOUD_REGION:-us-central1}",VERTEX_MODEL="${VERTEX_MODEL:-gemini-2.5-pro}",PANEL_DEFAULT_PROVIDER="${PANEL_DEFAULT_PROVIDER:-vertexai}",LG_GRAPH_NAME="${LG_GRAPH_NAME:-panel_agent}",LG_DEPLOYMENT_URL="${LG_DEPLOYMENT_URL}",LANGSMITH_PROJECT="${LANGSMITH_PROJECT}",LOG_LEVEL="${LOG_LEVEL:-INFO}" \
         --set-secrets=LANGSMITH_API_KEY_CLOUD_FUNCTIONS=LANGSMITH_API_KEY_CLOUD_FUNCTIONS:latest \
-test_data=[
- "identity": {
+
         "panelist_id": "iPc5186c2082",
         "primary_email_domain": "gmail.com",
         "primary_email_verified": true,
@@ -66,8 +65,8 @@ test_data=[
       ]
 publish-test-event:
     #!/usr/bin/env bash
-    gcloud pubsub topics publish user-event-signups --message=test_data
-    gcloud pubsub topics publish user-event-signups --message='it is 1111pm. I m a software engineer in San Diego!'
+    # gcloud pubsub topics publish user-event-signups --message=test_data
+    gcloud pubsub topics publish user-event-signups --message='it is 11am. I m a software engineer in San Diego!'
 
 
 logs-tail:
