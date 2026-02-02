@@ -3,7 +3,7 @@
     "id": "iPa3c2cacca3",
     "input": {
       "identity": {
-        "user_panelist_id": "iPa3c2cacca3",
+        "panelist_id": "iPa3c2cacca3",
         "email": "swampbabybutterbean@gmail.com",
         "email_verified": true,
         "phone": null,
@@ -42,7 +42,7 @@
     "id": "iP7bb1447733",
     "input": {
       "identity": {
-        "user_panelist_id": "iP7bb1447733",
+        "panelist_id": "iP7bb1447733",
         "email": "baotoan122@gmail.com",
         "email_verified": true,
         "phone": "6263495852",

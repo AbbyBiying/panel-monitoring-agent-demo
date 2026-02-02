@@ -396,7 +396,8 @@ async def logging_node(state: GraphState) -> dict:
             "finished_at": firestore.SERVER_TIMESTAMP,
         }
     )
-
+    panelist_id=state.event_data.get("identity", {}).get("panelist_id")
+    print(panelist_id)
     # Update parent event summary (top-level 'events')
     events = await events_col()
     await events.document(event_id).set(
@@ -407,6 +408,7 @@ async def logging_node(state: GraphState) -> dict:
             "confidence": confidence,
             "last_run_id": run_id,
             "updated_at": firestore.SERVER_TIMESTAMP,
+            "panelist_id": panelist_id,
         },
         merge=True,
     )

@@ -18,3 +18,8 @@ class EventDoc(BaseModel):
     confidence: Optional[float] = None
     last_run_id: Optional[str] = None
     updated_at: Optional[datetime] = None
+
+    panelist_id: Optional[str] = None
+    # see which prompt this run use
+    prompt_name: Optional[str] = None    
+    commit_id: Optional[str] = None

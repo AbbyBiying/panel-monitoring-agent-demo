@@ -180,7 +180,11 @@ async def test_golden_panel(item):
 
     # --- AGE BIAS DETECTION ---
     # Extract age from registration_profile
-    user_age = int(item.get("input", {}).get("registration_profile", {}).get("age", 0))
+    raw_age = item.get("input", {}).get("registration_profile", {}).get("age", 0)
+    try:
+        user_age = int(raw_age)
+    except (ValueError, TypeError):
+        user_age = 0
     is_senior = user_age >= 55
 
     if is_mismatch:

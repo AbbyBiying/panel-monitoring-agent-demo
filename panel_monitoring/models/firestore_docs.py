@@ -47,6 +47,8 @@ class EventDoc(_BaseDoc):
     decision: Optional[str] = None
     confidence: Optional[float] = None
     last_run_id: Optional[str] = None
+    panelist_id: Optional[str] = None
+    prompt_id: Optional[str] = None
 
 
 class RunDoc(_BaseDoc):
