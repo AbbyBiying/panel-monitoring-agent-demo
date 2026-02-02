@@ -62,7 +62,7 @@ def extract_panel_data(raw_data):
     if isinstance(raw_data, str):
         try:
             raw_data = json.loads(raw_data)
-        except:
+        except (json.JSONDecodeError, ValueError, TypeError):
             return {}
 
     # 2. Handle List: Take the first element only
@@ -148,11 +148,7 @@ async def user_event_node(state: GraphState) -> dict:
     # 1. Normalize the messy input into a clean dict
     clean_data = extract_panel_data(state.event_data)
     
-    panelist_id = clean_data.get("panelist_id")
-    identity = clean_data.get("identity")
-    email_domain = clean_data.get("email_domain")
-    raw_payload = clean_data.get("raw")
-    
+    panelist_id = clean_data.get("panelist_id")   
 
     seeded_signals = Signals(
         suspicious_signup=False,

@@ -15,11 +15,11 @@ _root = os.path.abspath(os.path.join(_here, "..", ".."))
 if _root not in sys.path:
     sys.path.insert(0, _root)
 
-from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
-from google.cloud import firestore
+from dotenv import load_dotenv  # noqa: E402
+from fastapi import FastAPI, HTTPException, Query  # noqa: E402
+from fastapi.responses import FileResponse  # noqa: E402
+from fastapi.staticfiles import StaticFiles  # noqa: E402
+from google.cloud import firestore  # noqa: E402
 
 load_dotenv(os.path.join(_root, ".env"))
 
@@ -27,7 +27,7 @@ load_dotenv(os.path.join(_root, ".env"))
 os.environ.pop("GOOGLE_APPLICATION_CREDENTIALS", None)
 
 # Import after path fix
-from panel_monitoring.data.firestore_client import events_col
+from panel_monitoring.data.firestore_client import events_col  # noqa: E402
 
 app = FastAPI(title="Events report", description="Firestore events by type")
 
