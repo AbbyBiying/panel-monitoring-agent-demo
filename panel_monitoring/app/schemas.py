@@ -21,6 +21,9 @@ class Signals(BaseModel):
         default_factory=list,  # This prevents the "Field required" crash
         description="Step-by-step reasoning: 1. Identity check, 2. Network check, 3. Intent check.",
     )
+    panelist_id: Optional[str] = None
+
+
 
 
 # ----------------------------
@@ -88,3 +91,7 @@ class GraphState(BaseModel):
 
     review_decision: Optional[Literal["approve", "reject", "escalate"]] = None
     review_url: Optional[str] = None
+    panelist_id: Optional[str] = None
+    prompt_id: Optional[str] = None
+    prompt_name: Optional[str] = None
+

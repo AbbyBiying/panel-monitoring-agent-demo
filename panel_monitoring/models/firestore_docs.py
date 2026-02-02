@@ -49,6 +49,7 @@ class EventDoc(_BaseDoc):
     last_run_id: Optional[str] = None
     panelist_id: Optional[str] = None
     prompt_id: Optional[str] = None
+    prompt_name: Optional[str] = None
 
 
 class RunDoc(_BaseDoc):

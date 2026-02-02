@@ -44,6 +44,51 @@ logger = logging.getLogger(__name__)
 
 # --- helpers ---------------------------------------------------------------
 
+def get_nested_value(data, keys, default=None):
+    """Safe navigation for deeply nested dictionaries."""
+    for key in keys:
+        if isinstance(data, dict):
+            data = data.get(key, default)
+        else:
+            return default
+    return data
+
+def extract_panel_data(raw_data):
+    """
+    Normalizes messy input. 
+    If input is a list, it only processes the first element.
+    """
+    # 1. Convert string to object
+    if isinstance(raw_data, str):
+        try:
+            raw_data = json.loads(raw_data)
+        except:
+            return {}
+
+    # 2. Handle List: Take the first element only
+    if isinstance(raw_data, list):
+        raw_data = raw_data[0] if len(raw_data) > 0 else {}
+    
+    # 3. Final safety check: must be a dict to continue
+    if not isinstance(raw_data, dict):
+        return {}
+
+    # Path A: Flat (New Format)
+    identity = raw_data.get("identity")
+    
+    # Path B: Nested (Previous Format)
+    if not identity:
+        identity = get_nested_value(raw_data, ["input", "identity"])
+
+    panelist_id = (identity or {}).get("panelist_id") or raw_data.get("id")
+    email_domain = (identity or {}).get("primary_email_domain")
+    
+    return {
+        "panelist_id": panelist_id,
+        "identity": identity or {},
+        "raw": raw_data,
+        "email_domain": email_domain
+    }
 
 def _utcnow() -> datetime:
     return datetime.now(UTC)
@@ -95,14 +140,26 @@ async def perform_effects_node(state: GraphState) -> dict:
 
 @traceable(name="user_event_node", tags=["node"])
 async def user_event_node(state: GraphState) -> dict:
+    print("user_event_node")
+    print(state)
     project_id = state.project_id or os.getenv("PANEL_PROJECT_ID", "panel-app-dev")
     event_text = _event_text_from_state(state)
+
+    # 1. Normalize the messy input into a clean dict
+    clean_data = extract_panel_data(state.event_data)
+    
+    panelist_id = clean_data.get("panelist_id")
+    identity = clean_data.get("identity")
+    email_domain = clean_data.get("email_domain")
+    raw_payload = clean_data.get("raw")
+    
 
     seeded_signals = Signals(
         suspicious_signup=False,
         normal_signup=True,
         confidence=0.0,
         reason="unclassified",
+        panelist_id=panelist_id
     )
 
     events = await events_col()
@@ -115,6 +172,7 @@ async def user_event_node(state: GraphState) -> dict:
                 "updated_at": firestore.SERVER_TIMESTAMP,
                 "status": "pending",
                 "payload": {"preview": (event_text or "")[:200]},
+                "panelist_id": panelist_id
             },
             merge=True,
         )
@@ -131,6 +189,8 @@ async def user_event_node(state: GraphState) -> dict:
                 "event_at": _utcnow(),
                 "status": "pending",
                 "payload": {"preview": (event_text or "")[:200]},
+                "panelist_id": panelist_id
+
             }
         )
         event_id = evt_ref.id
@@ -145,6 +205,7 @@ async def user_event_node(state: GraphState) -> dict:
         "log_entry": "",
         # RESET the report so old decisions don't stick around
         "explanation_report": [],
+        "panelist_id": panelist_id
     }
 
 
@@ -394,10 +455,9 @@ async def logging_node(state: GraphState) -> dict:
             "llm_decision_summary": llm_decision_summary,
             "started_at": firestore.SERVER_TIMESTAMP,
             "finished_at": firestore.SERVER_TIMESTAMP,
+            "panelist_id": state.panelist_id,
         }
     )
-    panelist_id=state.event_data.get("identity", {}).get("panelist_id")
-    print(panelist_id)
     # Update parent event summary (top-level 'events')
     events = await events_col()
     await events.document(event_id).set(
@@ -408,7 +468,7 @@ async def logging_node(state: GraphState) -> dict:
             "confidence": confidence,
             "last_run_id": run_id,
             "updated_at": firestore.SERVER_TIMESTAMP,
-            "panelist_id": panelist_id,
+            "panelist_id": state.panelist_id,
         },
         merge=True,
     )
@@ -418,6 +478,7 @@ async def logging_node(state: GraphState) -> dict:
 
     log_summary = {
         "event_id": event_id,
+        "panelist_id": state.panelist_id,
         "run_id": run_id,
         "classification": decision,
         "confidence": confidence,
