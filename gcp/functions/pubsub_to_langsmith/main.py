@@ -1,3 +1,5 @@
+# panel-monitoring-agent/gcp/functions/pubsub_to_langsmith/main.py
+
 # Cloud Run Functions (Gen2 on Cloud Run) – Pub/Sub → LangSmith (RemoteGraph)
 # Deploy (example):
 # gcloud functions deploy pubsub-to-langsmith \
@@ -9,10 +11,11 @@
 #   --trigger-topic=user-event-signups \
 #   --set-env-vars=LANGSMITH_API_KEY=***,LG_DEPLOYMENT_URL=https://<your-deployment-host>,LG_GRAPH_NAME=<your-graph-name>,LANGSMITH_PROJECT=<your-project>
 
+import asyncio
 import base64
 import json
+import logging
 import os
-import time
 import typing as t
 import uuid
 
@@ -27,8 +30,8 @@ from langgraph.pregel.remote import RemoteGraph
 # Load local env only when running locally; no-op on Cloud Run/Functions
 load_dotenv()
 
-LANGSMITH_PROJECT = os.getenv("LANGSMITH_PROJECT")
-print(f"LANGSMITH_PROJECT: {LANGSMITH_PROJECT}")
+logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO").upper())
+logger = logging.getLogger(__name__)
 
 
 def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Union[dict, str, None], dict]:
@@ -50,6 +53,7 @@ def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Union[dict, str, None]
     Returns (payload, meta) where:
       - payload: dict if JSON, str if not JSON, or None.
       - meta:    pubsub IDs + attributes for tracing.
+    Extracts and decodes Pub/Sub payload + metadata from an Eventarc CloudEvent.
     """
     msg = (event_data or {}).get("message") or {}
     data_b64 = msg.get("data")
@@ -74,119 +78,86 @@ def _decode_pubsub_payload(event_data: dict) -> t.Tuple[t.Union[dict, str, None]
         return payload, meta
 
     except Exception as e:
-        print(f"[ERROR] Failed to decode Pub/Sub payload: {e}")
-        print(f"  data_b64: {data_b64!r}")
-        print(f"  msg: {msg!r}")
-        print(f"  raw: {locals().get('raw', None)!r}")
-        print(f"  event_data: {event_data!r}")
+        logger.error("Failed to decode Pub/Sub payload: %s", e)
         raise
 
 
-def _get_remote_graph() -> RemoteGraph:
-    """
-    Builds a RemoteGraph bound to your LangSmith Deployment.
-    Required env:
-      - LG_DEPLOYMENT_URL: https://<your-deployment-host>
-      - Either LG_ASSISTANT_ID or LG_GRAPH_NAME
-      - LANGSMITH_API_KEY (auth for RemoteGraph)
-    """
-
-    cf_key = os.getenv("LANGSMITH_API_KEY_CLOUD_FUNCTIONS")
-
-    if cf_key and not os.getenv("LANGSMITH_API_KEY"):
-        os.environ["LANGSMITH_API_KEY"] = cf_key
-
-    url = os.environ["LG_DEPLOYMENT_URL"].rstrip("/")
-    print(f"LG_DEPLOYMENT_URL: {url}")
-    target = os.getenv("LG_ASSISTANT_ID") or os.getenv("LG_GRAPH_NAME", "panel_agent")
-    if not target:
-        raise RuntimeError("Set LG_ASSISTANT_ID or LG_GRAPH_NAME in env.")
-
-    print(f"[RemoteGraph WITH target AND URL] target={target} url={url}")
-    return RemoteGraph(target, url=url)
-
-
-def _build_graph_inputs(payload: t.Union[dict, str, None], meta: dict) -> dict:
-    """Shape Pub/Sub payload to match GraphState schema (from your nodes.py)."""
-    base = {"project_id": "panel-app-dev", "meta": meta}
-    if isinstance(payload, str):
-        base["event_text"] = payload
-    elif isinstance(payload, dict):
-        base["event_data"] = payload
-    else:
-        base["event_text"] = ""
-    return base
-
-
-def _runtime_config(thread_id: str) -> dict:
-    print(f"_runtime_config thread_id: {thread_id}")
-    return {
-        "thread_id": thread_id,
-        "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
-        "configurable": {
-            "provider": os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai"),
-            "model": os.getenv("VERTEX_MODEL", "gemini-2.5-pro"),
-        },
-    }
+# ── Entry Points ────────────────────────────────────────────────────────
 
 
 @functions_framework.cloud_event
-def pubsub_to_langsmith(event):
+def pubsub_to_langsmith(cloud_event):
     """
-    Cloud Run Function entry point.
-    Triggered by Pub/Sub → sends payload to LangSmith deployed graph ("panel-agent").
+    Sync entry point for GCP Cloud Functions.
+    Bridges the Secret Manager env var to the expected SDK name.
     """
-    print("[BOOT] pubsub_to_langsmith invoked")
-    # 1) Decode Pub/Sub envelope
-    payload, meta = _decode_pubsub_payload(event.data)
-    pubsub_message_id = (meta or {}).get("pubsub_message_id") or ""
+
+    if "LANGSMITH_API_KEY" not in os.environ:
+        os.environ["LANGSMITH_API_KEY"] = os.getenv(
+            "LANGSMITH_API_KEY_CLOUD_FUNCTIONS", ""
+        )
+
+    return asyncio.run(async_handler(cloud_event))
+
+
+async def async_handler(cloud_event):
+    """
+    Main async logic: Decodes Pub/Sub and calls the remote graph.
+    """
+    # 1) Auth Setup
+    api_key = os.getenv("LANGSMITH_API_KEY")
+    if not api_key:
+        logger.error("LANGSMITH_API_KEY is missing. Check Secret Manager.")
+        return {"ok": False, "error": "Missing API Key"}
+
+    # 2) Data Decoding
+    payload, meta = _decode_pubsub_payload(cloud_event.data)
+    pubsub_message_id = (meta or {}).get("pubsub_message_id") or "unknown"
 
     if payload in (None, "", {}):
-        print({"msg": "No payload", "messageId": pubsub_message_id})
+        logger.info("No payload found in message %s", pubsub_message_id)
         return "No data"
 
-    # 2) Build inputs for your graph
+    # 3) Thread ID & Inputs
     inputs = _build_graph_inputs(payload, meta)
-
     attrs = (meta or {}).get("pubsub_attributes") or {}
-    thread_id = (
-        attrs.get("thread_id")
-        or pubsub_message_id
-        or str(uuid.uuid4())  # if nothing we make a new one
-    )
-    print(f"thread_id resolved: {thread_id}")
-    # 3) Invoke the remote graph
-    remote = _get_remote_graph()
-    print(f"remote graph obtained, invoking it with thread_id...{remote}:{thread_id}")
+
+    # Use existing thread_id if provided, otherwise the pubsub message id
+    seed_id = attrs.get("thread_id") or pubsub_message_id
+
+    # Deterministic UUID ensures idempotency on retries
+    thread_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, str(seed_id)))
+
+    # 4) Initialize RemoteGraph
+    url = os.environ["LG_DEPLOYMENT_URL"].rstrip("/")
+    target = os.getenv("LG_ASSISTANT_ID") or os.getenv("LG_GRAPH_NAME", "panel_agent")
+
+    remote = RemoteGraph(target, url=url, api_key=api_key)
+
     try:
-        config = _runtime_config(thread_id)
-        print(f"config from _runtime_config: {config}")
-        print(f"Using provider: {config['configurable']['provider']}")
-        result = remote.invoke(inputs, config=config)
-        print(
-            {
-                "stage": "invoke_ok",
-                "message_id": pubsub_message_id,
-                "thread_id": thread_id,
-            }
-        )
-        # Optional: log a concise result summary to avoid huge logs
-        if isinstance(result, dict):
-            print(f"[RESULT.keys] {list(result.keys())}")
-            print(f"log_entry - {result.get('log_entry', '')[:200]!r}...")
-        else:
-            print(f"[RESULT.type] {type(result)}")
-
-        time.sleep(0.2)
-        print("[COMPLETE] Graph invocation finished.")
-
-        return {
-            "ok": True,
-            "message_id": pubsub_message_id,
-            "thread_id": thread_id,
-            "result": result,
+        config = {
+            "configurable": {"thread_id": thread_id},
+            "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
         }
+
+        # 5) Invoke the Remote Graph
+        result = await asyncio.wait_for(
+            remote.ainvoke(inputs, config=config),
+            timeout=float(os.getenv("GRAPH_INVOKE_TIMEOUT_SECS", "300")),
+        )
+
+        logger.info("Invoke success | thread_id=%s", thread_id)
+        return {"ok": True, "result": result}
+
     except Exception as e:
-        # Let Eventarc decide on retries; you’ll also see errors in LangSmith traces/logs
-        print(f"[ERROR] Graph invocation failed: {e}")
+        logger.error("Invoke failed: %s | thread_id=%s", e, thread_id)
         raise
+
+
+def _build_graph_inputs(payload, meta) -> dict:
+    """Formats the payload for the LangGraph state schema."""
+    return {
+        "event_data": payload if isinstance(payload, dict) else {},
+        "event_text": payload if isinstance(payload, str) else "",
+        "meta": meta,
+    }

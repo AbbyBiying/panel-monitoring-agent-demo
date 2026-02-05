@@ -58,8 +58,8 @@ def looks_like_human_hourly_job(text: str) -> bool:
         return False
 
     t = text.lower()
-    
-    return _has_wage_pattern(text) and _has_fuzzy_job_word(text)
+
+    return _has_wage_pattern(t) and _has_fuzzy_job_word(t)
 
 
 def apply_occupation_rules(

@@ -35,9 +35,10 @@ class Settings(BaseSettings):
     )
 
     # pydantic-settings config
+    # Note: We don't set env_file here because load_dotenv() at module import
+    # already loads .env into os.environ. This avoids blocking file I/O when
+    # Settings() is instantiated in an async context (e.g., langgraph dev).
     model_config = SettingsConfigDict(
-        env_file=".env",  # Look for variables in .env
-        env_file_encoding="utf-8",  # Encoding for the .env file
         case_sensitive=False,  # Environment variables are case-insensitive
         extra="ignore",  # Ignore extra environment variables not defined in the model
     )

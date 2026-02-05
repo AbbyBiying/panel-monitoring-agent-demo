@@ -47,6 +47,9 @@ class EventDoc(_BaseDoc):
     decision: Optional[str] = None
     confidence: Optional[float] = None
     last_run_id: Optional[str] = None
+    panelist_id: Optional[str] = None
+    prompt_id: Optional[str] = None
+    prompt_name: Optional[str] = None
 
 
 class RunDoc(_BaseDoc):
@@ -56,11 +59,11 @@ class RunDoc(_BaseDoc):
     event_id: str
     agent_id: str
     status: Literal["success", "error", "running", "queued"]
-    
+
     # Optional
     logs: List[str] = Field(default_factory=list)
     output: Dict[str, Any] = Field(default_factory=dict)
-    
+
     # Core, queryable fields for analytics / dashboards
     decision: Optional[str] = None
     confidence: Optional[float] = None
@@ -68,9 +71,10 @@ class RunDoc(_BaseDoc):
     model: Optional[str] = None
     latency_ms: Optional[float] = None
     cost_usd: Optional[float] = None
-    
+
     # High-level, safe LLM decision summary (what we built from Signals)
     llm_decision_summary: Optional[Dict[str, Any]] = None
+
 
 class AlertDoc(_BaseDoc):
     # Required

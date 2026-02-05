@@ -1,6 +1,8 @@
 # panel_monitoring/app/graph.py
 from __future__ import annotations
 
+import logging
+
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 
@@ -14,6 +16,13 @@ from panel_monitoring.app.nodes import (
     explanation_node,
     logging_node,
 )
+from panel_monitoring.app.clients.llms import init_llm_client
+
+logger = logging.getLogger(__name__)
+
+# Pre-initialize LLM client at module import time (before async event loop)
+# This ensures all blocking I/O (credentials, .env files) happens synchronously
+init_llm_client()
 
 
 def build_graph():
@@ -33,22 +42,13 @@ def build_graph():
     """
     graph = StateGraph(GraphState)
 
-    def add_diag_line(state, level, msg):
-        # Append a diagnostic line to the explanation report in state
-        line = f"[{level.upper()}] {msg}"
-        state.explanation_report = (
-            (state.explanation_report or "")
-            + ("\n" if state.explanation_report else "")
-            + line
-        )
-
     def route_from_classify(state: GraphState) -> str:
         # Determine next node based on classification result from signal evaluation
 
         c = (state.classification or "").lower()
         # Pending: not classified yet so run explanation or classification step
         if c == "pending":
-            add_diag_line(state, "info", "classification_pending")
+            logger.info("classification_pending")
             return "explain"
 
         if c == "normal":
@@ -56,15 +56,11 @@ def build_graph():
 
         if c in ("suspicious", "error"):
             if (state.confidence is not None) and (state.confidence < 0.30):
-                add_diag_line(
-                    state, "warning", f"low_confidence:{state.confidence:.2f}"
-                )
+                logger.warning("low_confidence:%.2f", state.confidence)
             return "decide_action"
 
         # Unexpected classification value – still go to action but log it
-        add_diag_line(
-            state, "warning", f"unknown_classification:{state.classification}"
-        )
+        logger.warning("unknown_classification:%s", state.classification)
         return "decide_action"
 
     def route_after_decide(state: GraphState) -> str:

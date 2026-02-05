@@ -61,12 +61,14 @@ FIRESTORE_DATABASE_ID="(default)"
 OPENAI_API_KEY="your-key"
 ```
 
-Smoke checks (Firestore)
+Infrastructure & Smoke Checks
 
+Since the agent now uses Asynchronous Firestore, always use the provided smoke scripts to verify connectivity before running the agent.
 Auth/connectivity:
 ```
 uv run python -m panel_monitoring.scripts.smoke_auth_check
 ```
+Data Pipeline Check
 
 Minimal write/read path:
 ```

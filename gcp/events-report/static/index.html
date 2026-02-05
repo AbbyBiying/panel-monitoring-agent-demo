@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Events report – panelist</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 960px; margin: 0 auto; padding: 1rem; }
+    h1 { margin-top: 0; }
+    .form { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+    input[type="text"] { padding: 0.5rem; min-width: 12rem; }
+    button { padding: 0.5rem 1rem; cursor: pointer; }
+    .error { color: #c00; margin: 0.5rem 0; }
+    .empty { color: #666; font-style: italic; margin: 1rem 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd; }
+    th { background: #f5f5f5; font-weight: 600; }
+    tr:hover { background: #fafafa; }
+  </style>
+</head>
+<body>
+  <h1>Events report</h1>
+  <p>Load events by type from Firestore (events collection).</p>
+  <div class="form">
+    <label for="type-input">Type</label>
+    <input type="text" id="type-input" placeholder="e.g. signup" required />
+    <button type="button" id="load">Load events</button>
+  </div>
+  <div id="message" class="error" style="display: none;"></div>
+  <div id="empty" class="empty" style="display: none;">No events found.</div>
+  <table id="table" style="display: none;">
+    <thead>
+      <tr>
+        <th>panelist_id</th>
+        <th>updated_at</th>
+        <th>type</th>
+        <th>status</th>
+        <th>decision</th>
+        <th>confidence</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <script>
+    const typeInput = document.getElementById("type-input");
+    const loadBtn = document.getElementById("load");
+    const messageEl = document.getElementById("message");
+    const emptyEl = document.getElementById("empty");
+    const tableEl = document.getElementById("table");
+    const tbody = document.getElementById("tbody");
+
+    function showMessage(text, isError) {
+      messageEl.textContent = text;
+      messageEl.className = isError ? "error" : "";
+      messageEl.style.display = text ? "block" : "none";
+    }
+
+    function showEmpty(show) {
+      emptyEl.style.display = show ? "block" : "none";
+    }
+
+    function formatPacific(isoStr) {
+      if (!isoStr) return "";
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return isoStr;
+      return new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Los_Angeles",
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(d);
+    }
+
+    function renderRow(evt) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = [
+        evt.panelist_id ?? "",
+        formatPacific(evt.updated_at),
+        evt.type ?? "",
+        evt.status ?? "",
+        evt.decision ?? "",
+        evt.confidence != null ? String(evt.confidence) : "",
+      ].map((v) => `<td>${escapeHtml(v)}</td>`).join("");
+      return tr;
+    }
+
+    function escapeHtml(s) {
+      const div = document.createElement("div");
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    loadBtn.addEventListener("click", async () => {
+      const typeVal = (typeInput.value || "").trim();
+      if (!typeVal) {
+        showMessage("Please enter a type.", true);
+        return;
+      }
+      showMessage("");
+      loadBtn.disabled = true;
+      try {
+        const res = await fetch(`/api/events?type=${encodeURIComponent(typeVal)}`);
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ detail: res.statusText }));
+          throw new Error(err.detail || res.statusText);
+        }
+        const data = await res.json();
+        const events = data.events || [];
+        tbody.innerHTML = "";
+        events.forEach((evt) => tbody.appendChild(renderRow(evt)));
+        tableEl.style.display = events.length ? "table" : "none";
+        showEmpty(events.length === 0);
+      } catch (e) {
+        showMessage(e.message || "Failed to load events.", true);
+        tableEl.style.display = "none";
+        showEmpty(false);
+      } finally {
+        loadBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

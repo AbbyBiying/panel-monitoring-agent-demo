@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, UTC
 import os
-from typing import Dict, Literal, Optional, Tuple, Any
+from typing import Literal, Tuple
 from uuid import uuid4
 
 from google.cloud import firestore
@@ -13,10 +13,14 @@ from langgraph.types import Command, interrupt
 
 import logging
 
-from panel_monitoring.app.clients.llms import get_llm_classifier
+from panel_monitoring.app.clients.llms import aclassify_event
 from panel_monitoring.app.rules import apply_occupation_rules
 from panel_monitoring.app.schemas import GraphState, Signals, ModelMeta
-from panel_monitoring.app.utils import build_llm_decision_summary_from_signals, log_info, looks_like_automated
+from panel_monitoring.app.utils import (
+    build_llm_decision_summary_from_signals,
+    log_info,
+    looks_like_automated,
+)
 from panel_monitoring.data.firestore_client import events_col, runs_col
 
 # --------------------------------------------------------------------
@@ -40,16 +44,55 @@ logger = logging.getLogger(__name__)
 
 # --- helpers ---------------------------------------------------------------
 
+def get_nested_value(data, keys, default=None):
+    """Safe navigation for deeply nested dictionaries."""
+    for key in keys:
+        if isinstance(data, dict):
+            data = data.get(key, default)
+        else:
+            return default
+    return data
+
+def extract_panel_data(raw_data):
+    """
+    Normalizes messy input. 
+    If input is a list, it only processes the first element.
+    """
+    # 1. Convert string to object
+    if isinstance(raw_data, str):
+        try:
+            raw_data = json.loads(raw_data)
+        except (json.JSONDecodeError, ValueError, TypeError):
+            return {}
+
+    # 2. Handle List: Take the first element only
+    if isinstance(raw_data, list):
+        raw_data = raw_data[0] if len(raw_data) > 0 else {}
+    
+    # 3. Final safety check: must be a dict to continue
+    if not isinstance(raw_data, dict):
+        return {}
+
+    # Path A: Flat (New Format)
+    identity = raw_data.get("identity")
+    
+    # Path B: Nested (Previous Format)
+    if not identity:
+        identity = get_nested_value(raw_data, ["input", "identity"])
+
+    panelist_id = (identity or {}).get("panelist_id") or raw_data.get("id")
+    email_domain = (identity or {}).get("primary_email_domain")
+    
+    return {
+        "panelist_id": panelist_id,
+        "identity": identity or {},
+        "raw": raw_data,
+        "email_domain": email_domain
+    }
 
 def _utcnow() -> datetime:
     return datetime.now(UTC)
 
- 
-def _append_report(state: GraphState, line: str) -> str:
-    # If the line is already in the report, don't add it again
-    if state.explanation_report and line in state.explanation_report:
-        return state.explanation_report
-    return f"{state.explanation_report}\n{line}" if state.explanation_report else line
 
 def _heuristic_fallback(text: str) -> Tuple[Signals, ModelMeta]:
     t = (text or "").lower()
@@ -77,58 +120,62 @@ def _event_text_from_state(state: GraphState) -> str:
 
 # --- nodes -----------------------------------------------------------------
 @traceable(name="perform_effects_node", tags=["node"])
-def perform_effects_node(state: GraphState) -> GraphState:
-    combined = state.explanation_report  # start with the existing report
-
+async def perform_effects_node(state: GraphState) -> dict:
     try:
         if state.action == "delete_account":
             logger.info("Deleting account for event_id=%s", state.event_id)
-            combined = _append_report(state, "[INFO] effect:delete_account executed")
-            return state.model_copy(update={"explanation_report": combined})
+            # Wrap string in a list []
+            return {"explanation_report": ["[INFO] effect:delete_account executed"]}
 
     except Exception as e:
         logger.warning("Effect execution failed.")
         line = f"[ERROR] effect_failed:{type(e).__name__} {e}"
-        combined = _append_report(state, line)
-        return state.model_copy(
-            update={
-                "explanation_report": combined,
-                "action": "hold_account",
-            }
-        )
-
-    # If no exception and no delete was required, just return state
-    return state
+        # Wrap string in a list []
+        return {
+            "explanation_report": [line],
+            "action": "hold_account",
+        }
+    return {}
 
 
 @traceable(name="user_event_node", tags=["node"])
-def user_event_node(state: GraphState) -> GraphState:
+async def user_event_node(state: GraphState) -> dict:
+    print("user_event_node")
+    print(state)
     project_id = state.project_id or os.getenv("PANEL_PROJECT_ID", "panel-app-dev")
     event_text = _event_text_from_state(state)
+
+    # 1. Normalize the messy input into a clean dict
+    clean_data = extract_panel_data(state.event_data)
+    
+    panelist_id = clean_data.get("panelist_id")   
 
     seeded_signals = Signals(
         suspicious_signup=False,
         normal_signup=True,
         confidence=0.0,
         reason="unclassified",
+        panelist_id=panelist_id
     )
 
+    events = await events_col()
     if state.event_id:
         event_id = state.event_id
         # Only update mutable fields on existing doc
-        events_col().document(event_id).set(
+        await events.document(event_id).set(
             {
                 "project_id": project_id,
                 "updated_at": firestore.SERVER_TIMESTAMP,
                 "status": "pending",
                 "payload": {"preview": (event_text or "")[:200]},
+                "panelist_id": panelist_id
             },
             merge=True,
         )
     else:
         # Create new doc with immutable creation fields
-        evt_ref = events_col().document()
-        evt_ref.set(
+        evt_ref = events.document()
+        await evt_ref.set(
             {
                 "project_id": project_id,
                 "type": getattr(state, "event_type", "signup"),
@@ -138,25 +185,28 @@ def user_event_node(state: GraphState) -> GraphState:
                 "event_at": _utcnow(),
                 "status": "pending",
                 "payload": {"preview": (event_text or "")[:200]},
+                "panelist_id": panelist_id
+
             }
         )
         event_id = evt_ref.id
 
-    return state.model_copy(
-        update={
-            "project_id": project_id,
-            "event_id": event_id,
-            "event_text": event_text,
-            "signals": seeded_signals,
-            "classification": "pending",
-            "action": None,
-            "log_entry": "",
-        }
-    )
+    return {
+        "project_id": project_id,
+        "event_id": event_id,
+        "event_text": event_text,
+        "signals": seeded_signals,
+        "classification": "pending",
+        "action": None,
+        "log_entry": "",
+        # RESET the report so old decisions don't stick around
+        "explanation_report": [],
+        "panelist_id": panelist_id
+    }
 
 
 @traceable(name="signal_evaluation_node", tags=["node"])
-def signal_evaluation_node(state: GraphState) -> GraphState:
+async def signal_evaluation_node(state: GraphState) -> dict:
     text = _event_text_from_state(state)
     event_id = state.event_id or "unknown"
 
@@ -177,15 +227,7 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
         )
 
         try:
-            classifier = get_llm_classifier(provider)
-            if classifier is None:
-                raise RuntimeError(f"No LLM classifier found for provider='{provider}'")
-
-            call = getattr(classifier, "classify", classifier)
-            if not callable(call):
-                raise TypeError("Classifier is not callable and has no .classify()")
-
-            out = call(text)
+            out = await aclassify_event(text)
 
             if isinstance(out, tuple) and len(out) == 2:
                 raw_sig, raw_meta = out
@@ -259,21 +301,19 @@ def signal_evaluation_node(state: GraphState) -> GraphState:
 
     confidence = float(signals.confidence or 0.0)
 
-    action = "hold_account" if classification == "suspicious" else "no_action"
+    action = "no_action"
 
-    return state.model_copy(
-        update={
-            "signals": signals,
-            "classification": classification,
-            "confidence": confidence,
-            "action": action,
-            "model_meta": meta,
-        }
-    )
+    return {
+        "signals": signals,
+        "classification": classification,
+        "confidence": confidence,
+        "action": action,
+        "model_meta": meta,
+    }
 
 
 @traceable(name="action_decision_node", tags=["node"])
-def action_decision_node(state: GraphState) -> GraphState:
+async def action_decision_node(state: GraphState) -> dict:
     """
     Safety-first policy:
       - suspicious & confidence >= CONFIDENCE_REVIEW_THRESHOLD -> request_human_review
@@ -289,11 +329,11 @@ def action_decision_node(state: GraphState) -> GraphState:
     else:
         action = "no_action"
     log_info(f"Decided action: {action} (conf={conf:.2f})")
-    return state.model_copy(update={"action": action})
+    return {"action": action}
 
 
 @traceable(name="explanation_node", tags=["node"])
-def explanation_node(state: GraphState) -> GraphState:
+async def explanation_node(state: GraphState) -> dict:
     cls = state.classification
     sig = state.signals
     action = state.action or "no_action"
@@ -314,26 +354,24 @@ def explanation_node(state: GraphState) -> GraphState:
 
     if action == "request_human_review" and getattr(state, "review_url", None):
         ex = f"{ex} Pending human review → {state.review_url}"
- 
-    # Only update the report if this specific line isn't already there.
-    if state.explanation_report and ex in state.explanation_report:
-        return state
 
-    combined = _append_report(state, ex)
-    return state.model_copy(update={"explanation_report": combined})
+    if ex in state.explanation_report:
+        return {}
+
+    return {"explanation_report": [ex]}
 
 
 @traceable(name="human_approval_node", tags=["node"])
-def human_approval_node(
+async def human_approval_node(
     state: GraphState,
-) -> GraphState | Command[Literal["explain"]]:
+) -> dict | Command[Literal["explain"]]:
     """
     If we requested human review, PAUSE here and ask an admin.
     When resumed, convert the review decision into the final action.
     """
     if state.action != "request_human_review":
         # Not a gated path; continue downstream
-        return state
+        return {}
 
     preview = (state.event_text or "")[:200]
     prompt = {
@@ -370,23 +408,16 @@ def human_approval_node(
         final_action = "hold_account"
     else:
         final_action = "hold_account"
-    
+
     # https://docs.langchain.com/oss/python/langgraph/graph-api#command
     return Command(
-        update=state.model_copy(
-            # state update
-            update={
-                "review_decision": normalized,
-                "action": final_action,
-            }
-        ),
-        # control flow
+        update={"review_decision": normalized, "action": final_action},
         goto="explain",
     )
 
 
 @traceable(name="logging_node", tags=["node"])
-def logging_node(state: GraphState) -> GraphState:
+async def logging_node(state: GraphState) -> dict:
     project_id = state.project_id or "panel-app-dev"
     event_id = state.event_id
 
@@ -402,8 +433,9 @@ def logging_node(state: GraphState) -> GraphState:
         state.signals,
         confidence_fallback=confidence,
     )
-    runs_col().document(run_id).set(
-        { 
+    runs = await runs_col()
+    await runs.document(run_id).set(
+        {
             "run_id": run_id,
             "project_id": project_id,
             "event_id": event_id,
@@ -419,11 +451,12 @@ def logging_node(state: GraphState) -> GraphState:
             "llm_decision_summary": llm_decision_summary,
             "started_at": firestore.SERVER_TIMESTAMP,
             "finished_at": firestore.SERVER_TIMESTAMP,
+            "panelist_id": state.panelist_id,
         }
     )
-
     # Update parent event summary (top-level 'events')
-    events_col().document(event_id).set(
+    events = await events_col()
+    await events.document(event_id).set(
         {
             "project_id": project_id,
             "status": "classified" if decision != "error" else "error",
@@ -431,6 +464,7 @@ def logging_node(state: GraphState) -> GraphState:
             "confidence": confidence,
             "last_run_id": run_id,
             "updated_at": firestore.SERVER_TIMESTAMP,
+            "panelist_id": state.panelist_id,
         },
         merge=True,
     )
@@ -440,6 +474,7 @@ def logging_node(state: GraphState) -> GraphState:
 
     log_summary = {
         "event_id": event_id,
+        "panelist_id": state.panelist_id,
         "run_id": run_id,
         "classification": decision,
         "confidence": confidence,
@@ -459,6 +494,4 @@ def logging_node(state: GraphState) -> GraphState:
         log_summary["explanation_report"] = state.explanation_report
 
     logger.info(json.dumps(log_summary, separators=(",", ":")))
-    return state.model_copy(
-        update={"log_entry": json.dumps(log_summary, ensure_ascii=False, indent=2)}
-    )
+    return {"log_entry": json.dumps(log_summary, ensure_ascii=False, indent=2)}

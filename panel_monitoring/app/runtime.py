@@ -14,7 +14,7 @@ from panel_monitoring.app.utils import parse_event_input  # same package
 logger = logging.getLogger(__name__)
 
 
-def run_interactive(app, get_event_input, project_name: str, provider: str):
+async def run_interactive(app, get_event_input, project_name: str, provider: str):
     """
     Shared REPL loop for manual runs.
     - Creates a unique event_id per run and uses it as thread_id (for checkpoint/interrupt).
@@ -62,7 +62,7 @@ def run_interactive(app, get_event_input, project_name: str, provider: str):
                 ctx = {"provider": provider}
 
                 # First invoke
-                result = app.invoke(payload, context=ctx, config=config)
+                result = await app.ainvoke(payload, context=ctx, config=config)
                 print("done invoke ...")
 
                 logger.info("Initial invoke complete.")
@@ -87,7 +87,7 @@ def run_interactive(app, get_event_input, project_name: str, provider: str):
                         decision = "reject"
 
                     # Resume with SAME config and SAME context
-                    result = app.invoke(
+                    result = await app.ainvoke(
                         Command(resume=decision), context=ctx, config=config
                     )
 
