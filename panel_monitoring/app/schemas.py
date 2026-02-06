@@ -18,6 +18,7 @@ class Signals(BaseModel):
         ..., description="Explanation or rationale for the classification"
     )
     panelist_id: Optional[str] = None
+    # dont do chain of thought
 
 
 # ----------------------------
