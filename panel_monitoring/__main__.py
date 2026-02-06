@@ -1,9 +1,11 @@
 # panel_monitoring/__main__.py
 
+import os
 import sys
 import subprocess
 from pathlib import Path
 import logging
+
 
 logging.basicConfig(
     level=logging.INFO,

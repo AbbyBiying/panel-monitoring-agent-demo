@@ -60,7 +60,10 @@ def get_initialized_client():
     return _initialized_client
 
 
-async def aclassify_event(event_data: Dict[str, Any]) -> Dict[str, Any]:
+async def aclassify_event(
+    event_data: Dict[str, Any],
+    retrieved_docs: list[dict] | None = None,
+) -> Dict[str, Any]:
     """Production Async Entrypoint."""
     client = get_initialized_client()
-    return await client.aclassify_event(event_data)
+    return await client.aclassify_event(event_data, retrieved_docs=retrieved_docs)

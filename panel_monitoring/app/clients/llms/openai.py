@@ -89,7 +89,7 @@ class LLMClientOpenAI(LLMPredictionClient):
             api_key=self.api_key,
         )
 
-    def classify_event(self, event: str) -> dict:
+    def classify_event(self, event: str, retrieved_docs: list[dict] | None = None) -> dict:
         """
         Synchronous structured classification (mirrors your original function).
         Returns a dict normalized to your Signals shape.
@@ -99,7 +99,7 @@ class LLMClientOpenAI(LLMPredictionClient):
                 "Model not initialized. Call setup() first.", str(self.model_ref)
             )
 
-        msgs = build_classify_messages(event)
+        msgs = build_classify_messages(event, retrieved_docs=retrieved_docs)
         try:
             result = self.client.with_structured_output(Signals).invoke(msgs)
             return normalize_signals(result)
@@ -113,14 +113,14 @@ class LLMClientOpenAI(LLMPredictionClient):
                 str(self.model_ref),
             ) from e
 
-    async def aclassify_event(self, event: str) -> dict:
+    async def aclassify_event(self, event: str, retrieved_docs: list[dict] | None = None) -> dict:
         """
         Async classification that runs the sync version in a thread pool.
 
         The underlying langchain library may perform blocking I/O even in
         async methods. Running in a thread pool avoids blocking the event loop.
         """
-        return await asyncio.to_thread(self.classify_event, event)
+        return await asyncio.to_thread(self.classify_event, event, retrieved_docs)
 
     # ---- base.py-required async predict ----------------------------------
 

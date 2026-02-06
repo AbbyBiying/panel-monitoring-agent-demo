@@ -38,6 +38,8 @@ dependencies = [
   "bs4>=0.0.2",
   "fastapi>=0.115.0",
   "uvicorn[standard]>=0.32.0",
+  "langchain-pinecone>=0.2.13",
+  "pypdf>=6.6.2",
 ]
 
 [project.optional-dependencies]

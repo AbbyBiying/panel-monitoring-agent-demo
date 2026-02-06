@@ -94,4 +94,7 @@ class GraphState(BaseModel):
     panelist_id: Optional[str] = None
     prompt_id: Optional[str] = None
     prompt_name: Optional[str] = None
-
+    
+    # RAG Context: Store the fraud rules retrieved from Firestore
+    # We use list[dict] to store both the rule text and its metadata (like rule_id)
+    retrieved_docs: Annotated[list[dict], operator.add] = Field(default_factory=list)

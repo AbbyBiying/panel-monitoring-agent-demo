@@ -77,12 +77,12 @@ class LLMClientVertexAI(LLMPredictionClient):
             credentials=creds,
         )
 
-    def _sync_classify(self, event: str) -> dict:
+    def _sync_classify(self, event: str, retrieved_docs: list[dict] | None = None) -> dict:
         """The core synchronous logic that might block on I/O."""
         if not self.client:
             raise RuntimeError("Client not setup.")
 
-        msgs = build_classify_messages(event)
+        msgs = build_classify_messages(event, retrieved_docs=retrieved_docs)
 
         try:
             # Attempt structured output
@@ -94,13 +94,13 @@ class LLMClientVertexAI(LLMPredictionClient):
             raw_text = getattr(raw_resp, "content", "")
             return parse_signals_from_text(raw_text)
 
-    async def aclassify_event(self, event: str) -> dict:
+    async def aclassify_event(self, event: str, retrieved_docs: list[dict] | None = None) -> dict:
         """
         Async entry point. Offloads the blocking sync_classify
         to a separate thread pool.
         """
         # This keeps LangGraph's event loop completely free!
-        return await asyncio.to_thread(self._sync_classify, event)
+        return await asyncio.to_thread(self._sync_classify, event, retrieved_docs)
 
     async def predict(self, prompt: str) -> PredictionResult:
         """Conforms to base.py async interface."""

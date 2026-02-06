@@ -21,7 +21,12 @@ from panel_monitoring.app.utils import (
     log_info,
     looks_like_automated,
 )
-from panel_monitoring.data.firestore_client import events_col, runs_col
+from panel_monitoring.data.firestore_client import (
+    embed_text,
+    events_col,
+    get_similar_patterns,
+    runs_col,
+)
 
 # --------------------------------------------------------------------
 # Confidence Thresholds for Automated Decision Making
@@ -205,6 +210,23 @@ async def user_event_node(state: GraphState) -> dict:
     }
 
 
+@traceable(name="retrieval_node", tags=["node"])
+async def retrieval_node(state: GraphState) -> dict:
+    """Embed event text and retrieve similar fraud patterns from Firestore."""
+    text = _event_text_from_state(state)
+    if not text:
+        return {}
+
+    try:
+        query_vector = await embed_text(text)
+        docs = await get_similar_patterns(query_vector, limit=5)
+        log_info(f"Retrieved {len(docs)} similar patterns for event_id={state.event_id}")
+        return {"retrieved_docs": docs}
+    except Exception as e:
+        logger.warning("RAG retrieval failed: %s", e)
+        return {}
+
+
 @traceable(name="signal_evaluation_node", tags=["node"])
 async def signal_evaluation_node(state: GraphState) -> dict:
     text = _event_text_from_state(state)
@@ -227,7 +249,7 @@ async def signal_evaluation_node(state: GraphState) -> dict:
         )
 
         try:
-            out = await aclassify_event(text)
+            out = await aclassify_event(text, retrieved_docs=state.retrieved_docs or None)
 
             if isinstance(out, tuple) and len(out) == 2:
                 raw_sig, raw_meta = out
