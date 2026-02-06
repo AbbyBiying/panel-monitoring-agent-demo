@@ -25,7 +25,7 @@ from langchain_google_vertexai import VertexAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from panel_monitoring.app.utils import load_credentials, make_credentials_from_env
-from panel_monitoring.data.firestore_client import get_db, fraud_patterns_col
+from panel_monitoring.data.firestore_client import fraud_patterns_col
 
 load_dotenv()
 
@@ -48,11 +48,13 @@ def load_and_split() -> list:
     loader = TextLoader(str(BUSINESS_CONTEXT_PATH))
     docs = loader.load()
     logger.info("Loaded %d document(s)", len(docs))
-
+    
+    # https://docs.langchain.com/oss/python/langchain/knowledge-base
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
         chunk_overlap=50,
-        add_start_index=True,
+        # We set add_start_index=True so that the character index where each split Document starts within the initial Document is preserved as metadata attribute “start_index”.
+        add_start_index=True, 
     )
     chunks = splitter.split_documents(docs)
     logger.info("Split into %d chunks", len(chunks))
