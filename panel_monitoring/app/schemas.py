@@ -17,13 +17,11 @@ class Signals(BaseModel):
     reason: str = Field(
         ..., description="Explanation or rationale for the classification"
     )
-    analysis_steps: list[str] = Field(
-        default_factory=list,  # This prevents the "Field required" crash
-        description="Step-by-step reasoning: 1. Identity check, 2. Network check, 3. Intent check.",
+    analysis_steps: str = Field(
+        ..., 
+        description="Telegraphic reasoning. Example: 'Geo: OK. Intent: High. Tech: No flags.'"
     )
     panelist_id: Optional[str] = None
-
-
 
 
 # ----------------------------

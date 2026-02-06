@@ -4,7 +4,7 @@ Ingest business_context.txt into Firestore fraud_patterns collection
 following the LangChain Knowledge Base guide:
   1. Load with TextLoader
   2. Split with RecursiveCharacterTextSplitter
-  3. Embed with VertexAIEmbeddings (text-embedding-004, 768-dim)
+  3. Embed with GoogleGenerativeAIEmbeddings (text-embedding-004, 768-dim)
   4. Store in Firestore fraud_patterns collection
 
 Usage:
@@ -21,7 +21,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from google.cloud.firestore_v1.vector import Vector
 from langchain_community.document_loaders import TextLoader
-from langchain_google_vertexai import VertexAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from panel_monitoring.app.utils import load_credentials, make_credentials_from_env
@@ -48,21 +48,21 @@ def load_and_split() -> list:
     loader = TextLoader(str(BUSINESS_CONTEXT_PATH))
     docs = loader.load()
     logger.info("Loaded %d document(s)", len(docs))
-    
+
     # https://docs.langchain.com/oss/python/langchain/knowledge-base
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
         chunk_overlap=50,
         # We set add_start_index=True so that the character index where each split Document starts within the initial Document is preserved as metadata attribute “start_index”.
-        add_start_index=True, 
+        add_start_index=True,
     )
     chunks = splitter.split_documents(docs)
     logger.info("Split into %d chunks", len(chunks))
     return chunks
 
 
-def get_embeddings_model() -> VertexAIEmbeddings:
-    """Initialize VertexAIEmbeddings with proper credentials."""
+def get_embeddings_model() -> GoogleGenerativeAIEmbeddings:
+    """Initialize GoogleGenerativeAIEmbeddings with proper credentials."""
     project = os.getenv("GCP_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT")
     location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
 
@@ -71,11 +71,16 @@ def get_embeddings_model() -> VertexAIEmbeddings:
     else:
         creds = make_credentials_from_env()
 
-    return VertexAIEmbeddings(
-        model_name=EMBEDDING_MODEL,
+    # google-genai SDK requires scoped credentials to refresh tokens
+    if creds and not creds.scopes:
+        creds = creds.with_scopes(["https://www.googleapis.com/auth/cloud-platform"])
+
+    return GoogleGenerativeAIEmbeddings(
+        model=EMBEDDING_MODEL,
         project=project,
         location=location,
         credentials=creds,
+        vertexai=True,
     )
 
 
@@ -102,9 +107,14 @@ async def ingest():
         }
         doc_ref = col.document(f"bctx_{i:03d}")
         await doc_ref.set(doc_data)
-        logger.info("Stored chunk %d/%d: %s...", i + 1, len(chunks), chunk.page_content[:60])
+        logger.info(
+            "Stored chunk %d/%d: %s...", i + 1, len(chunks), chunk.page_content[:60]
+        )
 
-    logger.info("Ingestion complete: %d chunks stored in fraud_patterns collection.", len(chunks))
+    logger.info(
+        "Ingestion complete: %d chunks stored in fraud_patterns collection.",
+        len(chunks),
+    )
 
 
 if __name__ == "__main__":

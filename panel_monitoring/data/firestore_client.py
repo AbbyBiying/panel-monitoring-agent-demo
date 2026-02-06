@@ -12,7 +12,7 @@ from google.auth.exceptions import DefaultCredentialsError
 from google.cloud.firestore_v1.vector import Vector
 from google.cloud.firestore_v1.base_vector_query import DistanceMeasure
 
-from langchain_google_vertexai import VertexAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 from panel_monitoring.app.utils import (
     load_credentials,
@@ -23,7 +23,7 @@ from panel_monitoring.app.utils import (
 logger = logging.getLogger(__name__)
 
 EMBEDDING_MODEL = "text-embedding-004"
-_EMBEDDINGS: Optional[VertexAIEmbeddings] = None
+_EMBEDDINGS: Optional[GoogleGenerativeAIEmbeddings] = None
 
 _DB: Optional[AsyncClient] = None
 _DB_LOCK = asyncio.Lock()
@@ -83,36 +83,56 @@ async def get_db() -> AsyncClient:
 
 async def events_col() -> AsyncCollectionReference:
     """Return reference to top-level 'events' collection. Each doc includes `project_id`."""
-    db = await get_db()
-    return db.collection("events")
+    try:
+        db = await get_db()
+        return db.collection("events")
+    except Exception:
+        logger.exception("Failed to get 'events' collection")
+        raise
 
 
 async def runs_col() -> AsyncCollectionReference:
     """Return reference to top-level 'runs' collection. Each doc includes `project_id` and `event_id`."""
-    db = await get_db()
-    return db.collection("runs")
+    try:
+        db = await get_db()
+        return db.collection("runs")
+    except Exception:
+        logger.exception("Failed to get 'runs' collection")
+        raise
 
 
 async def alerts_col() -> AsyncCollectionReference:
     """Return reference to top-level 'alerts' collection. Each doc includes `project_id`."""
-    db = await get_db()
-    return db.collection("alerts")
+    try:
+        db = await get_db()
+        return db.collection("alerts")
+    except Exception:
+        logger.exception("Failed to get 'alerts' collection")
+        raise
 
 
 async def projects_col() -> AsyncCollectionReference:
     """Return reference to flat 'projects' collection for metadata."""
-    db = await get_db()
-    return db.collection("projects")
+    try:
+        db = await get_db()
+        return db.collection("projects")
+    except Exception:
+        logger.exception("Failed to get 'projects' collection")
+        raise
+
 
 async def fraud_patterns_col() -> AsyncCollectionReference:
     """Return reference to top-level 'fraud_patterns' collection for vector search."""
-    db = await get_db()
-    return db.collection("fraud_patterns")
+    try:
+        db = await get_db()
+        return db.collection("fraud_patterns")
+    except Exception:
+        logger.exception("Failed to get 'fraud_patterns' collection")
+        raise
 
 
-
-def _get_embeddings_model() -> VertexAIEmbeddings:
-    """Return a singleton VertexAIEmbeddings instance."""
+def _get_embeddings_model() -> GoogleGenerativeAIEmbeddings:
+    """Return a singleton GoogleGenerativeAIEmbeddings instance."""
     global _EMBEDDINGS
     if _EMBEDDINGS is not None:
         return _EMBEDDINGS
@@ -120,30 +140,59 @@ def _get_embeddings_model() -> VertexAIEmbeddings:
     project = os.getenv("GCP_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT")
     location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
 
-    if os.getenv("ENVIRONMENT") == "local":
-        creds = load_credentials()
-    else:
-        creds = make_credentials_from_env()
+    try:
+        if os.getenv("ENVIRONMENT") == "local":
+            creds = load_credentials()
+        else:
+            creds = make_credentials_from_env()
 
-    _EMBEDDINGS = VertexAIEmbeddings(
-        model_name=EMBEDDING_MODEL,
-        project=project,
-        location=location,
-        credentials=creds,
-    )
+        # google-genai SDK requires scoped credentials to refresh tokens
+        # This tells the service account "you're authorized for the cloud-platform scope" so when google-genai refreshes the token,
+        # the OAuth server accepts it. Same credentials, same permissions, just explicitly labeled now.
+        if creds and not creds.scopes:
+            creds = creds.with_scopes(
+                ["https://www.googleapis.com/auth/cloud-platform"]
+            )
+
+        _EMBEDDINGS = GoogleGenerativeAIEmbeddings(
+            model=EMBEDDING_MODEL,
+            project=project,
+            location=location,
+            credentials=creds,
+        )
+    except Exception:
+        logger.exception(
+            "Failed to initialize GoogleGenerativeAIEmbeddings (project=%s, location=%s)",
+            project,
+            location,
+        )
+        raise
     return _EMBEDDINGS
 
 
 def _embed_text_sync(text: str) -> list[float]:
     """Synchronous embed: init model + call API (all blocking I/O)."""
-    model = _get_embeddings_model()
-    vectors = model.embed_documents([text])
-    return vectors[0]
+    try:
+        model = _get_embeddings_model()
+        vectors = model.embed_documents([text])
+        logger.info(
+            "_embed_text_sync: embedded text (%d chars) -> %d-dim vector",
+            len(text),
+            len(vectors[0]),
+        )
+        return vectors[0]
+    except Exception:
+        logger.exception("_embed_text_sync: failed to embed text (%d chars)", len(text))
+        raise
 
 
 async def embed_text(text: str) -> list[float]:
     """Embed a single text string using Vertex AI text-embedding-004 (768-dim)."""
-    return await asyncio.to_thread(_embed_text_sync, text)
+    try:
+        return await asyncio.to_thread(_embed_text_sync, text)
+    except Exception:
+        logger.exception("embed_text: failed for text (%d chars)", len(text))
+        raise
 
 
 async def get_similar_patterns(query_vector: list[float], limit: int = 3) -> list[dict]:
@@ -151,23 +200,30 @@ async def get_similar_patterns(query_vector: list[float], limit: int = 3) -> lis
     Search for similar fraud patterns using vector similarity.
     Dimensions: 768 (Vertex AI text-embedding-004)
     """
-    col = await fraud_patterns_col()
-    
-    # The actual vector search query
-    vector_query = col.find_nearest(
-        vector_field="embedding",
-        query_vector=Vector(query_vector),
-        distance_measure=DistanceMeasure.COSINE,
-        limit=limit
-    )
-    
-    results = []
-    async for doc in vector_query.stream():
-        data = doc.to_dict()
-        # Clean up: don't pass the raw embedding to the LLM
-        data.pop("embedding", None)
-        # Include the doc ID so the LLM can reference 'Rule XYZ'
-        data["id"] = doc.id
-        results.append(data)
-        
-    return results
+    try:
+        col = await fraud_patterns_col()
+
+        # The actual vector search query
+        vector_query = col.find_nearest(
+            vector_field="embedding",
+            query_vector=Vector(query_vector),
+            distance_measure=DistanceMeasure.COSINE,
+            limit=limit,
+        )
+
+        results = []
+        async for doc in vector_query.stream():
+            data = doc.to_dict()
+            # Clean up: don't pass the raw embedding to the LLM
+            data.pop("embedding", None)
+            # Include the doc ID so the LLM can reference 'Rule XYZ'
+            data["id"] = doc.id
+            results.append(data)
+
+        logger.info(
+            "get_similar_patterns: found %d results (limit=%d)", len(results), limit
+        )
+        return results
+    except Exception:
+        logger.exception("get_similar_patterns: vector search failed (limit=%d)", limit)
+        raise

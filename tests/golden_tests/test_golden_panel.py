@@ -158,16 +158,16 @@ async def test_golden_panel(item):
 
     # Determine Reasoning Steps
     if isinstance(signals_obj, dict):
-        steps = signals_obj.get("analysis_steps", [])
+        steps = signals_obj.get("analysis_steps", "")
     else:
-        steps = getattr(signals_obj, "analysis_steps", [])
+        steps = getattr(signals_obj, "analysis_steps", "")
 
     # ---- CLEAN CONSOLE OUTPUT ----
     print(f"\nID: {pid} | VERDICT: {classification} ({confidence * 100:.0f}%)")
     print(f"  [SIGNAL STRENGTH: {signal_strength}/100 | GT_REMOVED: {gt['removed']}]")
 
-    for i, step in enumerate(steps, 1):
-        print(f"    {i}. {step}")
+    if steps:
+        print(f"    {steps}")
 
     print("-" * 40)
 
@@ -196,7 +196,7 @@ async def test_golden_panel(item):
             print("      The Agent flagged this senior despite 'Normal' Ground Truth.")
             print(f"      Signal Strength: {signal_strength}/100")
 
-        last_reason = steps[-1] if steps else "No steps provided"
+        last_reason = steps if steps else "No steps provided"
         msg = (
             f"\n   Mismatch on {pid}:"
             f"\n   User Persona: {'Senior' if is_senior else 'General'} (Age: {user_age})"
@@ -230,15 +230,14 @@ async def test_golden_panel(item):
     print(f"\nID: {pid} | VERDICT: {classification} ({confidence * 100:.0f}%)")
     print(f"  [SIGNAL STRENGTH: {signal_strength}/100 | GT_REMOVED: {gt['removed']}]")
 
-    steps = []
+    steps = ""
     if isinstance(signals, dict):
-        steps = signals.get("analysis_steps", [])
+        steps = signals.get("analysis_steps", "")
     else:
-        steps = getattr(signals, "analysis_steps", [])
+        steps = getattr(signals, "analysis_steps", "")
 
     if steps:
-        for i, step in enumerate(steps, 1):
-            print(f"  {i}. {step}")
+        print(f"  {steps}")
     else:
         reason = (
             signals.get("reason")
@@ -257,7 +256,7 @@ async def test_golden_panel(item):
         f"\nAgent said: {classification}"
         f"\nGround Truth Removed: {gt['removed']}"
         f"\nHuman Signal Strength was {signal_strength}."
-        f"\nReasoning: {steps[-1] if steps else 'N/A'}"
+        f"\nReasoning: {steps if steps else 'N/A'}"
     )
     assert actual_removed == bool(gt["removed"]), f"Mismatch on {pid}"
     if actual_removed != bool(gt["removed"]):

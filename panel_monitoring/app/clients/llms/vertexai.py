@@ -38,7 +38,7 @@ class LLMClientVertexAI(LLMPredictionClient):
         self,
         *,
         model_ref: str = "vertexai-classifier",
-        model_name: str = DEFAULT_MODEL,
+        model_name: str = os.getenv("VERTEX_MODEL", DEFAULT_MODEL),
         user_prompt: str = PROMPT_CLASSIFY_USER,
         system_prompt: Optional[str] = PROMPT_CLASSIFY_SYSTEM,
         prompt_config: Optional[dict] = None,
@@ -85,14 +85,17 @@ class LLMClientVertexAI(LLMPredictionClient):
         msgs = build_classify_messages(event, retrieved_docs=retrieved_docs)
 
         try:
-            # Attempt structured output
-            result = self.client.with_structured_output(Signals).invoke(msgs)
-            return normalize_signals(result)
+            # Attempt structured output with raw response for metadata
+            result = self.client.with_structured_output(Signals, include_raw=True).invoke(msgs)
+            raw_msg = result["raw"]
+            meta = {"usage": getattr(raw_msg, "usage_metadata", None) or {}}
+            return normalize_signals(result["parsed"]), meta
         except Exception:
             # Fallback to raw text parsing
             raw_resp = self.client.invoke(msgs)
             raw_text = getattr(raw_resp, "content", "")
-            return parse_signals_from_text(raw_text)
+            meta = {"usage": getattr(raw_resp, "usage_metadata", None) or {}}
+            return parse_signals_from_text(raw_text), meta
 
     async def aclassify_event(self, event: str, retrieved_docs: list[dict] | None = None) -> dict:
         """

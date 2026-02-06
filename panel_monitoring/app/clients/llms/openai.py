@@ -101,8 +101,10 @@ class LLMClientOpenAI(LLMPredictionClient):
 
         msgs = build_classify_messages(event, retrieved_docs=retrieved_docs)
         try:
-            result = self.client.with_structured_output(Signals).invoke(msgs)
-            return normalize_signals(result)
+            result = self.client.with_structured_output(Signals, include_raw=True).invoke(msgs)
+            raw_msg = result["raw"]
+            meta = {"usage": getattr(raw_msg, "usage_metadata", None) or {}}
+            return normalize_signals(result["parsed"]), meta
         except ValidationError as e:
             raise PredictionError(
                 f"Schema validation failed: {e}", str(self.model_ref)
