@@ -134,11 +134,16 @@ def _get_embeddings_model() -> VertexAIEmbeddings:
     return _EMBEDDINGS
 
 
+def _embed_text_sync(text: str) -> list[float]:
+    """Synchronous embed: init model + call API (all blocking I/O)."""
+    model = _get_embeddings_model()
+    vectors = model.embed_documents([text])
+    return vectors[0]
+
+
 async def embed_text(text: str) -> list[float]:
     """Embed a single text string using Vertex AI text-embedding-004 (768-dim)."""
-    model = _get_embeddings_model()
-    vectors = await asyncio.to_thread(model.embed_documents, [text])
-    return vectors[0]
+    return await asyncio.to_thread(_embed_text_sync, text)
 
 
 async def get_similar_patterns(query_vector: list[float], limit: int = 3) -> list[dict]:
