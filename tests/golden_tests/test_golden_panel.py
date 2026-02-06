@@ -156,18 +156,9 @@ async def test_golden_panel(item):
     confidence = float(state.get("confidence") or 0.0)
     signals_obj = state.get("signals")
 
-    # Determine Reasoning Steps
-    if isinstance(signals_obj, dict):
-        steps = signals_obj.get("analysis_steps", "")
-    else:
-        steps = getattr(signals_obj, "analysis_steps", "")
-
     # ---- CLEAN CONSOLE OUTPUT ----
     print(f"\nID: {pid} | VERDICT: {classification} ({confidence * 100:.0f}%)")
     print(f"  [SIGNAL STRENGTH: {signal_strength}/100 | GT_REMOVED: {gt['removed']}]")
-
-    if steps:
-        print(f"    {steps}")
 
     print("-" * 40)
 
@@ -196,14 +187,17 @@ async def test_golden_panel(item):
             print("      The Agent flagged this senior despite 'Normal' Ground Truth.")
             print(f"      Signal Strength: {signal_strength}/100")
 
-        last_reason = steps if steps else "No steps provided"
+        reason = (
+            signals_obj.get("reason") if isinstance(signals_obj, dict)
+            else getattr(signals_obj, "reason", "N/A")
+        )
         msg = (
             f"\n   Mismatch on {pid}:"
             f"\n   User Persona: {'Senior' if is_senior else 'General'} (Age: {user_age})"
             f"\n   Agent Verdict: {classification}"
             f"\n   Ground Truth: {'REJECT' if gt['removed'] else 'APPROVE'}"
             f"\n   Human Signal: {signal_strength}/100"
-            f"\n   Last Reasoning Step: {last_reason}"
+            f"\n   Reason: {reason}"
         )
         assert not is_mismatch, msg
     pid = _get_pid(item)
@@ -230,21 +224,11 @@ async def test_golden_panel(item):
     print(f"\nID: {pid} | VERDICT: {classification} ({confidence * 100:.0f}%)")
     print(f"  [SIGNAL STRENGTH: {signal_strength}/100 | GT_REMOVED: {gt['removed']}]")
 
-    steps = ""
-    if isinstance(signals, dict):
-        steps = signals.get("analysis_steps", "")
-    else:
-        steps = getattr(signals, "analysis_steps", "")
-
-    if steps:
-        print(f"  {steps}")
-    else:
-        reason = (
-            signals.get("reason")
-            if isinstance(signals, dict)
-            else getattr(signals, "reason", "N/A")
-        )
-        print(f"  Note: {reason}")
+    reason = (
+        signals.get("reason") if isinstance(signals, dict)
+        else getattr(signals, "reason", "N/A")
+    )
+    print(f"  Reason: {reason}")
 
     print("-" * 40)
 
@@ -256,7 +240,7 @@ async def test_golden_panel(item):
         f"\nAgent said: {classification}"
         f"\nGround Truth Removed: {gt['removed']}"
         f"\nHuman Signal Strength was {signal_strength}."
-        f"\nReasoning: {steps if steps else 'N/A'}"
+        f"\nReason: {reason if reason else 'N/A'}"
     )
     assert actual_removed == bool(gt["removed"]), f"Mismatch on {pid}"
     if actual_removed != bool(gt["removed"]):

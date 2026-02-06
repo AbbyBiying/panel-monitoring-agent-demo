@@ -108,7 +108,6 @@ def _heuristic_fallback(text: str) -> Tuple[Signals, ModelMeta]:
             normal_signup=not flagged,
             confidence=HEURISTIC_CONFIDENCE,
             reason="LLM unavailable/invalid; simple heuristic used.",
-            analysis_steps="Heuristic fallback, no LLM analysis.",
         ),
         ModelMeta(provider="heuristic", model="fallback"),
     )
@@ -161,7 +160,6 @@ async def user_event_node(state: GraphState) -> dict:
         normal_signup=True,
         confidence=0.0,
         reason="unclassified",
-        analysis_steps="",
         panelist_id=panelist_id
     )
 
@@ -240,7 +238,6 @@ async def signal_evaluation_node(state: GraphState) -> dict:
             normal_signup=False,
             confidence=0.9,
             reason="Automated/garbled input.",
-            analysis_steps="Shortcircuit: automated/garbled input detected.",
         )
         meta = ModelMeta(provider="heuristic", model="shortcircuit")
     else:
