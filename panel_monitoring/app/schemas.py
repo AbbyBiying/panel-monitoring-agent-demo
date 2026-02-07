@@ -34,7 +34,7 @@ class ModelMeta(BaseModel):
     request_timeout: Optional[int] = None
     max_retries: Optional[int] = None
     usage: Dict[str, Any] = Field(default_factory=dict)
-    latency_ms: Optional[int] = None
+    latency_ms: Optional[float] = None
     cost_usd: Optional[float] = None
     error: Optional[str] = None
 
@@ -90,6 +90,9 @@ class GraphState(BaseModel):
     prompt_id: Optional[str] = None
     prompt_name: Optional[str] = None
     
+    # Persisted run identifier (set by save_classification, reused by log_result)
+    run_id: Optional[str] = None
+
     # RAG Context: Store the fraud rules retrieved from Firestore
     # We use list[dict] to store both the rule text and its metadata (like rule_id)
     retrieved_docs: Annotated[list[dict], operator.add] = Field(default_factory=list)

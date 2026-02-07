@@ -12,6 +12,7 @@ from panel_monitoring.app.nodes import (
     user_event_node,
     retrieval_node,
     signal_evaluation_node,
+    save_classification_node,
     action_decision_node,
     human_approval_node,
     explanation_node,
@@ -78,6 +79,7 @@ def build_graph():
     graph.add_node("event_input", user_event_node)
     graph.add_node("retrieve_context", retrieval_node)
     graph.add_node("classify_signals", signal_evaluation_node)
+    graph.add_node("save_classification", save_classification_node)
     graph.add_node("decide_action", action_decision_node)
     graph.add_node("human_approval", human_approval_node)
     graph.add_node("explain", explanation_node)
@@ -87,9 +89,10 @@ def build_graph():
     graph.add_edge(START, "event_input")
     graph.add_edge("event_input", "retrieve_context")
     graph.add_edge("retrieve_context", "classify_signals")
+    graph.add_edge("classify_signals", "save_classification")
 
     graph.add_conditional_edges(
-        "classify_signals",
+        "save_classification",
         route_from_classify,
         {"decide_action": "decide_action", "explain": "explain"},
     )

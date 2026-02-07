@@ -253,8 +253,18 @@ async def retrieval_node(state: GraphState) -> dict:
 async def signal_evaluation_node(state: GraphState) -> dict:
     text = _event_text_from_state(state)
     event_id = state.event_id or "unknown"
+    t0 = time.perf_counter()
 
-    if looks_like_automated(text):
+    # Only check human-input fields for garbled text, not the full JSON blob.
+    # If no profile fields exist, skip the heuristic and let the LLM decide.
+    event_dict = state.event_data if isinstance(state.event_data, dict) else {}
+    profile = get_nested_value(event_dict, ["registration_profile"], {}) or {}
+    human_input = " ".join(filter(None, [
+        profile.get("where_heard_about_us", ""),
+        get_nested_value(event_dict, ["identity", "panelist_id"], ""),
+    ])).strip()
+
+    if human_input and looks_like_automated(human_input):
         signals = Signals(
             suspicious_signup=True,
             normal_signup=False,
@@ -271,9 +281,7 @@ async def signal_evaluation_node(state: GraphState) -> dict:
         )
 
         try:
-            t0 = time.perf_counter()
             out = await aclassify_event(text, retrieved_docs=state.retrieved_docs or None)
-            latency_ms = int((time.perf_counter() - t0) * 1000)
 
             if isinstance(out, tuple) and len(out) == 2:
                 raw_sig, raw_meta = out
@@ -306,7 +314,6 @@ async def signal_evaluation_node(state: GraphState) -> dict:
 
             signals = Signals.model_validate(raw_sig)
             meta = ModelMeta.model_validate(raw_meta or {})
-            meta.latency_ms = latency_ms
 
             if not getattr(meta, "provider", None):
                 meta.provider = provider
@@ -329,6 +336,8 @@ async def signal_evaluation_node(state: GraphState) -> dict:
             log_info(f"LLM classification error for event_id={event_id} panelist_id={state.panelist_id}: {e}")
             signals, meta = _heuristic_fallback(text)
             signals.reason = f"{signals.reason} ({type(e).__name__})"
+
+    meta.latency_ms = round((time.perf_counter() - t0) * 1000, 2)
     # ---- Rule-based post-processing / guardrails -----------------------------
     raw_signals_dict = signals.model_dump()
     raw_signals_dict = apply_occupation_rules(
@@ -462,31 +471,26 @@ async def human_approval_node(
     )
 
 
-@traceable(name="logging_node", tags=["node"])
-async def logging_node(state: GraphState) -> dict:
+@traceable(name="save_classification_node", tags=["node"])
+async def save_classification_node(state: GraphState) -> dict:
+    """Persist classification result immediately so it survives interrupt/crash."""
     project_id = state.project_id or "panel-app-dev"
     event_id = state.event_id
-
-    # #6: Prefix run_id with event_id for easier correlation
     run_id = f"{event_id}_{uuid4().hex[:12]}"
     decision = state.classification or "error"
     confidence = float(state.confidence or 0.0)
 
-    # Convert models to dicts for Firestore I/O
     signals_dict = state.signals.model_dump() if state.signals else {}
     meta = state.model_meta
     model_name = meta.model or "gemini-2.5-flash"
+    cost_usd = _estimate_cost(model_name, meta.usage or {})
 
     llm_decision_summary = build_llm_decision_summary_from_signals(
         state.signals,
         confidence_fallback=confidence,
     )
-    explanation = state.explanation_report or []
 
-    # #4: Calculate cost from token usage instead of storing null
-    cost_usd = _estimate_cost(model_name, meta.usage or {})
-
-    # --- runs: full immutable audit trail (one per classification attempt) ---
+    # --- runs: initial audit record ---
     runs = await runs_col()
     await runs.document(run_id).set(
         {
@@ -501,30 +505,77 @@ async def logging_node(state: GraphState) -> dict:
             "latency_ms": meta.latency_ms,
             "cost_usd": cost_usd,
             "usage": meta.usage or {},
-            "status": "success" if decision != "error" else "error",
+            "status": "awaiting_review" if decision == "suspicious" else ("success" if decision != "error" else "error"),
             "llm_decision_summary": llm_decision_summary,
-            "action": state.action or "no_action",
-            "review_decision": getattr(state, "review_decision", None),
-            "explanation_report": explanation,
             "started_at": firestore.SERVER_TIMESTAMP,
             "panelist_id": state.panelist_id,
         }
     )
-    # --- events: latest snapshot for UI list views & filtering ---
-    # #2: Keep only what the UI needs for list/filter. Full detail via last_run_id → runs.
-    # #3: Include signals so reviewers see suspicious/normal breakdown without joining.
+
+    # --- events: update with classification (visible in UI immediately) ---
+    status = "awaiting_review" if decision == "suspicious" else ("classified" if decision != "error" else "error")
     events = await events_col()
     await events.document(event_id).set(
         {
             "project_id": project_id,
-            "status": "classified" if decision != "error" else "error",
+            "status": status,
             "decision": decision,
             "confidence": confidence,
-            "action": state.action or "no_action",
             "signals": signals_dict,
             "last_run_id": run_id,
             "updated_at": firestore.SERVER_TIMESTAMP,
             "panelist_id": state.panelist_id,
+        },
+        merge=True,
+    )
+
+    log_info(
+        "Classification saved | event=%s | panelist=%s | decision=%s | confidence=%.2f | status=%s",
+        event_id, state.panelist_id, decision, confidence, status,
+    )
+
+    return {"run_id": run_id}
+
+
+@traceable(name="logging_node", tags=["node"])
+async def logging_node(state: GraphState) -> dict:
+    """Final save: update existing docs with action, review decision, and explanation."""
+    project_id = state.project_id or "panel-app-dev"
+    event_id = state.event_id
+    run_id = state.run_id
+    decision = state.classification or "error"
+    confidence = float(state.confidence or 0.0)
+
+    meta = state.model_meta
+    model_name = meta.model or "gemini-2.5-flash"
+    cost_usd = _estimate_cost(model_name, meta.usage or {})
+    explanation = state.explanation_report or []
+
+    llm_decision_summary = build_llm_decision_summary_from_signals(
+        state.signals,
+        confidence_fallback=confidence,
+    )
+
+    # --- runs: update with final action & review outcome ---
+    runs = await runs_col()
+    await runs.document(run_id).set(
+        {
+            "action": state.action or "no_action",
+            "review_decision": getattr(state, "review_decision", None),
+            "explanation_report": explanation,
+            "status": "success" if decision != "error" else "error",
+            "completed_at": firestore.SERVER_TIMESTAMP,
+        },
+        merge=True,
+    )
+
+    # --- events: update with final action ---
+    events = await events_col()
+    await events.document(event_id).set(
+        {
+            "status": "classified" if decision != "error" else "error",
+            "action": state.action or "no_action",
+            "updated_at": firestore.SERVER_TIMESTAMP,
         },
         merge=True,
     )
