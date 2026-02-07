@@ -27,8 +27,6 @@ logger = logging.getLogger(__name__)
 SAMPLE_EVENT = {
     "identity": {
         "panelist_id": "TEST-RAG-001",
-        "primary_email_domain": "tempmail.com",
-        "email_first_seen_online": "2025-01-15",
         "year_of_birth": 1990,
         "age": 35,
         "occupation": "student",
