@@ -44,11 +44,34 @@ CONFIDENCE_UNCERTAIN_THRESHOLD = 0.30
 
 HEURISTIC_CONFIDENCE = 0.70
 
+# Pricing per 1M tokens (USD) — update when Google changes pricing
+# https://cloud.google.com/vertex-ai/generative-ai/pricing
+_COST_PER_1M = {
+    "gemini-2.5-flash": {"input": 0.15, "output": 0.60},
+    "gemini-2.5-pro":   {"input": 1.25, "output": 10.00},
+}
+
 
 logger = logging.getLogger(__name__)
 
 
 # --- helpers ---------------------------------------------------------------
+
+def _estimate_cost(model: str, usage: dict) -> float | None:
+    """Estimate USD cost from token counts. Returns None if data is missing."""
+    rates = _COST_PER_1M.get(model)
+    if not rates or not usage:
+        return None
+    prompt_tokens = usage.get("prompt_token_count") or usage.get("prompt_tokens") or 0
+    completion_tokens = usage.get("candidates_token_count") or usage.get("completion_tokens") or 0
+    if not (prompt_tokens or completion_tokens):
+        return None
+    return round(
+        prompt_tokens / 1_000_000 * rates["input"]
+        + completion_tokens / 1_000_000 * rates["output"],
+        6,
+    )
+
 
 def get_nested_value(data, keys, default=None):
     """Safe navigation for deeply nested dictionaries."""
@@ -290,10 +313,6 @@ async def signal_evaluation_node(state: GraphState) -> dict:
             if not getattr(meta, "model", None):
                 meta.model = model
 
-            llm_decision_summary = build_llm_decision_summary_from_signals(
-                signals,
-                confidence_fallback=float(raw_sig.get("confidence") or 0.0),
-            )
             log_info(
                 "LLM classification | event=%s | panelist=%s | suspicious=%s | confidence=%.2f | provider=%s | model=%s | reason=%s",
                 event_id,
@@ -448,13 +467,15 @@ async def logging_node(state: GraphState) -> dict:
     project_id = state.project_id or "panel-app-dev"
     event_id = state.event_id
 
-    run_id = uuid4().hex
+    # #6: Prefix run_id with event_id for easier correlation
+    run_id = f"{event_id}_{uuid4().hex[:12]}"
     decision = state.classification or "error"
     confidence = float(state.confidence or 0.0)
 
     # Convert models to dicts for Firestore I/O
     signals_dict = state.signals.model_dump() if state.signals else {}
     meta = state.model_meta
+    model_name = meta.model or "gemini-2.5-flash"
 
     llm_decision_summary = build_llm_decision_summary_from_signals(
         state.signals,
@@ -462,6 +483,10 @@ async def logging_node(state: GraphState) -> dict:
     )
     explanation = state.explanation_report or []
 
+    # #4: Calculate cost from token usage instead of storing null
+    cost_usd = _estimate_cost(model_name, meta.usage or {})
+
+    # --- runs: full immutable audit trail (one per classification attempt) ---
     runs = await runs_col()
     await runs.document(run_id).set(
         {
@@ -469,28 +494,25 @@ async def logging_node(state: GraphState) -> dict:
             "project_id": project_id,
             "event_id": event_id,
             "provider": meta.provider or "vertexai",
-            "model": meta.model or "gemini-2.5-flash",
+            "model": model_name,
             "decision": decision,
             "confidence": confidence,
             "signals": signals_dict,
             "latency_ms": meta.latency_ms,
-            "cost_usd": meta.cost_usd,
-            # Performance Monitoring: token counts for cost/usage dashboards
+            "cost_usd": cost_usd,
             "usage": meta.usage or {},
             "status": "success" if decision != "error" else "error",
             "llm_decision_summary": llm_decision_summary,
-            # Audit Trail: what action was taken and why
             "action": state.action or "no_action",
             "review_decision": getattr(state, "review_decision", None),
             "explanation_report": explanation,
             "started_at": firestore.SERVER_TIMESTAMP,
-            "finished_at": firestore.SERVER_TIMESTAMP,
             "panelist_id": state.panelist_id,
         }
     )
-    # Update parent event summary (top-level 'events')
-    # Audit Trail: store enough context so the UI can show *why*
-    # without joining to the runs collection
+    # --- events: latest snapshot for UI list views & filtering ---
+    # #2: Keep only what the UI needs for list/filter. Full detail via last_run_id → runs.
+    # #3: Include signals so reviewers see suspicious/normal breakdown without joining.
     events = await events_col()
     await events.document(event_id).set(
         {
@@ -499,14 +521,7 @@ async def logging_node(state: GraphState) -> dict:
             "decision": decision,
             "confidence": confidence,
             "action": state.action or "no_action",
-            "reason": signals_dict.get("reason", ""),
-            # Feedback Loop: humans compare their judgment against this
-            "llm_decision_summary": llm_decision_summary,
-            "explanation_report": explanation,
-            # Performance Monitoring: visible in UI without joining runs
-            "provider": meta.provider or "vertexai",
-            "model": meta.model or "gemini-2.5-flash",
-            "latency_ms": meta.latency_ms,
+            "signals": signals_dict,
             "last_run_id": run_id,
             "updated_at": firestore.SERVER_TIMESTAMP,
             "panelist_id": state.panelist_id,
@@ -526,9 +541,9 @@ async def logging_node(state: GraphState) -> dict:
         "final_action": state.action
         or ("no_action" if decision == "normal" else "N/A"),
         "provider": meta.provider or "NONE",
-        "model": meta.model or "NONE",
+        "model": model_name,
         "latency_ms": meta.latency_ms,
-        "cost_usd": meta.cost_usd,
+        "cost_usd": cost_usd,
         "event_preview": f"{preview}...",
         "review_decision": getattr(state, "review_decision", None),
         "timestamp": _utcnow().isoformat(),
