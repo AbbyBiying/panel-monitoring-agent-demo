@@ -540,7 +540,6 @@ async def save_classification_node(state: GraphState) -> dict:
 @traceable(name="logging_node", tags=["node"])
 async def logging_node(state: GraphState) -> dict:
     """Final save: update existing docs with action, review decision, and explanation."""
-    project_id = state.project_id or "panel-app-dev"
     event_id = state.event_id
     run_id = state.run_id
     decision = state.classification or "error"
