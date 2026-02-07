@@ -175,7 +175,7 @@ def _embed_text_sync(text: str) -> list[float]:
     try:
         model = _get_embeddings_model()
         vectors = model.embed_documents([text])
-        logger.info(
+        logger.debug(
             "_embed_text_sync: embedded text (%d chars) -> %d-dim vector",
             len(text),
             len(vectors[0]),
@@ -220,7 +220,7 @@ async def get_similar_patterns(query_vector: list[float], limit: int = 3) -> lis
             data["id"] = doc.id
             results.append(data)
 
-        logger.info(
+        logger.debug(
             "get_similar_patterns: found %d results (limit=%d)", len(results), limit
         )
         return results

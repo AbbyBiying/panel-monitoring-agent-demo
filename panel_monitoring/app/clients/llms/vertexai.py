@@ -23,7 +23,7 @@ from panel_monitoring.app.utils import (
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "gemini-2.5-pro"
+DEFAULT_MODEL = "gemini-2.5-flash"
 
 SAFETY_SETTINGS = {
     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,

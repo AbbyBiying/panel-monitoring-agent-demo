@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import time
 from datetime import datetime, UTC
 import os
 from typing import Literal, Tuple
@@ -128,12 +129,12 @@ def _event_text_from_state(state: GraphState) -> str:
 async def perform_effects_node(state: GraphState) -> dict:
     try:
         if state.action == "delete_account":
-            logger.info("Deleting account for event_id=%s", state.event_id)
+            logger.info("Deleting account for event_id=%s panelist_id=%s", state.event_id, state.panelist_id)
             # Wrap string in a list []
             return {"explanation_report": ["[INFO] effect:delete_account executed"]}
 
     except Exception as e:
-        logger.warning("Effect execution failed.")
+        logger.warning("Effect execution failed for event_id=%s panelist_id=%s: %s", state.event_id, state.panelist_id, e)
         line = f"[ERROR] effect_failed:{type(e).__name__} {e}"
         # Wrap string in a list []
         return {
@@ -145,8 +146,6 @@ async def perform_effects_node(state: GraphState) -> dict:
 
 @traceable(name="user_event_node", tags=["node"])
 async def user_event_node(state: GraphState) -> dict:
-    print("user_event_node")
-    print(state)
     project_id = state.project_id or os.getenv("PANEL_PROJECT_ID", "panel-app-dev")
     event_text = _event_text_from_state(state)
 
@@ -220,10 +219,10 @@ async def retrieval_node(state: GraphState) -> dict:
     try:
         query_vector = await embed_text(text)
         docs = await get_similar_patterns(query_vector, limit=5)
-        log_info(f"Retrieved {len(docs)} similar patterns for event_id={state.event_id}")
+        log_info(f"Retrieved {len(docs)} similar patterns for event_id={state.event_id} panelist_id={state.panelist_id}")
         return {"retrieved_docs": docs}
     except Exception as e:
-        logger.warning("RAG retrieval failed: %s", e)
+        logger.warning("RAG retrieval failed for event_id=%s panelist_id=%s: %s", state.event_id, state.panelist_id, e)
         return {}
 
 
@@ -242,14 +241,16 @@ async def signal_evaluation_node(state: GraphState) -> dict:
         meta = ModelMeta(provider="heuristic", model="shortcircuit")
     else:
         provider = os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai")
-        model = os.getenv("VERTEX_MODEL", "gemini-2.5-pro")
+        model = os.getenv("VERTEX_MODEL", "gemini-2.5-flash")
 
         log_info(
-            f"Evaluating signals with LLM (provider={provider}, model={model}), event_id={event_id}"
+            f"Evaluating signals with LLM (provider={provider}, model={model}), event_id={event_id} panelist_id={state.panelist_id}"
         )
 
         try:
+            t0 = time.perf_counter()
             out = await aclassify_event(text, retrieved_docs=state.retrieved_docs or None)
+            latency_ms = int((time.perf_counter() - t0) * 1000)
 
             if isinstance(out, tuple) and len(out) == 2:
                 raw_sig, raw_meta = out
@@ -282,6 +283,7 @@ async def signal_evaluation_node(state: GraphState) -> dict:
 
             signals = Signals.model_validate(raw_sig)
             meta = ModelMeta.model_validate(raw_meta or {})
+            meta.latency_ms = latency_ms
 
             if not getattr(meta, "provider", None):
                 meta.provider = provider
@@ -292,16 +294,20 @@ async def signal_evaluation_node(state: GraphState) -> dict:
                 signals,
                 confidence_fallback=float(raw_sig.get("confidence") or 0.0),
             )
-            log_info(f"LLM classification signals: {signals.model_dump()}")
-            log_info(f"LLM classification meta: {meta.model_dump()}")
             log_info(
-                "LLM decision summary: %s",
-                json.dumps(llm_decision_summary, ensure_ascii=False),
+                "LLM classification | event=%s | panelist=%s | suspicious=%s | confidence=%.2f | provider=%s | model=%s | reason=%s",
+                event_id,
+                state.panelist_id,
+                signals.suspicious_signup,
+                float(signals.confidence or 0),
+                meta.provider,
+                meta.model,
+                signals.reason,
             )
 
         except Exception as e:
-            logger.warning("LLM classification failed; using heuristic fallback.")
-            log_info(f"LLM classification error: {e}")
+            logger.warning("LLM classification failed for event_id=%s panelist_id=%s; using heuristic fallback.", event_id, state.panelist_id)
+            log_info(f"LLM classification error for event_id={event_id} panelist_id={state.panelist_id}: {e}")
             signals, meta = _heuristic_fallback(text)
             signals.reason = f"{signals.reason} ({type(e).__name__})"
     # ---- Rule-based post-processing / guardrails -----------------------------
@@ -350,7 +356,6 @@ async def action_decision_node(state: GraphState) -> dict:
         action = "hold_account"
     else:
         action = "no_action"
-    log_info(f"Decided action: {action} (conf={conf:.2f})")
     return {"action": action}
 
 
@@ -455,6 +460,8 @@ async def logging_node(state: GraphState) -> dict:
         state.signals,
         confidence_fallback=confidence,
     )
+    explanation = state.explanation_report or []
+
     runs = await runs_col()
     await runs.document(run_id).set(
         {
@@ -462,21 +469,28 @@ async def logging_node(state: GraphState) -> dict:
             "project_id": project_id,
             "event_id": event_id,
             "provider": meta.provider or "vertexai",
-            "model": meta.model or "gemini-2.5-pro",
+            "model": meta.model or "gemini-2.5-flash",
             "decision": decision,
             "confidence": confidence,
             "signals": signals_dict,
             "latency_ms": meta.latency_ms,
             "cost_usd": meta.cost_usd,
+            # Performance Monitoring: token counts for cost/usage dashboards
+            "usage": meta.usage or {},
             "status": "success" if decision != "error" else "error",
-            "logs": [],
             "llm_decision_summary": llm_decision_summary,
+            # Audit Trail: what action was taken and why
+            "action": state.action or "no_action",
+            "review_decision": getattr(state, "review_decision", None),
+            "explanation_report": explanation,
             "started_at": firestore.SERVER_TIMESTAMP,
             "finished_at": firestore.SERVER_TIMESTAMP,
             "panelist_id": state.panelist_id,
         }
     )
     # Update parent event summary (top-level 'events')
+    # Audit Trail: store enough context so the UI can show *why*
+    # without joining to the runs collection
     events = await events_col()
     await events.document(event_id).set(
         {
@@ -484,6 +498,15 @@ async def logging_node(state: GraphState) -> dict:
             "status": "classified" if decision != "error" else "error",
             "decision": decision,
             "confidence": confidence,
+            "action": state.action or "no_action",
+            "reason": signals_dict.get("reason", ""),
+            # Feedback Loop: humans compare their judgment against this
+            "llm_decision_summary": llm_decision_summary,
+            "explanation_report": explanation,
+            # Performance Monitoring: visible in UI without joining runs
+            "provider": meta.provider or "vertexai",
+            "model": meta.model or "gemini-2.5-flash",
+            "latency_ms": meta.latency_ms,
             "last_run_id": run_id,
             "updated_at": firestore.SERVER_TIMESTAMP,
             "panelist_id": state.panelist_id,

@@ -13,7 +13,7 @@ os.environ.setdefault("OPENAI_MODEL", "gpt-4o-mini")
 os.environ.setdefault("LLM_TEMPERATURE", "0")
 os.environ.setdefault("LANGSMITH_TRACING", "false")
 os.environ.setdefault("PANEL_DEFAULT_PROVIDER", "vertexai")
-os.environ.setdefault("VERTEX_MODEL", "gemini-2.5-pro")
+os.environ.setdefault("VERTEX_MODEL", "gemini-2.5-flash")
 
 HERE = pathlib.Path(__file__).parent
 TEST_DATA = HERE / "formatted-test-data.json"
