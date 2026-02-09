@@ -2,8 +2,6 @@
   {
     "identity": {
       "panelist_id": "iPac5104883b",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -32,7 +30,6 @@
       "where_heard_about_us": "YouTube video"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2019-05-27",
       "minfraud_risk_score": "0.47",
       "recaptcha_score": "0.7"
     },
@@ -110,8 +107,6 @@
   {
     "identity": {
       "panelist_id": "iP3ecf654a1c",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -140,7 +135,6 @@
       "where_heard_about_us": "Internet "
     },
     "third_party_signals": {
-      "email_first_seen_online": "2025-10-15",
       "minfraud_risk_score": "15.52",
       "recaptcha_score": "0.9"
     },
@@ -219,8 +213,6 @@
   {
     "identity": {
       "panelist_id": "iPc5186c2082",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -249,7 +241,6 @@
       "where_heard_about_us": "beermoney subreddit"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2025-10-22",
       "minfraud_risk_score": "13.72",
       "recaptcha_score": "0.9"
     },

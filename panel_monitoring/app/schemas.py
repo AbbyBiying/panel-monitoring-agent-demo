@@ -17,13 +17,8 @@ class Signals(BaseModel):
     reason: str = Field(
         ..., description="Explanation or rationale for the classification"
     )
-    analysis_steps: list[str] = Field(
-        default_factory=list,  # This prevents the "Field required" crash
-        description="Step-by-step reasoning: 1. Identity check, 2. Network check, 3. Intent check.",
-    )
     panelist_id: Optional[str] = None
-
-
+    # dont do chain of thought
 
 
 # ----------------------------
@@ -39,7 +34,7 @@ class ModelMeta(BaseModel):
     request_timeout: Optional[int] = None
     max_retries: Optional[int] = None
     usage: Dict[str, Any] = Field(default_factory=dict)
-    latency_ms: Optional[int] = None
+    latency_ms: Optional[float] = None
     cost_usd: Optional[float] = None
     error: Optional[str] = None
 
@@ -94,4 +89,10 @@ class GraphState(BaseModel):
     panelist_id: Optional[str] = None
     prompt_id: Optional[str] = None
     prompt_name: Optional[str] = None
+    
+    # Persisted run identifier (set by save_classification, reused by log_result)
+    run_id: Optional[str] = None
 
+    # RAG Context: Store the fraud rules retrieved from Firestore
+    # We use list[dict] to store both the rule text and its metadata (like rule_id)
+    retrieved_docs: Annotated[list[dict], operator.add] = Field(default_factory=list)

@@ -23,7 +23,7 @@ from panel_monitoring.app.utils import (
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "gemini-2.5-pro"
+DEFAULT_MODEL = "gemini-2.5-flash"
 
 SAFETY_SETTINGS = {
     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
@@ -38,7 +38,7 @@ class LLMClientVertexAI(LLMPredictionClient):
         self,
         *,
         model_ref: str = "vertexai-classifier",
-        model_name: str = DEFAULT_MODEL,
+        model_name: str = os.getenv("VERTEX_MODEL", DEFAULT_MODEL),
         user_prompt: str = PROMPT_CLASSIFY_USER,
         system_prompt: Optional[str] = PROMPT_CLASSIFY_SYSTEM,
         prompt_config: Optional[dict] = None,
@@ -77,30 +77,33 @@ class LLMClientVertexAI(LLMPredictionClient):
             credentials=creds,
         )
 
-    def _sync_classify(self, event: str) -> dict:
+    def _sync_classify(self, event: str, retrieved_docs: list[dict] | None = None) -> dict:
         """The core synchronous logic that might block on I/O."""
         if not self.client:
             raise RuntimeError("Client not setup.")
 
-        msgs = build_classify_messages(event)
+        msgs = build_classify_messages(event, retrieved_docs=retrieved_docs)
 
         try:
-            # Attempt structured output
-            result = self.client.with_structured_output(Signals).invoke(msgs)
-            return normalize_signals(result)
+            # Attempt structured output with raw response for metadata
+            result = self.client.with_structured_output(Signals, include_raw=True).invoke(msgs)
+            raw_msg = result["raw"]
+            meta = {"usage": getattr(raw_msg, "usage_metadata", None) or {}}
+            return normalize_signals(result["parsed"]), meta
         except Exception:
             # Fallback to raw text parsing
             raw_resp = self.client.invoke(msgs)
             raw_text = getattr(raw_resp, "content", "")
-            return parse_signals_from_text(raw_text)
+            meta = {"usage": getattr(raw_resp, "usage_metadata", None) or {}}
+            return parse_signals_from_text(raw_text), meta
 
-    async def aclassify_event(self, event: str) -> dict:
+    async def aclassify_event(self, event: str, retrieved_docs: list[dict] | None = None) -> dict:
         """
         Async entry point. Offloads the blocking sync_classify
         to a separate thread pool.
         """
         # This keeps LangGraph's event loop completely free!
-        return await asyncio.to_thread(self._sync_classify, event)
+        return await asyncio.to_thread(self._sync_classify, event, retrieved_docs)
 
     async def predict(self, prompt: str) -> PredictionResult:
         """Conforms to base.py async interface."""

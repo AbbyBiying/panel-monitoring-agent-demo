@@ -2,8 +2,6 @@
   {
     "identity": {
       "panelist_id": "iP0be41fe188",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -32,7 +30,6 @@
       "where_heard_about_us": "N/A"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2024-09-25",
       "minfraud_risk_score": "53.98",
       "recaptcha_score": "N/A"
     },
@@ -51,8 +48,6 @@
   {
     "identity": {
       "panelist_id": "iP1b3f7bf4c3",
-      "primary_email_domain": "slclogin.com",
-      "primary_email_verified": false,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -81,7 +76,6 @@
       "where_heard_about_us": "N/A"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2025-10-20",
       "minfraud_risk_score": "98.6",
       "recaptcha_score": "N/A"
     },
@@ -99,8 +93,6 @@
   {
     "identity": {
       "panelist_id": "iP1c42f07cff",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -129,7 +121,6 @@
       "where_heard_about_us": "YouTube "
     },
     "third_party_signals": {
-      "email_first_seen_online": "2025-10-17",
       "minfraud_risk_score": "94.95",
       "recaptcha_score": "0.9"
     },
@@ -172,8 +163,6 @@
   {
     "identity": {
       "panelist_id": "iP1d3ea4f120",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -202,7 +191,6 @@
       "where_heard_about_us": "google"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2025-10-27",
       "minfraud_risk_score": "94.87",
       "recaptcha_score": "0.9"
     },
@@ -246,8 +234,6 @@
   {
     "identity": {
       "panelist_id": "iP27f6894d2e",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -276,7 +262,6 @@
       "where_heard_about_us": "social media"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2025-10-22",
       "minfraud_risk_score": "94.86",
       "recaptcha_score": "0.1"
     },
@@ -355,8 +340,6 @@
   {
     "identity": {
       "panelist_id": "iP2d8325efb9",
-      "primary_email_domain": "proton.me",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -385,7 +368,6 @@
       "where_heard_about_us": "N/A"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2025-10-18",
       "minfraud_risk_score": "36.49",
       "recaptcha_score": "N/A"
     },
@@ -402,8 +384,6 @@
   {
     "identity": {
       "panelist_id": "iP5a77f99280",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -432,7 +412,6 @@
       "where_heard_about_us": "Sherri ramhorst"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2023-07-07",
       "minfraud_risk_score": "0.1",
       "recaptcha_score": "0.9"
     },
@@ -474,8 +453,6 @@
   {
     "identity": {
       "panelist_id": "iP6b96264407",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -504,7 +481,6 @@
       "where_heard_about_us": "friend"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2021-12-28",
       "minfraud_risk_score": "0.1",
       "recaptcha_score": "0.9"
     },
@@ -580,8 +556,6 @@
   {
     "identity": {
       "panelist_id": "iP7bb1447733",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -610,7 +584,6 @@
       "where_heard_about_us": "Reddit"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2013-04-02",
       "minfraud_risk_score": "11.24",
       "recaptcha_score": "0.9"
     },
@@ -689,8 +662,6 @@
   {
     "identity": {
       "panelist_id": "iP7cb8796818",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -719,7 +690,6 @@
       "where_heard_about_us": "From a close friend."
     },
     "third_party_signals": {
-      "email_first_seen_online": "2025-10-18",
       "minfraud_risk_score": "26.68",
       "recaptcha_score": "0.1"
     },
@@ -763,8 +733,6 @@
   {
     "identity": {
       "panelist_id": "iPa3c2cacca3",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -793,7 +761,6 @@
       "where_heard_about_us": "N/A"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2024-11-25",
       "minfraud_risk_score": "0.2",
       "recaptcha_score": "N/A"
     },
@@ -808,8 +775,6 @@
   {
     "identity": {
       "panelist_id": "iPbd9fc018e8",
-      "primary_email_domain": "aol.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -838,7 +803,6 @@
       "where_heard_about_us": "YouTuber"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2025-09-05",
       "minfraud_risk_score": "57.83",
       "recaptcha_score": "0.7"
     },
@@ -880,8 +844,6 @@
   {
     "identity": {
       "panelist_id": "iPc995cd4722",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -910,7 +872,6 @@
       "where_heard_about_us": "Online "
     },
     "third_party_signals": {
-      "email_first_seen_online": "2020-12-16",
       "minfraud_risk_score": "0.4",
       "recaptcha_score": "0.9"
     },
@@ -986,8 +947,6 @@
   {
     "identity": {
       "panelist_id": "iPed2bd533d4",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -1016,7 +975,6 @@
       "where_heard_about_us": "N/A"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2022-11-29",
       "minfraud_risk_score": "2.66",
       "recaptcha_score": "N/A"
     },
@@ -1095,8 +1053,6 @@
   {
     "identity": {
       "panelist_id": "iPf157c7846e",
-      "primary_email_domain": "outlook.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -1125,7 +1081,6 @@
       "where_heard_about_us": "N/A"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2025-10-18",
       "minfraud_risk_score": "99.0",
       "recaptcha_score": "N/A"
     },
@@ -1143,8 +1098,6 @@
   {
     "identity": {
       "panelist_id": "iPf22e115194",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -1173,7 +1126,6 @@
       "where_heard_about_us": "tv"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2025-10-17",
       "minfraud_risk_score": "5.44",
       "recaptcha_score": "0.9"
     },
@@ -1252,8 +1204,6 @@
   {
     "identity": {
       "panelist_id": "iPf30c663929",
-      "primary_email_domain": "gmail.com",
-      "primary_email_verified": true,
       "primary_phone_verified": false,
       "primary_phone_carrier": "N/A",
       "primary_phone_carrier_type": "N/A",
@@ -1282,7 +1232,6 @@
       "where_heard_about_us": "a friend"
     },
     "third_party_signals": {
-      "email_first_seen_online": "2025-10-24",
       "minfraud_risk_score": "78.04",
       "recaptcha_score": "0.9"
     },

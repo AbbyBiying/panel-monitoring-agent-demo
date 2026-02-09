@@ -26,7 +26,7 @@ from panel_monitoring.app.prompts import PROMPT_CLASSIFY_SYSTEM, PROMPT_CLASSIFY
 from panel_monitoring.app.utils import build_classify_messages, normalize_signals
 
 
-DEFAULT_MODEL = "gemini-2.5-pro"
+DEFAULT_MODEL = "gemini-2.5-flash"
 
 SAFETY_SETTINGS = {
     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
@@ -93,7 +93,7 @@ class LLMClientGemini(LLMPredictionClient):
 
     # ---- primary (structured) APIs ---------------------------------------
 
-    def classify_event(self, event: str) -> dict:
+    def classify_event(self, event: str, retrieved_docs: list[dict] | None = None) -> dict:
         """
         Synchronous structured classification (mirrors original function).
         Returns a dict normalized to your Signals shape.
@@ -103,10 +103,12 @@ class LLMClientGemini(LLMPredictionClient):
                 "Model not initialized. Call setup() first.", str(self.model_ref)
             )
 
-        msgs = build_classify_messages(event)
+        msgs = build_classify_messages(event, retrieved_docs=retrieved_docs)
         try:
-            result = self.client.with_structured_output(Signals).invoke(msgs)
-            return normalize_signals(result)
+            result = self.client.with_structured_output(Signals, include_raw=True).invoke(msgs)
+            raw_msg = result["raw"]
+            meta = {"usage": getattr(raw_msg, "usage_metadata", None) or {}}
+            return normalize_signals(result["parsed"]), meta
         except ValidationError as e:
             raise PredictionError(
                 f"Schema validation failed: {e}", str(self.model_ref)
@@ -117,14 +119,14 @@ class LLMClientGemini(LLMPredictionClient):
                 str(self.model_ref),
             ) from e
 
-    async def aclassify_event(self, event: str) -> dict:
+    async def aclassify_event(self, event: str, retrieved_docs: list[dict] | None = None) -> dict:
         """
         Async classification that runs the sync version in a thread pool.
 
         The underlying langchain library may perform blocking I/O even in
         async methods. Running in a thread pool avoids blocking the event loop.
         """
-        return await asyncio.to_thread(self.classify_event, event)
+        return await asyncio.to_thread(self.classify_event, event, retrieved_docs)
 
     # ---- base.py-required async predict ----------------------------------
 
