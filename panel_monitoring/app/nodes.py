@@ -176,6 +176,7 @@ async def user_event_node(state: GraphState) -> dict:
     clean_data = extract_panel_data(state.event_data)
     
     panelist_id = clean_data.get("panelist_id")   
+    log_info(f"panelist_id={state.panelist_id}")
 
     seeded_signals = Signals(
         suspicious_signup=False,
@@ -384,6 +385,7 @@ async def action_decision_node(state: GraphState) -> dict:
         action = "hold_account"
     else:
         action = "no_action"
+    log_info(f"Action decided | event_id={state.event_id} panelist_id={state.panelist_id} classification={state.classification} confidence={conf:.2f} action={action}")
     return {"action": action}
 
 
@@ -603,5 +605,5 @@ async def logging_node(state: GraphState) -> dict:
     if state.explanation_report:
         log_summary["explanation_report"] = state.explanation_report
 
-    logger.info(json.dumps(log_summary, separators=(",", ":")))
+    log_info(f"Run complete | event_id={event_id} panelist_id={state.panelist_id} decision={decision} confidence={confidence:.2f} action={state.action} model={model_name}")
     return {"log_entry": json.dumps(log_summary, ensure_ascii=False, indent=2)}
