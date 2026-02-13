@@ -63,7 +63,15 @@ def get_initialized_client():
 async def aclassify_event(
     event_data: Dict[str, Any],
     retrieved_docs: list[dict] | None = None,
+    *,
+    system_prompt_override: Optional[str] = None,
+    user_prompt_override: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Production Async Entrypoint."""
     client = get_initialized_client()
-    return await client.aclassify_event(event_data, retrieved_docs=retrieved_docs)
+    return await client.aclassify_event(
+        event_data,
+        retrieved_docs=retrieved_docs,
+        system_prompt_override=system_prompt_override,
+        user_prompt_override=user_prompt_override,
+    )

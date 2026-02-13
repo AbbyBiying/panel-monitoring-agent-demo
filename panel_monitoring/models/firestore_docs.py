@@ -76,6 +76,27 @@ class RunDoc(_BaseDoc):
     llm_decision_summary: Optional[Dict[str, Any]] = None
 
 
+class PromptSpecDoc(_BaseDoc):
+    """Firestore document for a prompt specification (mirrors app_portal PromptSpec)."""
+
+    model_host: str = ""
+    model_name: str = ""
+    system_prompt: str = ""
+    prompt: str = ""
+    config: Dict[str, Any] = Field(default_factory=dict)
+    version: str = ""
+    labels: List[str] = Field(default_factory=list)
+    url: Optional[str] = None
+
+    deployment_status: Literal[
+        "deactivated", "pre_live", "canary", "live", "failover"
+    ] = "deactivated"
+    deployment_role: Optional[str] = None  # e.g. "signup_classification"
+
+    # Not stored in Firestore — populated at read time with the document ID
+    doc_id: Optional[str] = Field(default=None, exclude=True)
+
+
 class AlertDoc(_BaseDoc):
     # Required
     alert_id: str

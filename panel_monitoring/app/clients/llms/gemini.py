@@ -93,7 +93,14 @@ class LLMClientGemini(LLMPredictionClient):
 
     # ---- primary (structured) APIs ---------------------------------------
 
-    def classify_event(self, event: str, retrieved_docs: list[dict] | None = None) -> dict:
+    def classify_event(
+        self,
+        event: str,
+        retrieved_docs: list[dict] | None = None,
+        *,
+        system_prompt_override: str | None = None,
+        user_prompt_override: str | None = None,
+    ) -> dict:
         """
         Synchronous structured classification (mirrors original function).
         Returns a dict normalized to your Signals shape.
@@ -103,7 +110,12 @@ class LLMClientGemini(LLMPredictionClient):
                 "Model not initialized. Call setup() first.", str(self.model_ref)
             )
 
-        msgs = build_classify_messages(event, retrieved_docs=retrieved_docs)
+        msgs = build_classify_messages(
+            event,
+            retrieved_docs=retrieved_docs,
+            system_prompt_override=system_prompt_override,
+            user_prompt_override=user_prompt_override,
+        )
         try:
             result = self.client.with_structured_output(Signals, include_raw=True).invoke(msgs)
             raw_msg = result["raw"]
@@ -119,14 +131,27 @@ class LLMClientGemini(LLMPredictionClient):
                 str(self.model_ref),
             ) from e
 
-    async def aclassify_event(self, event: str, retrieved_docs: list[dict] | None = None) -> dict:
+    async def aclassify_event(
+        self,
+        event: str,
+        retrieved_docs: list[dict] | None = None,
+        *,
+        system_prompt_override: str | None = None,
+        user_prompt_override: str | None = None,
+    ) -> dict:
         """
         Async classification that runs the sync version in a thread pool.
 
         The underlying langchain library may perform blocking I/O even in
         async methods. Running in a thread pool avoids blocking the event loop.
         """
-        return await asyncio.to_thread(self.classify_event, event, retrieved_docs)
+        return await asyncio.to_thread(
+            self.classify_event,
+            event,
+            retrieved_docs,
+            system_prompt_override=system_prompt_override,
+            user_prompt_override=user_prompt_override,
+        )
 
     # ---- base.py-required async predict ----------------------------------
 

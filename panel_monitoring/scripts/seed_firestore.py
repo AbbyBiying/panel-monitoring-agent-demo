@@ -7,7 +7,7 @@ import logging
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 from google.cloud import firestore
-from panel_monitoring.data.firestore_client import events_col, projects_col, alerts_col
+from panel_monitoring.data.firestore_client import events_col, projects_col, alerts_col, prompt_specs_col
 
 # Setup basic logging to see progress
 logging.basicConfig(level=logging.INFO)
@@ -66,6 +66,53 @@ async def run_seed():
         }
     )
     logger.info("[ok] alert %s seeded for project %s", alert_ref.id, project_id)
+
+    # 4. Seed PromptSpec (signup_classification — live)
+    ps_col = await prompt_specs_col()
+    ps_ref = ps_col.document("signup_classification_v1")
+    await ps_ref.set(
+        {
+            "model_host": "vertexai",
+            "model_name": "gemini-2.5-flash",
+            "system_prompt": (
+                "You are a Senior Fraud & Abuse Detection Expert for a consumer survey panel.\n"
+                f"Assume the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y')}.\n"
+                "\n"
+                "### HARD OVERRIDES\n"
+                "If 'rule_based_flags' contains 'Failed manual validation' or similar, you MUST "
+                "classify as 'suspicious_signup'. A human decision always overrides AI scoring.\n"
+                "\n"
+                "### ANALYSIS\n"
+                "Use the Relevant Business Context provided to understand flag definitions, thresholds, "
+                "and domain terminology. Evaluate: Identity Integrity, Geographical Alignment, "
+                "Intent & Logical Consistency, and Technical Signals.\n"
+                "\n"
+                "### VERDICT\n"
+                "- If evidence is insufficient or contradictory, lean towards 'normal_signup'.\n"
+                "- ALWAYS return only the JSON schema provided.\n"
+            ),
+            "prompt": (
+                "Analyze the following panelist event data for signals of fraud or abuse.\n"
+                "\n"
+                '1. Return the classification in the provided JSON schema. Ensure exactly one of "suspicious_signup" or "normal_signup" is true.\n'
+                '2. "suspicious_signup" must be TRUE if the event shows characteristics of bots, identity theft, or policy abuse '
+                "(e.g., using a disposable email explicitly listed, rapid-fire activity, or known fraudulent keywords present).\n"
+                '3. "normal_signup" must be TRUE ONLY if the event appears to be from a legitimate, unique user.\n'
+                "\n"
+                "Event Data:\n"
+                "{event}\n"
+            ),
+            "config": {"temperature": 0},
+            "version": "1",
+            "labels": ["fraud", "signup"],
+            "deployment_status": "live",
+            "deployment_role": "signup_classification",
+            "created_at": firestore.SERVER_TIMESTAMP,
+            "updated_at": firestore.SERVER_TIMESTAMP,
+        },
+        merge=True,
+    )
+    logger.info("[ok] prompt_spec %s seeded", ps_ref.id)
 
 
 def main():

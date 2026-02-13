@@ -77,12 +77,24 @@ class LLMClientVertexAI(LLMPredictionClient):
             credentials=creds,
         )
 
-    def _sync_classify(self, event: str, retrieved_docs: list[dict] | None = None) -> dict:
+    def _sync_classify(
+        self,
+        event: str,
+        retrieved_docs: list[dict] | None = None,
+        *,
+        system_prompt_override: str | None = None,
+        user_prompt_override: str | None = None,
+    ) -> dict:
         """The core synchronous logic that might block on I/O."""
         if not self.client:
             raise RuntimeError("Client not setup.")
 
-        msgs = build_classify_messages(event, retrieved_docs=retrieved_docs)
+        msgs = build_classify_messages(
+            event,
+            retrieved_docs=retrieved_docs,
+            system_prompt_override=system_prompt_override,
+            user_prompt_override=user_prompt_override,
+        )
 
         try:
             # Attempt structured output with raw response for metadata
@@ -97,13 +109,26 @@ class LLMClientVertexAI(LLMPredictionClient):
             meta = {"usage": getattr(raw_resp, "usage_metadata", None) or {}}
             return parse_signals_from_text(raw_text), meta
 
-    async def aclassify_event(self, event: str, retrieved_docs: list[dict] | None = None) -> dict:
+    async def aclassify_event(
+        self,
+        event: str,
+        retrieved_docs: list[dict] | None = None,
+        *,
+        system_prompt_override: str | None = None,
+        user_prompt_override: str | None = None,
+    ) -> dict:
         """
         Async entry point. Offloads the blocking sync_classify
         to a separate thread pool.
         """
         # This keeps LangGraph's event loop completely free!
-        return await asyncio.to_thread(self._sync_classify, event, retrieved_docs)
+        return await asyncio.to_thread(
+            self._sync_classify,
+            event,
+            retrieved_docs,
+            system_prompt_override=system_prompt_override,
+            user_prompt_override=user_prompt_override,
+        )
 
     async def predict(self, prompt: str) -> PredictionResult:
         """Conforms to base.py async interface."""

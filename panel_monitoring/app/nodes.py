@@ -25,6 +25,7 @@ from panel_monitoring.app.utils import (
 from panel_monitoring.data.firestore_client import (
     embed_text,
     events_col,
+    get_active_prompt_spec,
     get_similar_patterns,
     runs_col,
 )
@@ -265,6 +266,9 @@ async def signal_evaluation_node(state: GraphState) -> dict:
         get_nested_value(event_dict, ["identity", "panelist_id"], ""),
     ])).strip()
 
+    prompt_id = None
+    prompt_name = None
+
     if human_input and looks_like_automated(human_input):
         signals = Signals(
             suspicious_signup=True,
@@ -277,12 +281,40 @@ async def signal_evaluation_node(state: GraphState) -> dict:
         provider = os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai")
         model = os.getenv("VERTEX_MODEL", "gemini-2.5-flash")
 
+        # --- Load active PromptSpec from Firestore (if available) ---
+        prompt_spec = await get_active_prompt_spec("signup_classification")
+        system_prompt_override = None
+        user_prompt_override = None
+
+        if prompt_spec:
+            system_prompt_override = prompt_spec.system_prompt or None
+            user_prompt_override = prompt_spec.prompt or None
+            if prompt_spec.model_name:
+                model = prompt_spec.model_name
+            prompt_id = prompt_spec.doc_id
+            prompt_name = (
+                f"{prompt_spec.deployment_role}@v{prompt_spec.version}"
+                if prompt_spec.version
+                else prompt_spec.deployment_role
+            )
+            log_info(
+                "Loaded PromptSpec from Firestore | id=%s name=%s model=%s",
+                prompt_id, prompt_name, model,
+            )
+        else:
+            log_info("No live PromptSpec found; using hardcoded prompts.")
+
         log_info(
             f"Evaluating signals with LLM (provider={provider}, model={model}), event_id={event_id} panelist_id={state.panelist_id}"
         )
 
         try:
-            out = await aclassify_event(text, retrieved_docs=state.retrieved_docs or None)
+            out = await aclassify_event(
+                text,
+                retrieved_docs=state.retrieved_docs or None,
+                system_prompt_override=system_prompt_override,
+                user_prompt_override=user_prompt_override,
+            )
 
             if isinstance(out, tuple) and len(out) == 2:
                 raw_sig, raw_meta = out
@@ -360,13 +392,18 @@ async def signal_evaluation_node(state: GraphState) -> dict:
 
     action = "no_action"
 
-    return {
+    result = {
         "signals": signals,
         "classification": classification,
         "confidence": confidence,
         "action": action,
         "model_meta": meta,
     }
+    if prompt_id is not None:
+        result["prompt_id"] = prompt_id
+    if prompt_name is not None:
+        result["prompt_name"] = prompt_name
+    return result
 
 
 @traceable(name="action_decision_node", tags=["node"])
@@ -494,42 +531,47 @@ async def save_classification_node(state: GraphState) -> dict:
 
     # --- runs: initial audit record ---
     runs = await runs_col()
-    await runs.document(run_id).set(
-        {
-            "run_id": run_id,
-            "project_id": project_id,
-            "event_id": event_id,
-            "provider": meta.provider or "vertexai",
-            "model": model_name,
-            "decision": decision,
-            "confidence": confidence,
-            "signals": signals_dict,
-            "latency_ms": meta.latency_ms,
-            "cost_usd": cost_usd,
-            "usage": meta.usage or {},
-            "status": "awaiting_review" if decision == "suspicious" else ("success" if decision != "error" else "error"),
-            "llm_decision_summary": llm_decision_summary,
-            "started_at": firestore.SERVER_TIMESTAMP,
-            "panelist_id": state.panelist_id,
-        }
-    )
+    run_data = {
+        "run_id": run_id,
+        "project_id": project_id,
+        "event_id": event_id,
+        "provider": meta.provider or "vertexai",
+        "model": model_name,
+        "decision": decision,
+        "confidence": confidence,
+        "signals": signals_dict,
+        "latency_ms": meta.latency_ms,
+        "cost_usd": cost_usd,
+        "usage": meta.usage or {},
+        "status": "awaiting_review" if decision == "suspicious" else ("success" if decision != "error" else "error"),
+        "llm_decision_summary": llm_decision_summary,
+        "started_at": firestore.SERVER_TIMESTAMP,
+        "panelist_id": state.panelist_id,
+    }
+    if state.prompt_id:
+        run_data["prompt_id"] = state.prompt_id
+    if state.prompt_name:
+        run_data["prompt_name"] = state.prompt_name
+    await runs.document(run_id).set(run_data)
 
     # --- events: update with classification (visible in UI immediately) ---
     status = "awaiting_review" if decision == "suspicious" else ("classified" if decision != "error" else "error")
     events = await events_col()
-    await events.document(event_id).set(
-        {
-            "project_id": project_id,
-            "status": status,
-            "decision": decision,
-            "confidence": confidence,
-            "signals": signals_dict,
-            "last_run_id": run_id,
-            "updated_at": firestore.SERVER_TIMESTAMP,
-            "panelist_id": state.panelist_id,
-        },
-        merge=True,
-    )
+    event_data = {
+        "project_id": project_id,
+        "status": status,
+        "decision": decision,
+        "confidence": confidence,
+        "signals": signals_dict,
+        "last_run_id": run_id,
+        "updated_at": firestore.SERVER_TIMESTAMP,
+        "panelist_id": state.panelist_id,
+    }
+    if state.prompt_id:
+        event_data["prompt_id"] = state.prompt_id
+    if state.prompt_name:
+        event_data["prompt_name"] = state.prompt_name
+    await events.document(event_id).set(event_data, merge=True)
 
     log_info(
         "Classification saved | event=%s | panelist=%s | decision=%s | confidence=%.2f | status=%s",

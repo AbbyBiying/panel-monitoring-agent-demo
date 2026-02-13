@@ -8,6 +8,7 @@ from typing import Optional
 
 from google.cloud.firestore_v1.async_client import AsyncClient
 from google.cloud.firestore_v1.async_collection import AsyncCollectionReference
+from google.cloud.firestore_v1.base_query import FieldFilter
 from google.auth.exceptions import DefaultCredentialsError
 from google.cloud.firestore_v1.vector import Vector
 from google.cloud.firestore_v1.base_vector_query import DistanceMeasure
@@ -19,6 +20,7 @@ from panel_monitoring.app.utils import (
     log_info,
     make_credentials_from_env,
 )
+from panel_monitoring.models.firestore_docs import PromptSpecDoc
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +121,37 @@ async def projects_col() -> AsyncCollectionReference:
     except Exception:
         logger.exception("Failed to get 'projects' collection")
         raise
+
+
+async def prompt_specs_col() -> AsyncCollectionReference:
+    """Return reference to top-level 'prompt_specs' collection."""
+    try:
+        db = await get_db()
+        return db.collection("prompt_specs")
+    except Exception:
+        logger.exception("Failed to get 'prompt_specs' collection")
+        raise
+
+
+async def get_active_prompt_spec(role: str) -> Optional[PromptSpecDoc]:
+    """Query for a live PromptSpec with the given deployment_role. Returns None if not found."""
+    try:
+        col = await prompt_specs_col()
+        query = (
+            col.where(filter=FieldFilter("deployment_status", "==", "live"))
+            .where(filter=FieldFilter("deployment_role", "==", role))
+            .limit(1)
+        )
+        docs = [doc async for doc in query.stream()]
+        if not docs:
+            return None
+        data = docs[0].to_dict()
+        spec = PromptSpecDoc.model_validate(data)
+        spec.doc_id = docs[0].id
+        return spec
+    except Exception:
+        logger.exception("get_active_prompt_spec failed for role=%s", role)
+        return None
 
 
 async def fraud_patterns_col() -> AsyncCollectionReference:
