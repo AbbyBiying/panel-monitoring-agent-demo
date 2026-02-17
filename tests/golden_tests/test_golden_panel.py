@@ -16,8 +16,11 @@ os.environ.setdefault("PANEL_DEFAULT_PROVIDER", "vertexai")
 os.environ.setdefault("VERTEX_MODEL", "gemini-2.5-flash")
 
 HERE = pathlib.Path(__file__).parent
-TEST_DATA = HERE / "formatted-test-data.json"
-# TEST_DATA = HERE / "formatted-edge-test-data.json"
+TEST_DATA_FILES = [
+    # HERE / "formatted-test-data.json",
+    # HERE / "formatted-edge-test-data.json",
+    HERE / "updated-golden-test-data.json"
+]
 
 
 def _get_pid(item: Dict[str, Any]) -> str:
@@ -53,16 +56,20 @@ def load_test_data() -> list[Dict[str, Any]]:
       ...
     ]
     """
-    if not TEST_DATA.exists():
+    data = []
+    for test_file in TEST_DATA_FILES:
+        if not test_file.exists():
+            continue
+        with open(test_file, "r", encoding="utf-8") as f:
+            file_data = json.load(f)
+        if not isinstance(file_data, list):
+            raise ValueError(f"Test data in {test_file.name} must be a JSON list.")
+        data.extend(file_data)
+
+    if not data:
         raise FileNotFoundError(
-            f"Test data not found at: {TEST_DATA.resolve()}"
+            f"No test data files found in: {[str(f) for f in TEST_DATA_FILES]}"
         )
-
-    with open(TEST_DATA, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    if not isinstance(data, list):
-        raise ValueError("Test data must be a JSON list.")
 
     for i, item in enumerate(data):
         if not isinstance(item, dict):
@@ -133,6 +140,7 @@ PARAM_ITEMS = load_test_data()
 #i only want to test iP1c42f07cff, iP2d8325efb9, iP5a77f99280, iPbd9fc018e8
 # PARAM_ITEMS = [item for item in PARAM_ITEMS if item["identity"]["panelist_id"] in ["iP1c42f07cff", "iP2d8325efb9", "iP5a77f99280", "iPbd9fc018e8"]]
 
+# PARAM_ITEMS = [item for item in PARAM_ITEMS if item["identity"]["panelist_id"] in ["iPf22e115194"]]
 
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("item", PARAM_ITEMS, ids=[_get_pid(it) for it in PARAM_ITEMS])

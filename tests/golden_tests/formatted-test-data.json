@@ -654,7 +654,7 @@
       "Verified a Phone with Flagged Carrier"
     ],
     "ground_truth": {
-      "removed": false,
+      "removed": true,
       "label": "normal",
       "action": "no_action"
     }
@@ -1265,7 +1265,7 @@
       "High Minfraud Risk Score"
     ],
     "ground_truth": {
-      "removed": true,
+      "removed": false,
       "label": "suspicious",
       "action": "no_action"
     }

@@ -1,0 +1,3103 @@
+[
+  {
+    "identity": {
+      "panelist_id": "iP0be41fe188",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": true,
+      "primary_phone_verified": false,
+      "primary_phone_carrier": "N/A",
+      "primary_phone_carrier_type": "N/A",
+      "primary_phone_mobile": "N/A",
+      "primary_phone_sms_opt_in": "N/A"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-25T07:01:25Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "N/A",
+      "age": "N/A",
+      "gender": "N/A",
+      "state": "N/A",
+      "msa": "N/A",
+      "timezone": "N/A",
+      "where_heard_about_us": "N/A"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2024-09-25",
+      "minfraud_risk_score": "53.98",
+      "recaptcha_score": "N/A"
+    },
+    "additional_profile_answers": [
+
+    ],
+    "rule_based_flags": [
+      "Possible Proxy User",
+      "High Minfraud Risk Score",
+      "Attempted to Sign Up with Another Email Address"
+    ],
+    "ground_truth": {
+      "removed": true,
+      "label": "suspicious",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iP1b3f7bf4c3",
+      "primary_email_domain": "slclogin.com",
+      "primary_email_verified": false,
+      "primary_email_dropped": false,
+      "primary_phone_present": false,
+      "primary_phone_verified": false,
+      "primary_phone_carrier": "N/A",
+      "primary_phone_carrier_type": "N/A",
+      "primary_phone_mobile": "N/A",
+      "primary_phone_sms_opt_in": "N/A"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Mobile Safari/537.36"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-20T03:26:26Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "N/A",
+      "age": "N/A",
+      "gender": "N/A",
+      "state": "N/A",
+      "msa": "N/A",
+      "timezone": "N/A",
+      "where_heard_about_us": "N/A"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2025-10-20",
+      "minfraud_risk_score": "98.6",
+      "recaptcha_score": "N/A"
+    },
+    "additional_profile_answers": [
+
+    ],
+    "rule_based_flags": [
+      "Possible Proxy User",
+      "High Minfraud Risk Score"
+    ],
+    "ground_truth": {
+      "removed": true,
+      "label": "suspicious",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iP1c42f07cff",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": false,
+      "primary_phone_verified": false,
+      "primary_phone_carrier": "N/A",
+      "primary_phone_carrier_type": "N/A",
+      "primary_phone_mobile": "N/A",
+      "primary_phone_sms_opt_in": "N/A"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-17T05:15:02Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "2003",
+      "age": "22",
+      "gender": "Male",
+      "state": "New Jersey",
+      "msa": "New York-Northern New Jersey-Long Island NY-NJ-CT-PA",
+      "timezone": "Eastern (GMT -05:00)",
+      "where_heard_about_us": "YouTube "
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2025-10-17",
+      "minfraud_risk_score": "94.95",
+      "recaptcha_score": "0.9"
+    },
+    "additional_profile_answers": [
+      {
+        "question_name": "pets",
+        "question_prompt": "Which of the following pets, if any, do you currently have in your household?",
+        "question_type": "multi_choice",
+        "answer": "Dog"
+      },
+      {
+        "question_name": "licensed_driver",
+        "question_prompt": "Do you currently have a US driver's license?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "car_ownership",
+        "question_prompt": "Is your primary vehicle owned or leased?",
+        "question_type": "multi_choice",
+        "answer": "I don’t currently own or lease a vehicle"
+      }
+    ],
+    "rule_based_flags": [
+      "High Minfraud Risk Score",
+      "IP Address Location Doesn't Match ZipCode"
+    ],
+    "ground_truth": {
+      "removed": true,
+      "label": "suspicious",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iP1d3ea4f120",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": false,
+      "primary_phone_verified": false,
+      "primary_phone_carrier": "N/A",
+      "primary_phone_carrier_type": "N/A",
+      "primary_phone_mobile": "N/A",
+      "primary_phone_sms_opt_in": "N/A"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-27T19:45:30Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "1990",
+      "age": "35",
+      "gender": "Female",
+      "state": "California",
+      "msa": "Los Angeles-Riverside-Orange County CA",
+      "timezone": "Pacific (GMT -08:00)",
+      "where_heard_about_us": "google"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2025-10-27",
+      "minfraud_risk_score": "94.87",
+      "recaptcha_score": "0.9"
+    },
+    "additional_profile_answers": [
+      {
+        "question_name": "pets",
+        "question_prompt": "Which of the following pets, if any, do you currently have in your household?",
+        "question_type": "multi_choice",
+        "answer": "Cat; Dog"
+      }
+    ],
+    "rule_based_flags": [
+      "Same IP Address as an Existing User",
+      "Possible Proxy User",
+      "High Minfraud Risk Score"
+    ],
+    "ground_truth": {
+      "removed": true,
+      "label": "suspicious",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iP27f6894d2e",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": false,
+      "primary_phone_verified": false,
+      "primary_phone_carrier": "N/A",
+      "primary_phone_carrier_type": "N/A",
+      "primary_phone_mobile": "N/A",
+      "primary_phone_sms_opt_in": "N/A"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-22T09:33:30Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "1976",
+      "age": "49",
+      "gender": "Female",
+      "state": "Florida",
+      "msa": "Miami-Fort Lauderdale FL CMSA",
+      "timezone": "Eastern (GMT -05:00)",
+      "where_heard_about_us": "social media"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2025-10-22",
+      "minfraud_risk_score": "94.86",
+      "recaptcha_score": "0.1"
+    },
+    "additional_profile_answers": [
+      {
+        "question_name": "pets",
+        "question_prompt": "Which of the following pets, if any, do you currently have in your household?",
+        "question_type": "multi_choice",
+        "answer": "Dog"
+      },
+      {
+        "question_name": "education",
+        "question_prompt": "What is the highest degree or level of school you have completed?",
+        "question_type": "multi_choice",
+        "answer": "Bachelor's degree"
+      },
+      {
+        "question_name": "employment",
+        "question_prompt": "Which of the following best describes your employment?",
+        "question_type": "multi_choice",
+        "answer": "Work full time"
+      },
+      {
+        "question_name": "children",
+        "question_prompt": "Do you have any children under the age of 18 living in your household?",
+        "question_type": "multi_choice",
+        "answer": "Yes - I have one or more children under the age of 18 living in my household"
+      },
+      {
+        "question_name": "yob_and_gender_of_children",
+        "question_prompt": "If you have any children under the age of 18, please indicate their gender and year of birth below. Select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Boy born in 2015; Girl born in 2024"
+      },
+      {
+        "question_name": "job_title",
+        "question_prompt": "What is your job title, level or responsibility?",
+        "question_type": "multi_choice",
+        "answer": "Manager (Group Manager, Sr. Manager, Manager, Program Manager)"
+      },
+      {
+        "question_name": "industry_personal",
+        "question_prompt": "Which of the following best describes the industry that you, personally, work in?",
+        "question_type": "multi_choice",
+        "answer": "Manufacturing"
+      },
+      {
+        "question_name": "ethnicity",
+        "question_prompt": "Which of the following best describes your ethnic background? If you are from multiple ethnic backgrounds, please select all the responses that apply.",
+        "question_type": "multi_choice",
+        "answer": "White/Caucasian"
+      },
+      {
+        "question_name": "familial_origin",
+        "question_prompt": "Which of the following world regions best represents you/your family’s national origin? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "North America"
+      },
+      {
+        "question_name": "hispanic",
+        "question_prompt": "Are you of Hispanic, Latino or Spanish origin or descent?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "home",
+        "question_prompt": "Which of the following best describes your current home?",
+        "question_type": "multi_choice",
+        "answer": "Owned house"
+      },
+      {
+        "question_name": "income",
+        "question_prompt": "Which of the following ranges includes your total annual household income from all sources?",
+        "question_type": "multi_choice",
+        "answer": "$175,000 to $199,999"
+      },
+      {
+        "question_name": "licensed_driver",
+        "question_prompt": "Do you currently have a US driver's license?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "marital",
+        "question_prompt": "What is your current relationship status?",
+        "question_type": "multi_choice",
+        "answer": "Married"
+      },
+      {
+        "question_name": "neighborhood",
+        "question_prompt": "Which of the following best describes the area in which you live?",
+        "question_type": "multi_choice",
+        "answer": "Suburban"
+      },
+      {
+        "question_name": "political_ideology",
+        "question_prompt": "In general, do you think of yourself as...",
+        "question_type": "multi_choice",
+        "answer": "Slightly conservative"
+      },
+      {
+        "question_name": "social_political_ideology",
+        "question_prompt": "On social issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Slightly conservative"
+      },
+      {
+        "question_name": "economic_political_ideology",
+        "question_prompt": "On economic issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Slightly liberal"
+      },
+      {
+        "question_name": "political_party_preference",
+        "question_prompt": "Generally speaking, do you think of yourself as a...",
+        "question_type": "multi_choice",
+        "answer": "Independent, close to Republican"
+      },
+      {
+        "question_name": "sexual_orientation",
+        "question_prompt": "Which of the following best describes your sexual orientation?",
+        "question_type": "multi_choice",
+        "answer": "Heterosexual/straight"
+      },
+      {
+        "question_name": "voter_registration_usa",
+        "question_prompt": "Are you registered to vote in the United States of America?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "military_status",
+        "question_prompt": "Do you, or have you ever, served in the United States Military?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "electronic_devices_owned",
+        "question_prompt": "Which of the following types of consumer electronic products, if any, do you or someone in your household currently own? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Computer or tablet (desktop, laptop, iPad, etc.); Gaming console (PS5, Xbox, Nintendo Switch, etc.); Smartphone; Smart Watch (Apple, Samsung, Garmin, etc.); Smart TV (TV with streaming applications built in)"
+      },
+      {
+        "question_name": "subscriptions",
+        "question_prompt": "Which of the following, if any, do you currently subscribe to or have service with? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "HBO Max; YouTube TV; Disney Plus; Netflix"
+      },
+      {
+        "question_name": "social_media_used",
+        "question_prompt": "Which of the following social media platforms/apps/websites do you use? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Snapchat; Twitter / X; WeChat; Facebook; Reddit; Yelp; Telegram; LinkedIn; Facebook Messenger; YouTube; Pinterest; Instagram; TikTok"
+      },
+      {
+        "question_name": "car_ownership",
+        "question_prompt": "Is your primary vehicle owned or leased?",
+        "question_type": "multi_choice",
+        "answer": "Own"
+      },
+      {
+        "question_name": "car_model_year",
+        "question_prompt": "What is the model year of your primary vehicle?",
+        "question_type": "number",
+        "answer": "2010"
+      },
+      {
+        "question_name": "purchase_decisions",
+        "question_prompt": "In your household, are you the person who makes most of the daily purchasing decisions?",
+        "question_type": "multi_choice",
+        "answer": "I share the purchasing decisions equally with someone else in my household"
+      },
+      {
+        "question_name": "py_purchases_2024",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Furniture for your household; Large household appliance (refrigerator, stove/cooker, washer/dryer); Boat; New desktop or laptop computer; New mobile phone or tablet computer"
+      },
+      {
+        "question_name": "ny_purchases_2024",
+        "question_prompt": "Which of the following things do you <u>intend to purchase or lease</u> for your own use in the <u><b>next</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Furniture for your household; New automobile; Large household appliance (refrigerator, stove/cooker, washer/dryer)"
+      },
+      {
+        "question_name": "religiosity",
+        "question_prompt": "How religious would you say you are?",
+        "question_type": "multi_choice",
+        "answer": "4"
+      },
+      {
+        "question_name": "religious_identity",
+        "question_prompt": "What best describes the religious tradition that you currently identify with? If you currently identify with more than one tradition then please choose the tradition you identify with most strongly.",
+        "question_type": "multi_choice",
+        "answer": "Catholic"
+      },
+      {
+        "question_name": "born_usa",
+        "question_prompt": "Were you born in the United States?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "vehicle_types",
+        "question_prompt": "Which of the following types of vehicles, if any, do you <u>currently own or lease</u>?",
+        "question_type": "multi_choice",
+        "answer": "Automobile"
+      },
+      {
+        "question_name": "game_consoles_hh_2023",
+        "question_prompt": "Which of the following video game consoles do you <u>currently have in your household</u>? Please include any in your household, whether you personally use them or not.",
+        "question_type": "multi_choice",
+        "answer": "PlayStation 5; Mobile phone or tablet"
+      },
+      {
+        "question_name": "game_consoles_used_2023",
+        "question_prompt": "Which of the following devices do you <u>regularly use</u> to play video games, if any?",
+        "question_type": "multi_choice",
+        "answer": "PlayStation 5; Mobile phone or tablet"
+      },
+      {
+        "question_name": "conditions",
+        "question_prompt": "Which (if any) of the following illnesses/conditions have you been diagnosed with?<br/><br/>As always, this information will remain anonymous.",
+        "question_type": "multi_choice",
+        "answer": "I don't have any illnesses/conditions"
+      },
+      {
+        "question_name": "2020_presidential_voting",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2020</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "Donald Trump (Republican)"
+      },
+      {
+        "question_name": "presidential_voting_2024",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2024</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "Donald Trump (Republican)"
+      }
+    ],
+    "rule_based_flags": [
+      "High Minfraud Risk Score",
+      "User reCAPTCHA score on sign up less than 0.5"
+    ],
+    "ground_truth": {
+      "removed": true,
+      "label": "suspicious",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iP2d8325efb9",
+      "primary_email_domain": "proton.me",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": false,
+      "primary_phone_verified": false,
+      "primary_phone_carrier": "N/A",
+      "primary_phone_carrier_type": "N/A",
+      "primary_phone_mobile": "N/A",
+      "primary_phone_sms_opt_in": "N/A"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; rv:144.0) Gecko/20100101 Firefox/144.0"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-18T19:49:22Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "N/A",
+      "age": "N/A",
+      "gender": "N/A",
+      "state": "N/A",
+      "msa": "N/A",
+      "timezone": "N/A",
+      "where_heard_about_us": "N/A"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2025-10-18",
+      "minfraud_risk_score": "36.49",
+      "recaptcha_score": "N/A"
+    },
+    "additional_profile_answers": [
+
+    ],
+    "rule_based_flags": [
+      "High Minfraud Risk Score"
+    ],
+    "ground_truth": {
+      "removed": true,
+      "label": "suspicious",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iP5a77f99280",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": true,
+      "primary_phone_verified": true,
+      "primary_phone_carrier": "Verizon Wireless",
+      "primary_phone_carrier_type": "mobile",
+      "primary_phone_mobile": "true",
+      "primary_phone_sms_opt_in": "false"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-17T23:53:23Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "1968",
+      "age": "57",
+      "gender": "Female",
+      "state": "Iowa",
+      "msa": "Sioux City IA-NE MSA",
+      "timezone": "Central (GMT -06:00)",
+      "where_heard_about_us": "Sherri ramhorst"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2023-07-07",
+      "minfraud_risk_score": "0.1",
+      "recaptcha_score": "0.9"
+    },
+    "additional_profile_answers": [
+      {
+        "question_name": "pets",
+        "question_prompt": "Which of the following pets, if any, do you currently have in your household?",
+        "question_type": "multi_choice",
+        "answer": "None of the above"
+      }
+    ],
+    "rule_based_flags": [
+      "Failed manual validation by admin"
+    ],
+    "ground_truth": {
+      "removed": true,
+      "label": "suspicious",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iP6b96264407",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": true,
+      "primary_phone_verified": true,
+      "primary_phone_carrier": "Verizon Wireless",
+      "primary_phone_carrier_type": "mobile",
+      "primary_phone_mobile": "true",
+      "primary_phone_sms_opt_in": "true"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/390.0.817388646 Mobile/15E148 Safari/604.1"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-15T21:54:06Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "2005",
+      "age": "20",
+      "gender": "Female",
+      "state": "Illinois",
+      "msa": "",
+      "timezone": "Central (GMT -06:00)",
+      "where_heard_about_us": "friend"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2021-12-28",
+      "minfraud_risk_score": "0.1",
+      "recaptcha_score": "0.9"
+    },
+    "additional_profile_answers": [
+      {
+        "question_name": "pets",
+        "question_prompt": "Which of the following pets, if any, do you currently have in your household?",
+        "question_type": "multi_choice",
+        "answer": "Dog"
+      },
+      {
+        "question_name": "licensed_driver",
+        "question_prompt": "Do you currently have a US driver's license?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "car_ownership",
+        "question_prompt": "Is your primary vehicle owned or leased?",
+        "question_type": "multi_choice",
+        "answer": "Own"
+      },
+      {
+        "question_name": "car_model_year",
+        "question_prompt": "What is the model year of your primary vehicle?",
+        "question_type": "number",
+        "answer": "2005"
+      },
+      {
+        "question_name": "education",
+        "question_prompt": "What is the highest degree or level of school you have completed?",
+        "question_type": "multi_choice",
+        "answer": "Some college credit, no degree"
+      },
+      {
+        "question_name": "employment",
+        "question_prompt": "Which of the following best describes your employment?",
+        "question_type": "multi_choice",
+        "answer": "Student"
+      },
+      {
+        "question_name": "children",
+        "question_prompt": "Do you have any children under the age of 18 living in your household?",
+        "question_type": "multi_choice",
+        "answer": "No - I have no children under the age of 18 living in my household"
+      },
+      {
+        "question_name": "yob_and_gender_of_children",
+        "question_prompt": "If you have any children under the age of 18, please indicate their gender and year of birth below. Select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "None - I do not have any children under the age of 18"
+      },
+      {
+        "question_name": "ethnicity",
+        "question_prompt": "Which of the following best describes your ethnic background? If you are from multiple ethnic backgrounds, please select all the responses that apply.",
+        "question_type": "multi_choice",
+        "answer": "White/Caucasian; Asian"
+      },
+      {
+        "question_name": "familial_origin",
+        "question_prompt": "Which of the following world regions best represents you/your family’s national origin? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Asia; North America"
+      },
+      {
+        "question_name": "hispanic",
+        "question_prompt": "Are you of Hispanic, Latino or Spanish origin or descent?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "home",
+        "question_prompt": "Which of the following best describes your current home?",
+        "question_type": "multi_choice",
+        "answer": "Living with parents"
+      },
+      {
+        "question_name": "income",
+        "question_prompt": "Which of the following ranges includes your total annual household income from all sources?",
+        "question_type": "multi_choice",
+        "answer": "Prefer not to say"
+      },
+      {
+        "question_name": "marital",
+        "question_prompt": "What is your current relationship status?",
+        "question_type": "multi_choice",
+        "answer": "Single, never married"
+      },
+      {
+        "question_name": "neighborhood",
+        "question_prompt": "Which of the following best describes the area in which you live?",
+        "question_type": "multi_choice",
+        "answer": "Rural"
+      },
+      {
+        "question_name": "political_ideology",
+        "question_prompt": "In general, do you think of yourself as...",
+        "question_type": "multi_choice",
+        "answer": "Moderate, middle of the road"
+      },
+      {
+        "question_name": "social_political_ideology",
+        "question_prompt": "On social issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Moderate, middle of the road"
+      },
+      {
+        "question_name": "economic_political_ideology",
+        "question_prompt": "On economic issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Moderate, middle of the road"
+      },
+      {
+        "question_name": "political_party_preference",
+        "question_prompt": "Generally speaking, do you think of yourself as a...",
+        "question_type": "multi_choice",
+        "answer": "No preference"
+      },
+      {
+        "question_name": "sexual_orientation",
+        "question_prompt": "Which of the following best describes your sexual orientation?",
+        "question_type": "multi_choice",
+        "answer": "Heterosexual/straight"
+      },
+      {
+        "question_name": "voter_registration_usa",
+        "question_prompt": "Are you registered to vote in the United States of America?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "military_status",
+        "question_prompt": "Do you, or have you ever, served in the United States Military?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "electronic_devices_owned",
+        "question_prompt": "Which of the following types of consumer electronic products, if any, do you or someone in your household currently own? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Computer or tablet (desktop, laptop, iPad, etc.); Gaming console (PS5, Xbox, Nintendo Switch, etc.); Smartphone; Smart Watch (Apple, Samsung, Garmin, etc.); Television"
+      },
+      {
+        "question_name": "subscriptions",
+        "question_prompt": "Which of the following, if any, do you currently subscribe to or have service with? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Amazon Prime Video; Netflix"
+      },
+      {
+        "question_name": "social_media_used",
+        "question_prompt": "Which of the following social media platforms/apps/websites do you use? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Twitch; Snapchat; Pinterest; Discord; Twitter / X; Facebook; Instagram; TikTok; Reddit; LinkedIn; YouTube"
+      },
+      {
+        "question_name": "purchase_decisions",
+        "question_prompt": "In your household, are you the person who makes most of the daily purchasing decisions?",
+        "question_type": "multi_choice",
+        "answer": "Someone else makes most or all of the purchasing decisions"
+      },
+      {
+        "question_name": "py_purchases_2024",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "New desktop or laptop computer"
+      },
+      {
+        "question_name": "ny_purchases_2024",
+        "question_prompt": "Which of the following things do you <u>intend to purchase or lease</u> for your own use in the <u><b>next</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "None of the above"
+      },
+      {
+        "question_name": "religiosity",
+        "question_prompt": "How religious would you say you are?",
+        "question_type": "multi_choice",
+        "answer": "2"
+      },
+      {
+        "question_name": "religious_identity",
+        "question_prompt": "What best describes the religious tradition that you currently identify with? If you currently identify with more than one tradition then please choose the tradition you identify with most strongly.",
+        "question_type": "multi_choice",
+        "answer": "Nothing in particular"
+      },
+      {
+        "question_name": "born_usa",
+        "question_prompt": "Were you born in the United States?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "vehicle_types",
+        "question_prompt": "Which of the following types of vehicles, if any, do you <u>currently own or lease</u>?",
+        "question_type": "multi_choice",
+        "answer": "Automobile"
+      },
+      {
+        "question_name": "game_consoles_hh_2023",
+        "question_prompt": "Which of the following video game consoles do you <u>currently have in your household</u>? Please include any in your household, whether you personally use them or not.",
+        "question_type": "multi_choice",
+        "answer": "Gaming PC or Laptop; Mobile phone or tablet"
+      },
+      {
+        "question_name": "game_consoles_used_2023",
+        "question_prompt": "Which of the following devices do you <u>regularly use</u> to play video games, if any?",
+        "question_type": "multi_choice",
+        "answer": "Gaming PC or Laptop; Mobile phone or tablet"
+      },
+      {
+        "question_name": "conditions",
+        "question_prompt": "Which (if any) of the following illnesses/conditions have you been diagnosed with?<br/><br/>As always, this information will remain anonymous.",
+        "question_type": "multi_choice",
+        "answer": "Prefer not to answer"
+      },
+      {
+        "question_name": "2020_presidential_voting",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2020</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "I did not vote"
+      },
+      {
+        "question_name": "presidential_voting_2024",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2024</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "I did not vote"
+      },
+      {
+        "question_name": "py_purchases_2025",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "New desktop or laptop computer"
+      },
+      {
+        "question_name": "ai_tool_usage_2025",
+        "question_prompt": "How often do you use AI tools like ChatGPT, Claude, or similar services?",
+        "question_type": "multi_choice",
+        "answer": "A few times per week"
+      }
+    ],
+    "rule_based_flags": [
+
+    ],
+    "ground_truth": {
+      "removed": false,
+      "label": "normal",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iP7bb1447733",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": true,
+      "primary_phone_verified": true,
+      "primary_phone_carrier": "T-Mobile USA, Inc.",
+      "primary_phone_carrier_type": "mobile",
+      "primary_phone_mobile": "true",
+      "primary_phone_sms_opt_in": "false"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-27T00:03:55Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "1997",
+      "age": "29",
+      "gender": "Male",
+      "state": "California",
+      "msa": "Los Angeles-Riverside-Orange County CA",
+      "timezone": "Pacific (GMT -08:00)",
+      "where_heard_about_us": "Reddit"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2013-04-02",
+      "minfraud_risk_score": "11.24",
+      "recaptcha_score": "0.9"
+    },
+    "additional_profile_answers": [
+      {
+        "question_name": "pets",
+        "question_prompt": "Which of the following pets, if any, do you currently have in your household?",
+        "question_type": "multi_choice",
+        "answer": "None of the above"
+      },
+      {
+        "question_name": "income",
+        "question_prompt": "Which of the following ranges includes your total annual household income from all sources?",
+        "question_type": "multi_choice",
+        "answer": "$50,000 to $74,999"
+      },
+      {
+        "question_name": "ethnicity",
+        "question_prompt": "Which of the following best describes your ethnic background? If you are from multiple ethnic backgrounds, please select all the responses that apply.",
+        "question_type": "multi_choice",
+        "answer": "Asian"
+      },
+      {
+        "question_name": "hispanic",
+        "question_prompt": "Are you of Hispanic, Latino or Spanish origin or descent?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "education",
+        "question_prompt": "What is the highest degree or level of school you have completed?",
+        "question_type": "multi_choice",
+        "answer": "Bachelor's degree"
+      },
+      {
+        "question_name": "political_party_preference",
+        "question_prompt": "Generally speaking, do you think of yourself as a...",
+        "question_type": "multi_choice",
+        "answer": "Democrat"
+      },
+      {
+        "question_name": "political_ideology",
+        "question_prompt": "In general, do you think of yourself as...",
+        "question_type": "multi_choice",
+        "answer": "Liberal"
+      },
+      {
+        "question_name": "children",
+        "question_prompt": "Do you have any children under the age of 18 living in your household?",
+        "question_type": "multi_choice",
+        "answer": "No - I have no children under the age of 18 living in my household"
+      },
+      {
+        "question_name": "yob_and_gender_of_children",
+        "question_prompt": "If you have any children under the age of 18, please indicate their gender and year of birth below. Select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "None - I do not have any children under the age of 18"
+      },
+      {
+        "question_name": "voter_registration_usa",
+        "question_prompt": "Are you registered to vote in the United States of America?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "conditions",
+        "question_prompt": "Which (if any) of the following illnesses/conditions have you been diagnosed with?<br/><br/>As always, this information will remain anonymous.",
+        "question_type": "multi_choice",
+        "answer": "Acne"
+      },
+      {
+        "question_name": "industry_personal",
+        "question_prompt": "Which of the following best describes the industry that you, personally, work in?",
+        "question_type": "multi_choice",
+        "answer": "Healthcare; Non Profit/Social services"
+      },
+      {
+        "question_name": "born_usa",
+        "question_prompt": "Were you born in the United States?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "employment",
+        "question_prompt": "Which of the following best describes your employment?",
+        "question_type": "multi_choice",
+        "answer": "Work full time"
+      },
+      {
+        "question_name": "job_title",
+        "question_prompt": "What is your job title, level or responsibility?",
+        "question_type": "multi_choice",
+        "answer": "Assistant or Associate"
+      },
+      {
+        "question_name": "neighborhood",
+        "question_prompt": "Which of the following best describes the area in which you live?",
+        "question_type": "multi_choice",
+        "answer": "Suburban"
+      },
+      {
+        "question_name": "home",
+        "question_prompt": "Which of the following best describes your current home?",
+        "question_type": "multi_choice",
+        "answer": "Rented apartment/condo"
+      },
+      {
+        "question_name": "presidential_voting_2024",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2024</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "Kamala Harris (Democrat)"
+      },
+      {
+        "question_name": "car_ownership",
+        "question_prompt": "Is your primary vehicle owned or leased?",
+        "question_type": "multi_choice",
+        "answer": "Own"
+      },
+      {
+        "question_name": "car_model_year",
+        "question_prompt": "What is the model year of your primary vehicle?",
+        "question_type": "number",
+        "answer": "2013"
+      },
+      {
+        "question_name": "py_purchases_2025",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "New desktop or laptop computer"
+      },
+      {
+        "question_name": "familial_origin",
+        "question_prompt": "Which of the following world regions best represents you/your family’s national origin? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Asia"
+      },
+      {
+        "question_name": "licensed_driver",
+        "question_prompt": "Do you currently have a US driver's license?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "marital",
+        "question_prompt": "What is your current relationship status?",
+        "question_type": "multi_choice",
+        "answer": "Single, never married"
+      },
+      {
+        "question_name": "social_political_ideology",
+        "question_prompt": "On social issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Liberal"
+      },
+      {
+        "question_name": "economic_political_ideology",
+        "question_prompt": "On economic issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Liberal"
+      },
+      {
+        "question_name": "sexual_orientation",
+        "question_prompt": "Which of the following best describes your sexual orientation?",
+        "question_type": "multi_choice",
+        "answer": "Heterosexual/straight"
+      },
+      {
+        "question_name": "military_status",
+        "question_prompt": "Do you, or have you ever, served in the United States Military?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "electronic_devices_owned",
+        "question_prompt": "Which of the following types of consumer electronic products, if any, do you or someone in your household currently own? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Computer or tablet (desktop, laptop, iPad, etc.); Gaming console (PS5, Xbox, Nintendo Switch, etc.); Smartphone; Television"
+      },
+      {
+        "question_name": "subscriptions",
+        "question_prompt": "Which of the following, if any, do you currently subscribe to or have service with? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "T-Mobile; Netflix; Amazon Prime Video"
+      },
+      {
+        "question_name": "social_media_used",
+        "question_prompt": "Which of the following social media platforms/apps/websites do you use? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Discord; Facebook; Reddit; TikTok; Facebook Messenger; Snapchat; Twitch; Instagram; LinkedIn; Yelp; YouTube; Twitter / X"
+      },
+      {
+        "question_name": "purchase_decisions",
+        "question_prompt": "In your household, are you the person who makes most of the daily purchasing decisions?",
+        "question_type": "multi_choice",
+        "answer": "I make most or all of the purchasing decisions"
+      },
+      {
+        "question_name": "py_purchases_2024",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "New desktop or laptop computer"
+      },
+      {
+        "question_name": "ny_purchases_2024",
+        "question_prompt": "Which of the following things do you <u>intend to purchase or lease</u> for your own use in the <u><b>next</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "New mobile phone or tablet computer"
+      },
+      {
+        "question_name": "religiosity",
+        "question_prompt": "How religious would you say you are?",
+        "question_type": "multi_choice",
+        "answer": "1 - Not at all Religious"
+      },
+      {
+        "question_name": "religious_identity",
+        "question_prompt": "What best describes the religious tradition that you currently identify with? If you currently identify with more than one tradition then please choose the tradition you identify with most strongly.",
+        "question_type": "multi_choice",
+        "answer": "Nothing in particular"
+      },
+      {
+        "question_name": "vehicle_types",
+        "question_prompt": "Which of the following types of vehicles, if any, do you <u>currently own or lease</u>?",
+        "question_type": "multi_choice",
+        "answer": "Automobile"
+      },
+      {
+        "question_name": "game_consoles_hh_2023",
+        "question_prompt": "Which of the following video game consoles do you <u>currently have in your household</u>? Please include any in your household, whether you personally use them or not.",
+        "question_type": "multi_choice",
+        "answer": "Nintendo Switch; Gaming PC or Laptop"
+      },
+      {
+        "question_name": "game_consoles_used_2023",
+        "question_prompt": "Which of the following devices do you <u>regularly use</u> to play video games, if any?",
+        "question_type": "multi_choice",
+        "answer": "Nintendo Switch OLED; Gaming PC or Laptop"
+      },
+      {
+        "question_name": "2020_presidential_voting",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2020</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "Joe Biden (Democrat)"
+      },
+      {
+        "question_name": "ai_tool_usage_2025",
+        "question_prompt": "How often do you use AI tools like ChatGPT, Claude, or similar services?",
+        "question_type": "multi_choice",
+        "answer": "A few times per week"
+      }
+    ],
+    "rule_based_flags": [
+      "Moderate Minfraud Risk Score",
+      "Verified a Phone with Flagged Carrier"
+    ],
+    "ground_truth": {
+      "removed": false,
+      "label": "normal",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iP7cb8796818",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": false,
+      "primary_phone_verified": false,
+      "primary_phone_carrier": "N/A",
+      "primary_phone_carrier_type": "N/A",
+      "primary_phone_mobile": "N/A",
+      "primary_phone_sms_opt_in": "N/A"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-18T22:50:45Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "1992",
+      "age": "33",
+      "gender": "Female",
+      "state": "Ohio",
+      "msa": "Canton-Massillon OH MSA",
+      "timezone": "Eastern (GMT -05:00)",
+      "where_heard_about_us": "From a close friend."
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2025-10-18",
+      "minfraud_risk_score": "26.68",
+      "recaptcha_score": "0.1"
+    },
+    "additional_profile_answers": [
+      {
+        "question_name": "pets",
+        "question_prompt": "Which of the following pets, if any, do you currently have in your household?",
+        "question_type": "multi_choice",
+        "answer": "Dog"
+      }
+    ],
+    "rule_based_flags": [
+      "High Minfraud Risk Score",
+      "User reCAPTCHA score on sign up less than 0.5",
+      "IP Address Location Doesn't Match ZipCode"
+    ],
+    "ground_truth": {
+      "removed": true,
+      "label": "suspicious",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iPa3c2cacca3",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": false,
+      "primary_phone_verified": false,
+      "primary_phone_carrier": "N/A",
+      "primary_phone_carrier_type": "N/A",
+      "primary_phone_mobile": "N/A",
+      "primary_phone_sms_opt_in": "N/A"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0.1 Mobile/15E148 Safari/604.1"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-28T21:31:57Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "N/A",
+      "age": "N/A",
+      "gender": "N/A",
+      "state": "N/A",
+      "msa": "N/A",
+      "timezone": "N/A",
+      "where_heard_about_us": "N/A"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2024-11-25",
+      "minfraud_risk_score": "0.2",
+      "recaptcha_score": "N/A"
+    },
+    "additional_profile_answers": [
+
+    ],
+    "rule_based_flags": [
+
+    ],
+    "ground_truth": {
+      "removed": false,
+      "label": "normal",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iPbd9fc018e8",
+      "primary_email_domain": "aol.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": true,
+      "primary_phone_verified": true,
+      "primary_phone_carrier": "Verizon Wireless",
+      "primary_phone_carrier_type": "mobile",
+      "primary_phone_mobile": "true",
+      "primary_phone_sms_opt_in": "false"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-17T23:19:42Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "1981",
+      "age": "44",
+      "gender": "Female",
+      "state": "Iowa",
+      "msa": "",
+      "timezone": "Central (GMT -06:00)",
+      "where_heard_about_us": "YouTuber"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2025-09-05",
+      "minfraud_risk_score": "57.83",
+      "recaptcha_score": "0.7"
+    },
+    "additional_profile_answers": [
+      {
+        "question_name": "pets",
+        "question_prompt": "Which of the following pets, if any, do you currently have in your household?",
+        "question_type": "multi_choice",
+        "answer": "Dog"
+      }
+    ],
+    "rule_based_flags": [
+      "High Minfraud Risk Score"
+    ],
+    "ground_truth": {
+      "removed": true,
+      "label": "suspicious",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iPc995cd4722",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": true,
+      "primary_phone_verified": true,
+      "primary_phone_carrier": "Dish Wireless, LLC",
+      "primary_phone_carrier_type": "mobile",
+      "primary_phone_mobile": "true",
+      "primary_phone_sms_opt_in": "true"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-28T08:32:52Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "1981",
+      "age": "45",
+      "gender": "Female",
+      "state": "Indiana",
+      "msa": "Fort Wayne IN MSA",
+      "timezone": "Eastern (GMT -05:00)",
+      "where_heard_about_us": "Online "
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2020-12-16",
+      "minfraud_risk_score": "0.4",
+      "recaptcha_score": "0.9"
+    },
+    "additional_profile_answers": [
+      {
+        "question_name": "pets",
+        "question_prompt": "Which of the following pets, if any, do you currently have in your household?",
+        "question_type": "multi_choice",
+        "answer": "None of the above"
+      },
+      {
+        "question_name": "education",
+        "question_prompt": "What is the highest degree or level of school you have completed?",
+        "question_type": "multi_choice",
+        "answer": "High school graduate, diploma or the equivalent (for example: GED)"
+      },
+      {
+        "question_name": "employment",
+        "question_prompt": "Which of the following best describes your employment?",
+        "question_type": "multi_choice",
+        "answer": "Unemployed - looking for work"
+      },
+      {
+        "question_name": "children",
+        "question_prompt": "Do you have any children under the age of 18 living in your household?",
+        "question_type": "multi_choice",
+        "answer": "Yes - I have one or more children under the age of 18 living in my household"
+      },
+      {
+        "question_name": "yob_and_gender_of_children",
+        "question_prompt": "If you have any children under the age of 18, please indicate their gender and year of birth below. Select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Girl born in 2021"
+      },
+      {
+        "question_name": "ethnicity",
+        "question_prompt": "Which of the following best describes your ethnic background? If you are from multiple ethnic backgrounds, please select all the responses that apply.",
+        "question_type": "multi_choice",
+        "answer": "White/Caucasian"
+      },
+      {
+        "question_name": "familial_origin",
+        "question_prompt": "Which of the following world regions best represents you/your family’s national origin? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "North America"
+      },
+      {
+        "question_name": "hispanic",
+        "question_prompt": "Are you of Hispanic, Latino or Spanish origin or descent?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "home",
+        "question_prompt": "Which of the following best describes your current home?",
+        "question_type": "multi_choice",
+        "answer": "Other"
+      },
+      {
+        "question_name": "income",
+        "question_prompt": "Which of the following ranges includes your total annual household income from all sources?",
+        "question_type": "multi_choice",
+        "answer": "Prefer not to say"
+      },
+      {
+        "question_name": "licensed_driver",
+        "question_prompt": "Do you currently have a US driver's license?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "marital",
+        "question_prompt": "What is your current relationship status?",
+        "question_type": "multi_choice",
+        "answer": "Single, never married"
+      },
+      {
+        "question_name": "neighborhood",
+        "question_prompt": "Which of the following best describes the area in which you live?",
+        "question_type": "multi_choice",
+        "answer": "I don’t know"
+      },
+      {
+        "question_name": "political_ideology",
+        "question_prompt": "In general, do you think of yourself as...",
+        "question_type": "multi_choice",
+        "answer": "Moderate, middle of the road"
+      },
+      {
+        "question_name": "social_political_ideology",
+        "question_prompt": "On social issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Moderate, middle of the road"
+      },
+      {
+        "question_name": "economic_political_ideology",
+        "question_prompt": "On economic issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Moderate, middle of the road"
+      },
+      {
+        "question_name": "political_party_preference",
+        "question_prompt": "Generally speaking, do you think of yourself as a...",
+        "question_type": "multi_choice",
+        "answer": "Democrat"
+      },
+      {
+        "question_name": "sexual_orientation",
+        "question_prompt": "Which of the following best describes your sexual orientation?",
+        "question_type": "multi_choice",
+        "answer": "Bisexual"
+      },
+      {
+        "question_name": "voter_registration_usa",
+        "question_prompt": "Are you registered to vote in the United States of America?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "military_status",
+        "question_prompt": "Do you, or have you ever, served in the United States Military?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "electronic_devices_owned",
+        "question_prompt": "Which of the following types of consumer electronic products, if any, do you or someone in your household currently own? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Smartphone; Television"
+      },
+      {
+        "question_name": "subscriptions",
+        "question_prompt": "Which of the following, if any, do you currently subscribe to or have service with? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "None of the above"
+      },
+      {
+        "question_name": "social_media_used",
+        "question_prompt": "Which of the following social media platforms/apps/websites do you use? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Facebook; YouTube; Facebook Messenger"
+      },
+      {
+        "question_name": "car_ownership",
+        "question_prompt": "Is your primary vehicle owned or leased?",
+        "question_type": "multi_choice",
+        "answer": "Own"
+      },
+      {
+        "question_name": "car_model_year",
+        "question_prompt": "What is the model year of your primary vehicle?",
+        "question_type": "number",
+        "answer": "2013"
+      },
+      {
+        "question_name": "purchase_decisions",
+        "question_prompt": "In your household, are you the person who makes most of the daily purchasing decisions?",
+        "question_type": "multi_choice",
+        "answer": "I share the purchasing decisions equally with someone else in my household"
+      },
+      {
+        "question_name": "py_purchases_2024",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "None of the above"
+      },
+      {
+        "question_name": "ny_purchases_2024",
+        "question_prompt": "Which of the following things do you <u>intend to purchase or lease</u> for your own use in the <u><b>next</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "None of the above"
+      },
+      {
+        "question_name": "religiosity",
+        "question_prompt": "How religious would you say you are?",
+        "question_type": "multi_choice",
+        "answer": "3"
+      },
+      {
+        "question_name": "religious_identity",
+        "question_prompt": "What best describes the religious tradition that you currently identify with? If you currently identify with more than one tradition then please choose the tradition you identify with most strongly.",
+        "question_type": "multi_choice",
+        "answer": "Catholic"
+      },
+      {
+        "question_name": "born_usa",
+        "question_prompt": "Were you born in the United States?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "vehicle_types",
+        "question_prompt": "Which of the following types of vehicles, if any, do you <u>currently own or lease</u>?",
+        "question_type": "multi_choice",
+        "answer": "Automobile"
+      },
+      {
+        "question_name": "game_consoles_hh_2023",
+        "question_prompt": "Which of the following video game consoles do you <u>currently have in your household</u>? Please include any in your household, whether you personally use them or not.",
+        "question_type": "multi_choice",
+        "answer": "Classic, retro, or arcade-style game console; Other handheld game console"
+      },
+      {
+        "question_name": "game_consoles_used_2023",
+        "question_prompt": "Which of the following devices do you <u>regularly use</u> to play video games, if any?",
+        "question_type": "multi_choice",
+        "answer": "Mobile phone or tablet; Other handheld game console"
+      },
+      {
+        "question_name": "conditions",
+        "question_prompt": "Which (if any) of the following illnesses/conditions have you been diagnosed with?<br/><br/>As always, this information will remain anonymous.",
+        "question_type": "multi_choice",
+        "answer": "Acid Reflux; Anemia; Depression; Gastro Esophageal Reflux (GERD); Mental Disorder; Smoking Addiction"
+      },
+      {
+        "question_name": "2020_presidential_voting",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2020</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "Joe Biden (Democrat)"
+      },
+      {
+        "question_name": "presidential_voting_2024",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2024</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "I did not vote"
+      },
+      {
+        "question_name": "py_purchases_2025",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "None of the above"
+      },
+      {
+        "question_name": "ai_tool_usage_2025",
+        "question_prompt": "How often do you use AI tools like ChatGPT, Claude, or similar services?",
+        "question_type": "multi_choice",
+        "answer": "A few times per month"
+      }
+    ],
+    "rule_based_flags": [
+
+    ],
+    "ground_truth": {
+      "removed": false,
+      "label": "normal",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iPed2bd533d4",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": false,
+      "primary_phone_verified": false,
+      "primary_phone_carrier": "N/A",
+      "primary_phone_carrier_type": "N/A",
+      "primary_phone_mobile": "N/A",
+      "primary_phone_sms_opt_in": "N/A"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.5249.103 Safari/537.36"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2022-11-29T13:38:37Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "1993",
+      "age": "32",
+      "gender": "Male",
+      "state": "Texas",
+      "msa": "Dallas-Fort Worth TX CMSA",
+      "timezone": "Central (GMT -06:00)",
+      "where_heard_about_us": "N/A"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2022-11-29",
+      "minfraud_risk_score": "2.66",
+      "recaptcha_score": "N/A"
+    },
+    "additional_profile_answers": [
+      {
+        "question_name": "income",
+        "question_prompt": "Which of the following ranges includes your total annual household income from all sources?",
+        "question_type": "multi_choice",
+        "answer": "$250,000 or more"
+      },
+      {
+        "question_name": "ethnicity",
+        "question_prompt": "Which of the following best describes your ethnic background? If you are from multiple ethnic backgrounds, please select all the responses that apply.",
+        "question_type": "multi_choice",
+        "answer": "White/Caucasian"
+      },
+      {
+        "question_name": "hispanic",
+        "question_prompt": "Are you of Hispanic, Latino or Spanish origin or descent?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "hispanic_acculturation",
+        "question_prompt": "Thinking about the languages you use in the home, do you speak...?",
+        "question_type": "multi_choice",
+        "answer": "Only English"
+      },
+      {
+        "question_name": "education",
+        "question_prompt": "What is the highest degree or level of school you have completed?",
+        "question_type": "multi_choice",
+        "answer": "Bachelor's degree"
+      },
+      {
+        "question_name": "political_party_preference",
+        "question_prompt": "Generally speaking, do you think of yourself as a...",
+        "question_type": "multi_choice",
+        "answer": "Independent"
+      },
+      {
+        "question_name": "political_ideology",
+        "question_prompt": "In general, do you think of yourself as...",
+        "question_type": "multi_choice",
+        "answer": "Extremely liberal"
+      },
+      {
+        "question_name": "voter_registration_usa",
+        "question_prompt": "Are you registered to vote in the United States of America?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "car_ownership",
+        "question_prompt": "Is your primary vehicle owned or leased?",
+        "question_type": "multi_choice",
+        "answer": "Own"
+      },
+      {
+        "question_name": "car_model_year",
+        "question_prompt": "What is the model year of your primary vehicle?",
+        "question_type": "number",
+        "answer": "2018"
+      },
+      {
+        "question_name": "religious_identity",
+        "question_prompt": "What best describes the religious tradition that you currently identify with? If you currently identify with more than one tradition then please choose the tradition you identify with most strongly.",
+        "question_type": "multi_choice",
+        "answer": "Christian/Protestant/Methodist/Lutheran/Baptist"
+      },
+      {
+        "question_name": "employment",
+        "question_prompt": "Which of the following best describes your employment?",
+        "question_type": "multi_choice",
+        "answer": "Work full time"
+      },
+      {
+        "question_name": "born_usa",
+        "question_prompt": "Were you born in the United States?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "economic_political_ideology",
+        "question_prompt": "On economic issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Extremely liberal"
+      },
+      {
+        "question_name": "social_political_ideology",
+        "question_prompt": "On social issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Liberal"
+      },
+      {
+        "question_name": "yob_and_gender_of_children",
+        "question_prompt": "If you have any children under the age of 18, please indicate their gender and year of birth below. Select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Boy born in 2016; Girl born in 2020"
+      },
+      {
+        "question_name": "game_consoles_hh_2023",
+        "question_prompt": "Which of the following video game consoles do you <u>currently have in your household</u>? Please include any in your household, whether you personally use them or not.",
+        "question_type": "multi_choice",
+        "answer": "Mobile phone or tablet; Gaming PC or Laptop; PlayStation 4"
+      },
+      {
+        "question_name": "game_consoles_used_2023",
+        "question_prompt": "Which of the following devices do you <u>regularly use</u> to play video games, if any?",
+        "question_type": "multi_choice",
+        "answer": "PlayStation 4; Mobile phone or tablet; Gaming PC or Laptop"
+      },
+      {
+        "question_name": "conditions",
+        "question_prompt": "Which (if any) of the following illnesses/conditions have you been diagnosed with?<br/><br/>As always, this information will remain anonymous.",
+        "question_type": "multi_choice",
+        "answer": "Anemia"
+      },
+      {
+        "question_name": "home",
+        "question_prompt": "Which of the following best describes your current home?",
+        "question_type": "multi_choice",
+        "answer": "Owned house"
+      },
+      {
+        "question_name": "sexual_orientation",
+        "question_prompt": "Which of the following best describes your sexual orientation?",
+        "question_type": "multi_choice",
+        "answer": "Heterosexual/straight"
+      },
+      {
+        "question_name": "children",
+        "question_prompt": "Do you have any children under the age of 18 living in your household?",
+        "question_type": "multi_choice",
+        "answer": "Yes - I have one or more children under the age of 18 living in my household"
+      },
+      {
+        "question_name": "job_title",
+        "question_prompt": "What is your job title, level or responsibility?",
+        "question_type": "multi_choice",
+        "answer": "Manager (Group Manager, Sr. Manager, Manager, Program Manager)"
+      },
+      {
+        "question_name": "industry_personal",
+        "question_prompt": "Which of the following best describes the industry that you, personally, work in?",
+        "question_type": "multi_choice",
+        "answer": "Architecture"
+      },
+      {
+        "question_name": "familial_origin",
+        "question_prompt": "Which of the following world regions best represents you/your family’s national origin? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "North America"
+      },
+      {
+        "question_name": "licensed_driver",
+        "question_prompt": "Do you currently have a US driver's license?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "marital",
+        "question_prompt": "What is your current relationship status?",
+        "question_type": "multi_choice",
+        "answer": "Married"
+      },
+      {
+        "question_name": "neighborhood",
+        "question_prompt": "Which of the following best describes the area in which you live?",
+        "question_type": "multi_choice",
+        "answer": "Suburban"
+      },
+      {
+        "question_name": "pets",
+        "question_prompt": "Which of the following pets, if any, do you currently have in your household?",
+        "question_type": "multi_choice",
+        "answer": "Dog; Cat"
+      },
+      {
+        "question_name": "military_status",
+        "question_prompt": "Do you, or have you ever, served in the United States Military?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "electronic_devices_owned",
+        "question_prompt": "Which of the following types of consumer electronic products, if any, do you or someone in your household currently own? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Computer or tablet (desktop, laptop, iPad, etc.); Smartphone; Smart Watch (Apple, Samsung, Garmin, etc.)"
+      },
+      {
+        "question_name": "subscriptions",
+        "question_prompt": "Which of the following, if any, do you currently subscribe to or have service with? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Amazon Prime Video; Apple TV Plus; AT&T"
+      },
+      {
+        "question_name": "social_media_used",
+        "question_prompt": "Which of the following social media platforms/apps/websites do you use? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "YouTube; Twitter / X; Twitch; TikTok; WeChat"
+      },
+      {
+        "question_name": "purchase_decisions",
+        "question_prompt": "In your household, are you the person who makes most of the daily purchasing decisions?",
+        "question_type": "multi_choice",
+        "answer": "I make most or all of the purchasing decisions"
+      },
+      {
+        "question_name": "py_purchases_2024",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "New automobile; New mobile phone or tablet computer"
+      },
+      {
+        "question_name": "ny_purchases_2024",
+        "question_prompt": "Which of the following things do you <u>intend to purchase or lease</u> for your own use in the <u><b>next</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Motorcycle; New desktop or laptop computer"
+      },
+      {
+        "question_name": "religiosity",
+        "question_prompt": "How religious would you say you are?",
+        "question_type": "multi_choice",
+        "answer": "4"
+      },
+      {
+        "question_name": "vehicle_types",
+        "question_prompt": "Which of the following types of vehicles, if any, do you <u>currently own or lease</u>?",
+        "question_type": "multi_choice",
+        "answer": "Automobile"
+      },
+      {
+        "question_name": "2020_presidential_voting",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2020</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "Donald Trump (Republican)"
+      },
+      {
+        "question_name": "presidential_voting_2024",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2024</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "Donald Trump (Republican)"
+      },
+      {
+        "question_name": "py_purchases_2025",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "New desktop or laptop computer; Motorcycle"
+      },
+      {
+        "question_name": "ai_tool_usage_2025",
+        "question_prompt": "How often do you use AI tools like ChatGPT, Claude, or similar services?",
+        "question_type": "multi_choice",
+        "answer": "A few times per week"
+      }
+    ],
+    "rule_based_flags": [
+      "Failed manual validation by admin",
+      "Used blacklisted reward email: [email removed]"
+    ],
+    "ground_truth": {
+      "removed": true,
+      "label": "suspicious",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iPf157c7846e",
+      "primary_email_domain": "outlook.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": false,
+      "primary_phone_verified": false,
+      "primary_phone_carrier": "N/A",
+      "primary_phone_carrier_type": "N/A",
+      "primary_phone_mobile": "N/A",
+      "primary_phone_sms_opt_in": "N/A"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-18T09:26:26Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "N/A",
+      "age": "N/A",
+      "gender": "N/A",
+      "state": "N/A",
+      "msa": "N/A",
+      "timezone": "N/A",
+      "where_heard_about_us": "N/A"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2025-10-18",
+      "minfraud_risk_score": "99.0",
+      "recaptcha_score": "N/A"
+    },
+    "additional_profile_answers": [
+
+    ],
+    "rule_based_flags": [
+      "Likely Proxy User",
+      "High Minfraud Risk Score"
+    ],
+    "ground_truth": {
+      "removed": true,
+      "label": "suspicious",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iPf22e115194",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": true,
+      "primary_phone_verified": true,
+      "primary_phone_carrier": "T-Mobile USA, Inc.",
+      "primary_phone_carrier_type": "mobile",
+      "primary_phone_mobile": "true",
+      "primary_phone_sms_opt_in": "true"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-17T02:47:01Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "1972",
+      "age": "53",
+      "gender": "Male",
+      "state": "California",
+      "msa": "San Francisco-Oakland-San Jose CA CMSA",
+      "timezone": "Pacific (GMT -08:00)",
+      "where_heard_about_us": "tv"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2025-10-17",
+      "minfraud_risk_score": "5.44",
+      "recaptcha_score": "0.9"
+    },
+    "additional_profile_answers": [
+      {
+        "question_name": "pets",
+        "question_prompt": "Which of the following pets, if any, do you currently have in your household?",
+        "question_type": "multi_choice",
+        "answer": "Dog"
+      },
+      {
+        "question_name": "education",
+        "question_prompt": "What is the highest degree or level of school you have completed?",
+        "question_type": "multi_choice",
+        "answer": "Some college credit, no degree"
+      },
+      {
+        "question_name": "employment",
+        "question_prompt": "Which of the following best describes your employment?",
+        "question_type": "multi_choice",
+        "answer": "Work part time"
+      },
+      {
+        "question_name": "children",
+        "question_prompt": "Do you have any children under the age of 18 living in your household?",
+        "question_type": "multi_choice",
+        "answer": "No - I have no children under the age of 18 living in my household"
+      },
+      {
+        "question_name": "yob_and_gender_of_children",
+        "question_prompt": "If you have any children under the age of 18, please indicate their gender and year of birth below. Select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "None - I do not have any children under the age of 18"
+      },
+      {
+        "question_name": "job_title",
+        "question_prompt": "What is your job title, level or responsibility?",
+        "question_type": "multi_choice",
+        "answer": "None of the above"
+      },
+      {
+        "question_name": "industry_personal",
+        "question_prompt": "Which of the following best describes the industry that you, personally, work in?",
+        "question_type": "multi_choice",
+        "answer": "Transportation"
+      },
+      {
+        "question_name": "ethnicity",
+        "question_prompt": "Which of the following best describes your ethnic background? If you are from multiple ethnic backgrounds, please select all the responses that apply.",
+        "question_type": "multi_choice",
+        "answer": "Other race or ethnicity"
+      },
+      {
+        "question_name": "familial_origin",
+        "question_prompt": "Which of the following world regions best represents you/your family’s national origin? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "South America"
+      },
+      {
+        "question_name": "hispanic",
+        "question_prompt": "Are you of Hispanic, Latino or Spanish origin or descent?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "hispanic_acculturation",
+        "question_prompt": "Thinking about the languages you use in the home, do you speak...?",
+        "question_type": "multi_choice",
+        "answer": "Mostly English with some Spanish"
+      },
+      {
+        "question_name": "home",
+        "question_prompt": "Which of the following best describes your current home?",
+        "question_type": "multi_choice",
+        "answer": "Rented apartment/condo"
+      },
+      {
+        "question_name": "income",
+        "question_prompt": "Which of the following ranges includes your total annual household income from all sources?",
+        "question_type": "multi_choice",
+        "answer": "$35,000 to $49,999"
+      },
+      {
+        "question_name": "licensed_driver",
+        "question_prompt": "Do you currently have a US driver's license?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "marital",
+        "question_prompt": "What is your current relationship status?",
+        "question_type": "multi_choice",
+        "answer": "Separated, divorced, or widowed"
+      },
+      {
+        "question_name": "neighborhood",
+        "question_prompt": "Which of the following best describes the area in which you live?",
+        "question_type": "multi_choice",
+        "answer": "Urban"
+      },
+      {
+        "question_name": "political_ideology",
+        "question_prompt": "In general, do you think of yourself as...",
+        "question_type": "multi_choice",
+        "answer": "Moderate, middle of the road"
+      },
+      {
+        "question_name": "social_political_ideology",
+        "question_prompt": "On social issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Moderate, middle of the road"
+      },
+      {
+        "question_name": "economic_political_ideology",
+        "question_prompt": "On economic issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Moderate, middle of the road"
+      },
+      {
+        "question_name": "political_party_preference",
+        "question_prompt": "Generally speaking, do you think of yourself as a...",
+        "question_type": "multi_choice",
+        "answer": "Independent"
+      },
+      {
+        "question_name": "sexual_orientation",
+        "question_prompt": "Which of the following best describes your sexual orientation?",
+        "question_type": "multi_choice",
+        "answer": "Heterosexual/straight"
+      },
+      {
+        "question_name": "voter_registration_usa",
+        "question_prompt": "Are you registered to vote in the United States of America?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "military_status",
+        "question_prompt": "Do you, or have you ever, served in the United States Military?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "electronic_devices_owned",
+        "question_prompt": "Which of the following types of consumer electronic products, if any, do you or someone in your household currently own? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Computer or tablet (desktop, laptop, iPad, etc.); Smart home device (smart speaker such as Amazon’s Alexa/Echo or Google Home, smart thermostat, smart security camera, smart doorbell, smart lightbulb, etc.); Smartphone; Television"
+      },
+      {
+        "question_name": "subscriptions",
+        "question_prompt": "Which of the following, if any, do you currently subscribe to or have service with? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Amazon Prime Video; T-Mobile; YouTube TV"
+      },
+      {
+        "question_name": "social_media_used",
+        "question_prompt": "Which of the following social media platforms/apps/websites do you use? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Facebook Messenger; TikTok; Facebook; LinkedIn; YouTube"
+      },
+      {
+        "question_name": "car_ownership",
+        "question_prompt": "Is your primary vehicle owned or leased?",
+        "question_type": "multi_choice",
+        "answer": "Lease"
+      },
+      {
+        "question_name": "car_model_year",
+        "question_prompt": "What is the model year of your primary vehicle?",
+        "question_type": "number",
+        "answer": "2024"
+      },
+      {
+        "question_name": "purchase_decisions",
+        "question_prompt": "In your household, are you the person who makes most of the daily purchasing decisions?",
+        "question_type": "multi_choice",
+        "answer": "I make most or all of the purchasing decisions"
+      },
+      {
+        "question_name": "py_purchases_2024",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "None of the above"
+      },
+      {
+        "question_name": "ny_purchases_2024",
+        "question_prompt": "Which of the following things do you <u>intend to purchase or lease</u> for your own use in the <u><b>next</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "None of the above"
+      },
+      {
+        "question_name": "religiosity",
+        "question_prompt": "How religious would you say you are?",
+        "question_type": "multi_choice",
+        "answer": "4"
+      },
+      {
+        "question_name": "religious_identity",
+        "question_prompt": "What best describes the religious tradition that you currently identify with? If you currently identify with more than one tradition then please choose the tradition you identify with most strongly.",
+        "question_type": "multi_choice",
+        "answer": "Catholic"
+      },
+      {
+        "question_name": "born_usa",
+        "question_prompt": "Were you born in the United States?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "vehicle_types",
+        "question_prompt": "Which of the following types of vehicles, if any, do you <u>currently own or lease</u>?",
+        "question_type": "multi_choice",
+        "answer": "Automobile"
+      },
+      {
+        "question_name": "game_consoles_hh_2023",
+        "question_prompt": "Which of the following video game consoles do you <u>currently have in your household</u>? Please include any in your household, whether you personally use them or not.",
+        "question_type": "multi_choice",
+        "answer": "Mobile phone or tablet"
+      },
+      {
+        "question_name": "game_consoles_used_2023",
+        "question_prompt": "Which of the following devices do you <u>regularly use</u> to play video games, if any?",
+        "question_type": "multi_choice",
+        "answer": "Mobile phone or tablet"
+      },
+      {
+        "question_name": "conditions",
+        "question_prompt": "Which (if any) of the following illnesses/conditions have you been diagnosed with?<br/><br/>As always, this information will remain anonymous.",
+        "question_type": "multi_choice",
+        "answer": "Diabetes"
+      },
+      {
+        "question_name": "2020_presidential_voting",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2020</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "I did not vote"
+      },
+      {
+        "question_name": "presidential_voting_2024",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2024</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "Donald Trump (Republican)"
+      },
+      {
+        "question_name": "py_purchases_2025",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Used/previously owned automobile; New mobile phone or tablet computer; New desktop or laptop computer"
+      }
+    ],
+    "rule_based_flags": [
+      "Moderate Minfraud Risk Score",
+      "Verified a Phone with Flagged Carrier"
+    ],
+    "ground_truth": {
+      "removed": false,
+      "label": "normal",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iPf30c663929",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": true,
+      "primary_phone_verified": false,
+      "primary_phone_carrier": "N/A",
+      "primary_phone_carrier_type": "N/A",
+      "primary_phone_mobile": "N/A",
+      "primary_phone_sms_opt_in": "N/A"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-24T15:33:03Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "1970",
+      "age": "55",
+      "gender": "Female",
+      "state": "New York",
+      "msa": "New York-Northern New Jersey-Long Island NY-NJ-CT-PA",
+      "timezone": "Eastern (GMT -05:00)",
+      "where_heard_about_us": "a friend"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2025-10-24",
+      "minfraud_risk_score": "78.04",
+      "recaptcha_score": "0.9"
+    },
+    "additional_profile_answers": [
+      {
+        "question_name": "pets",
+        "question_prompt": "Which of the following pets, if any, do you currently have in your household?",
+        "question_type": "multi_choice",
+        "answer": "Fish; Cat"
+      }
+    ],
+    "rule_based_flags": [
+      "High Minfraud Risk Score"
+    ],
+    "ground_truth": {
+      "removed": true,
+      "label": "suspicious",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iPac5104883b",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": true,
+      "primary_phone_verified": true,
+      "primary_phone_carrier": "T-Mobile USA, Inc.",
+      "primary_phone_carrier_type": "mobile",
+      "primary_phone_mobile": "true",
+      "primary_phone_sms_opt_in": "true"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (Android 16; Mobile; rv:144.0) Gecko/144.0 Firefox/144.0"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-22T02:57:05Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "1962",
+      "age": "63",
+      "gender": "Male",
+      "state": "California",
+      "msa": "Los Angeles-Riverside-Orange County CA",
+      "timezone": "Pacific (GMT -08:00)",
+      "where_heard_about_us": "YouTube video"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2019-05-27",
+      "minfraud_risk_score": "0.47",
+      "recaptcha_score": "0.7"
+    },
+    "additional_profile_answers": [
+      {
+        "question_name": "pets",
+        "question_prompt": "Which of the following pets, if any, do you currently have in your household?",
+        "question_type": "multi_choice",
+        "answer": "Dog; Cat"
+      },
+      {
+        "question_name": "education",
+        "question_prompt": "What is the highest degree or level of school you have completed?",
+        "question_type": "multi_choice",
+        "answer": "Some college credit, no degree"
+      },
+      {
+        "question_name": "employment",
+        "question_prompt": "Which of the following best describes your employment?",
+        "question_type": "multi_choice",
+        "answer": "Work full time"
+      },
+      {
+        "question_name": "children",
+        "question_prompt": "Do you have any children under the age of 18 living in your household?",
+        "question_type": "multi_choice",
+        "answer": "No - I have no children under the age of 18 living in my household"
+      },
+      {
+        "question_name": "yob_and_gender_of_children",
+        "question_prompt": "If you have any children under the age of 18, please indicate their gender and year of birth below. Select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "None - I do not have any children under the age of 18"
+      },
+      {
+        "question_name": "job_title",
+        "question_prompt": "What is your job title, level or responsibility?",
+        "question_type": "multi_choice",
+        "answer": "Manager (Group Manager, Sr. Manager, Manager, Program Manager)"
+      },
+      {
+        "question_name": "industry_personal",
+        "question_prompt": "Which of the following best describes the industry that you, personally, work in?",
+        "question_type": "multi_choice",
+        "answer": "Automotive"
+      },
+      {
+        "question_name": "ethnicity",
+        "question_prompt": "Which of the following best describes your ethnic background? If you are from multiple ethnic backgrounds, please select all the responses that apply.",
+        "question_type": "multi_choice",
+        "answer": "White/Caucasian"
+      },
+      {
+        "question_name": "familial_origin",
+        "question_prompt": "Which of the following world regions best represents you/your family’s national origin? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "North America"
+      },
+      {
+        "question_name": "hispanic",
+        "question_prompt": "Are you of Hispanic, Latino or Spanish origin or descent?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "home",
+        "question_prompt": "Which of the following best describes your current home?",
+        "question_type": "multi_choice",
+        "answer": "Rented house"
+      },
+      {
+        "question_name": "income",
+        "question_prompt": "Which of the following ranges includes your total annual household income from all sources?",
+        "question_type": "multi_choice",
+        "answer": "$75,000 to $99,999"
+      },
+      {
+        "question_name": "licensed_driver",
+        "question_prompt": "Do you currently have a US driver's license?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "marital",
+        "question_prompt": "What is your current relationship status?",
+        "question_type": "multi_choice",
+        "answer": "Single, never married"
+      },
+      {
+        "question_name": "neighborhood",
+        "question_prompt": "Which of the following best describes the area in which you live?",
+        "question_type": "multi_choice",
+        "answer": "Urban"
+      },
+      {
+        "question_name": "political_ideology",
+        "question_prompt": "In general, do you think of yourself as...",
+        "question_type": "multi_choice",
+        "answer": "Moderate, middle of the road"
+      },
+      {
+        "question_name": "social_political_ideology",
+        "question_prompt": "On social issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Moderate, middle of the road"
+      },
+      {
+        "question_name": "economic_political_ideology",
+        "question_prompt": "On economic issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Moderate, middle of the road"
+      },
+      {
+        "question_name": "political_party_preference",
+        "question_prompt": "Generally speaking, do you think of yourself as a...",
+        "question_type": "multi_choice",
+        "answer": "Independent, close to Democrat"
+      },
+      {
+        "question_name": "sexual_orientation",
+        "question_prompt": "Which of the following best describes your sexual orientation?",
+        "question_type": "multi_choice",
+        "answer": "Heterosexual/straight"
+      },
+      {
+        "question_name": "voter_registration_usa",
+        "question_prompt": "Are you registered to vote in the United States of America?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "military_status",
+        "question_prompt": "Do you, or have you ever, served in the United States Military?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "electronic_devices_owned",
+        "question_prompt": "Which of the following types of consumer electronic products, if any, do you or someone in your household currently own? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Computer or tablet (desktop, laptop, iPad, etc.); DSLR Camera; Smart home device (smart speaker such as Amazon’s Alexa/Echo or Google Home, smart thermostat, smart security camera, smart doorbell, smart lightbulb, etc.); Smartphone; Television; Smart TV (TV with streaming applications built in)"
+      },
+      {
+        "question_name": "subscriptions",
+        "question_prompt": "Which of the following, if any, do you currently subscribe to or have service with? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Netflix; Amazon Prime Video; T-Mobile"
+      },
+      {
+        "question_name": "social_media_used",
+        "question_prompt": "Which of the following social media platforms/apps/websites do you use? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "TikTok; YouTube; Instagram; Twitter / X; Facebook; Facebook Messenger"
+      },
+      {
+        "question_name": "car_ownership",
+        "question_prompt": "Is your primary vehicle owned or leased?",
+        "question_type": "multi_choice",
+        "answer": "Own"
+      },
+      {
+        "question_name": "car_model_year",
+        "question_prompt": "What is the model year of your primary vehicle?",
+        "question_type": "number",
+        "answer": "2001"
+      },
+      {
+        "question_name": "purchase_decisions",
+        "question_prompt": "In your household, are you the person who makes most of the daily purchasing decisions?",
+        "question_type": "multi_choice",
+        "answer": "I make most or all of the purchasing decisions"
+      },
+      {
+        "question_name": "py_purchases_2024",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "New mobile phone or tablet computer; Used/previously owned automobile"
+      },
+      {
+        "question_name": "ny_purchases_2024",
+        "question_prompt": "Which of the following things do you <u>intend to purchase or lease</u> for your own use in the <u><b>next</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Used/previously owned automobile"
+      },
+      {
+        "question_name": "religiosity",
+        "question_prompt": "How religious would you say you are?",
+        "question_type": "multi_choice",
+        "answer": "1 - Not at all Religious"
+      },
+      {
+        "question_name": "religious_identity",
+        "question_prompt": "What best describes the religious tradition that you currently identify with? If you currently identify with more than one tradition then please choose the tradition you identify with most strongly.",
+        "question_type": "multi_choice",
+        "answer": "Nothing in particular"
+      },
+      {
+        "question_name": "born_usa",
+        "question_prompt": "Were you born in the United States?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "vehicle_types",
+        "question_prompt": "Which of the following types of vehicles, if any, do you <u>currently own or lease</u>?",
+        "question_type": "multi_choice",
+        "answer": "Automobile; Recreational vehicle (RV)"
+      },
+      {
+        "question_name": "game_consoles_hh_2023",
+        "question_prompt": "Which of the following video game consoles do you <u>currently have in your household</u>? Please include any in your household, whether you personally use them or not.",
+        "question_type": "multi_choice",
+        "answer": "None of the above"
+      },
+      {
+        "question_name": "game_consoles_used_2023",
+        "question_prompt": "Which of the following devices do you <u>regularly use</u> to play video games, if any?",
+        "question_type": "multi_choice",
+        "answer": "None of the above"
+      },
+      {
+        "question_name": "conditions",
+        "question_prompt": "Which (if any) of the following illnesses/conditions have you been diagnosed with?<br/><br/>As always, this information will remain anonymous.",
+        "question_type": "multi_choice",
+        "answer": "Dental Problems; Diabetes; Eczema"
+      },
+      {
+        "question_name": "2020_presidential_voting",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2020</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "Joe Biden (Democrat)"
+      },
+      {
+        "question_name": "presidential_voting_2024",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2024</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "Kamala Harris (Democrat)"
+      },
+      {
+        "question_name": "py_purchases_2025",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Large household appliance (refrigerator, stove/cooker, washer/dryer); New desktop or laptop computer; New mobile phone or tablet computer"
+      },
+      {
+        "question_name": "ai_tool_usage_2025",
+        "question_prompt": "How often do you use AI tools like ChatGPT, Claude, or similar services?",
+        "question_type": "multi_choice",
+        "answer": "A few times per month"
+      }
+    ],
+    "rule_based_flags": [
+      "Verified a Phone with Flagged Carrier"
+    ],
+    "ground_truth": {
+      "removed": false,
+      "label": "normal",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iP3ecf654a1c",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": true,
+      "primary_phone_verified": true,
+      "primary_phone_carrier": "Dish Wireless, LLC",
+      "primary_phone_carrier_type": "mobile",
+      "primary_phone_mobile": "true",
+      "primary_phone_sms_opt_in": "false"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-15T22:51:50Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "1963",
+      "age": "62",
+      "gender": "Female",
+      "state": "Indiana",
+      "msa": "Indianapolis IN MSA",
+      "timezone": "Eastern (GMT -05:00)",
+      "where_heard_about_us": "Internet "
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2025-10-15",
+      "minfraud_risk_score": "15.52",
+      "recaptcha_score": "0.9"
+    },
+    "additional_profile_answers": [
+      {
+        "question_name": "pets",
+        "question_prompt": "Which of the following pets, if any, do you currently have in your household?",
+        "question_type": "multi_choice",
+        "answer": "Small mammal (such as a rabbit, hamster, guinea pig, chinchilla, etc.); Cat"
+      },
+      {
+        "question_name": "income",
+        "question_prompt": "Which of the following ranges includes your total annual household income from all sources?",
+        "question_type": "multi_choice",
+        "answer": "Less than $25,000"
+      },
+      {
+        "question_name": "ethnicity",
+        "question_prompt": "Which of the following best describes your ethnic background? If you are from multiple ethnic backgrounds, please select all the responses that apply.",
+        "question_type": "multi_choice",
+        "answer": "White/Caucasian"
+      },
+      {
+        "question_name": "hispanic",
+        "question_prompt": "Are you of Hispanic, Latino or Spanish origin or descent?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "education",
+        "question_prompt": "What is the highest degree or level of school you have completed?",
+        "question_type": "multi_choice",
+        "answer": "High school graduate, diploma or the equivalent (for example: GED)"
+      },
+      {
+        "question_name": "political_party_preference",
+        "question_prompt": "Generally speaking, do you think of yourself as a...",
+        "question_type": "multi_choice",
+        "answer": "Strong Republican"
+      },
+      {
+        "question_name": "political_ideology",
+        "question_prompt": "In general, do you think of yourself as...",
+        "question_type": "multi_choice",
+        "answer": "Slightly conservative"
+      },
+      {
+        "question_name": "children",
+        "question_prompt": "Do you have any children under the age of 18 living in your household?",
+        "question_type": "multi_choice",
+        "answer": "No - I have no children under the age of 18 living in my household"
+      },
+      {
+        "question_name": "yob_and_gender_of_children",
+        "question_prompt": "If you have any children under the age of 18, please indicate their gender and year of birth below. Select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "None - I do not have any children under the age of 18"
+      },
+      {
+        "question_name": "voter_registration_usa",
+        "question_prompt": "Are you registered to vote in the United States of America?",
+        "question_type": "multi_choice",
+        "answer": "Prefer not to answer"
+      },
+      {
+        "question_name": "conditions",
+        "question_prompt": "Which (if any) of the following illnesses/conditions have you been diagnosed with?<br/><br/>As always, this information will remain anonymous.",
+        "question_type": "multi_choice",
+        "answer": "Acid Reflux; Allergies; Anxiety; Arthritis; Asthma; COPD; Depression; Eczema; Food Intolerances; Gastro Esophageal Reflux (GERD); High Cholesterol ; Hypertension; Mental Disorder; Migraines; Osteoarthritis; Stroke; Substance Abuse Drugs/Alcohol; Urinary Incontinence"
+      },
+      {
+        "question_name": "born_usa",
+        "question_prompt": "Were you born in the United States?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "employment",
+        "question_prompt": "Which of the following best describes your employment?",
+        "question_type": "multi_choice",
+        "answer": "Retired"
+      },
+      {
+        "question_name": "neighborhood",
+        "question_prompt": "Which of the following best describes the area in which you live?",
+        "question_type": "multi_choice",
+        "answer": "Suburban"
+      },
+      {
+        "question_name": "home",
+        "question_prompt": "Which of the following best describes your current home?",
+        "question_type": "multi_choice",
+        "answer": "Rented house"
+      },
+      {
+        "question_name": "presidential_voting_2024",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2024</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "Prefer not to say"
+      },
+      {
+        "question_name": "car_ownership",
+        "question_prompt": "Is your primary vehicle owned or leased?",
+        "question_type": "multi_choice",
+        "answer": "I don’t currently own or lease a vehicle"
+      },
+      {
+        "question_name": "py_purchases_2025",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Large household appliance (refrigerator, stove/cooker, washer/dryer)"
+      }
+    ],
+    "rule_based_flags": [
+      "Moderate Minfraud Risk Score",
+      "Attempted to Sign Up with Another Email Address"
+    ],
+    "ground_truth": {
+      "removed": false,
+      "label": "normal",
+      "action": "no_action"
+    }
+  },
+  {
+    "identity": {
+      "panelist_id": "iPc5186c2082",
+      "primary_email_domain": "gmail.com",
+      "primary_email_verified": true,
+      "primary_email_dropped": false,
+      "primary_phone_present": true,
+      "primary_phone_verified": true,
+      "primary_phone_carrier": "Verizon Wireless",
+      "primary_phone_carrier_type": "mobile",
+      "primary_phone_mobile": "true",
+      "primary_phone_sms_opt_in": "false"
+    },
+    "network_device": {
+      "ip_country": "United States",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0"
+    },
+    "recruitment": {
+      "sign_up_timestamp_utc": "2025-10-22T08:45:12Z",
+      "campaign_name": "Organic",
+      "campaign_id": 5,
+      "campaign_type": "organic/unattributed",
+      "source_name": "Organic/unknown",
+      "source_id": 1
+    },
+    "registration_profile": {
+      "year_of_birth": "1983",
+      "age": "43",
+      "gender": "Male",
+      "state": "Ohio",
+      "msa": "",
+      "timezone": "Eastern (GMT -05:00)",
+      "where_heard_about_us": "beermoney subreddit"
+    },
+    "third_party_signals": {
+      "email_first_seen_by_minfraud": "2025-10-22",
+      "minfraud_risk_score": "13.72",
+      "recaptcha_score": "0.9"
+    },
+    "additional_profile_answers": [
+      {
+        "question_name": "pets",
+        "question_prompt": "Which of the following pets, if any, do you currently have in your household?",
+        "question_type": "multi_choice",
+        "answer": "Dog"
+      },
+      {
+        "question_name": "education",
+        "question_prompt": "What is the highest degree or level of school you have completed?",
+        "question_type": "multi_choice",
+        "answer": "Bachelor's degree"
+      },
+      {
+        "question_name": "employment",
+        "question_prompt": "Which of the following best describes your employment?",
+        "question_type": "multi_choice",
+        "answer": "Other"
+      },
+      {
+        "question_name": "children",
+        "question_prompt": "Do you have any children under the age of 18 living in your household?",
+        "question_type": "multi_choice",
+        "answer": "No - I have no children under the age of 18 living in my household"
+      },
+      {
+        "question_name": "yob_and_gender_of_children",
+        "question_prompt": "If you have any children under the age of 18, please indicate their gender and year of birth below. Select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "None - I do not have any children under the age of 18"
+      },
+      {
+        "question_name": "ethnicity",
+        "question_prompt": "Which of the following best describes your ethnic background? If you are from multiple ethnic backgrounds, please select all the responses that apply.",
+        "question_type": "multi_choice",
+        "answer": "White/Caucasian"
+      },
+      {
+        "question_name": "familial_origin",
+        "question_prompt": "Which of the following world regions best represents you/your family’s national origin? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Europe"
+      },
+      {
+        "question_name": "hispanic",
+        "question_prompt": "Are you of Hispanic, Latino or Spanish origin or descent?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "home",
+        "question_prompt": "Which of the following best describes your current home?",
+        "question_type": "multi_choice",
+        "answer": "Owned house"
+      },
+      {
+        "question_name": "income",
+        "question_prompt": "Which of the following ranges includes your total annual household income from all sources?",
+        "question_type": "multi_choice",
+        "answer": "Less than $25,000"
+      },
+      {
+        "question_name": "licensed_driver",
+        "question_prompt": "Do you currently have a US driver's license?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "marital",
+        "question_prompt": "What is your current relationship status?",
+        "question_type": "multi_choice",
+        "answer": "Single, never married"
+      },
+      {
+        "question_name": "neighborhood",
+        "question_prompt": "Which of the following best describes the area in which you live?",
+        "question_type": "multi_choice",
+        "answer": "Urban"
+      },
+      {
+        "question_name": "political_ideology",
+        "question_prompt": "In general, do you think of yourself as...",
+        "question_type": "multi_choice",
+        "answer": "Moderate, middle of the road"
+      },
+      {
+        "question_name": "social_political_ideology",
+        "question_prompt": "On social issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Moderate, middle of the road"
+      },
+      {
+        "question_name": "economic_political_ideology",
+        "question_prompt": "On economic issues, how would you describe yourself?\n\n",
+        "question_type": "multi_choice",
+        "answer": "Extremely liberal"
+      },
+      {
+        "question_name": "political_party_preference",
+        "question_prompt": "Generally speaking, do you think of yourself as a...",
+        "question_type": "multi_choice",
+        "answer": "Other"
+      },
+      {
+        "question_name": "sexual_orientation",
+        "question_prompt": "Which of the following best describes your sexual orientation?",
+        "question_type": "multi_choice",
+        "answer": "Heterosexual/straight"
+      },
+      {
+        "question_name": "voter_registration_usa",
+        "question_prompt": "Are you registered to vote in the United States of America?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "military_status",
+        "question_prompt": "Do you, or have you ever, served in the United States Military?",
+        "question_type": "multi_choice",
+        "answer": "No"
+      },
+      {
+        "question_name": "electronic_devices_owned",
+        "question_prompt": "Which of the following types of consumer electronic products, if any, do you or someone in your household currently own? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Computer or tablet (desktop, laptop, iPad, etc.); Gaming console (PS5, Xbox, Nintendo Switch, etc.); Television"
+      },
+      {
+        "question_name": "subscriptions",
+        "question_prompt": "Which of the following, if any, do you currently subscribe to or have service with? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "None of the above"
+      },
+      {
+        "question_name": "social_media_used",
+        "question_prompt": "Which of the following social media platforms/apps/websites do you use? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Discord; Twitch; Reddit; YouTube"
+      },
+      {
+        "question_name": "car_ownership",
+        "question_prompt": "Is your primary vehicle owned or leased?",
+        "question_type": "multi_choice",
+        "answer": "Own"
+      },
+      {
+        "question_name": "car_model_year",
+        "question_prompt": "What is the model year of your primary vehicle?",
+        "question_type": "number",
+        "answer": "2001"
+      },
+      {
+        "question_name": "purchase_decisions",
+        "question_prompt": "In your household, are you the person who makes most of the daily purchasing decisions?",
+        "question_type": "multi_choice",
+        "answer": "I share the purchasing decisions equally with someone else in my household"
+      },
+      {
+        "question_name": "py_purchases_2024",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Used/previously owned automobile"
+      },
+      {
+        "question_name": "ny_purchases_2024",
+        "question_prompt": "Which of the following things do you <u>intend to purchase or lease</u> for your own use in the <u><b>next</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Large household appliance (refrigerator, stove/cooker, washer/dryer)"
+      },
+      {
+        "question_name": "religiosity",
+        "question_prompt": "How religious would you say you are?",
+        "question_type": "multi_choice",
+        "answer": "1 - Not at all Religious"
+      },
+      {
+        "question_name": "religious_identity",
+        "question_prompt": "What best describes the religious tradition that you currently identify with? If you currently identify with more than one tradition then please choose the tradition you identify with most strongly.",
+        "question_type": "multi_choice",
+        "answer": "Atheist"
+      },
+      {
+        "question_name": "born_usa",
+        "question_prompt": "Were you born in the United States?",
+        "question_type": "multi_choice",
+        "answer": "Yes"
+      },
+      {
+        "question_name": "vehicle_types",
+        "question_prompt": "Which of the following types of vehicles, if any, do you <u>currently own or lease</u>?",
+        "question_type": "multi_choice",
+        "answer": "Automobile"
+      },
+      {
+        "question_name": "game_consoles_hh_2023",
+        "question_prompt": "Which of the following video game consoles do you <u>currently have in your household</u>? Please include any in your household, whether you personally use them or not.",
+        "question_type": "multi_choice",
+        "answer": "Gaming PC or Laptop; Mobile phone or tablet; Classic, retro, or arcade-style game console; Other game console (non-handheld)"
+      },
+      {
+        "question_name": "game_consoles_used_2023",
+        "question_prompt": "Which of the following devices do you <u>regularly use</u> to play video games, if any?",
+        "question_type": "multi_choice",
+        "answer": "Gaming PC or Laptop; Classic, retro, or arcade-style game console; Other game console (non-handheld)"
+      },
+      {
+        "question_name": "conditions",
+        "question_prompt": "Which (if any) of the following illnesses/conditions have you been diagnosed with?<br/><br/>As always, this information will remain anonymous.",
+        "question_type": "multi_choice",
+        "answer": "Allergies; Asthma"
+      },
+      {
+        "question_name": "2020_presidential_voting",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2020</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "I did not vote"
+      },
+      {
+        "question_name": "presidential_voting_2024",
+        "question_prompt": "Who, if anyone, did you vote for in the <b>2024</b> United States Presidential election?",
+        "question_type": "multi_choice",
+        "answer": "I did not vote"
+      },
+      {
+        "question_name": "py_purchases_2025",
+        "question_prompt": "Which of the following things have you <u>purchased or leased</u> for your own use in the <u><b>past</b> 12 months</u>? Please select all that apply.",
+        "question_type": "multi_choice",
+        "answer": "Furniture for your household; Used/previously owned automobile"
+      },
+      {
+        "question_name": "ai_tool_usage_2025",
+        "question_prompt": "How often do you use AI tools like ChatGPT, Claude, or similar services?",
+        "question_type": "multi_choice",
+        "answer": "Never"
+      }
+    ],
+    "rule_based_flags": [
+      "Moderate Minfraud Risk Score"
+    ],
+    "ground_truth": {
+      "removed": false,
+      "label": "normal",
+      "action": "no_action"
+    }
+  }
+]
