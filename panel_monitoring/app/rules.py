@@ -1,5 +1,6 @@
 # panel_monitoring/app/rules/occupation_rules.py
 import difflib
+import json
 import re
 from typing import Dict, Any
 import structlog
@@ -62,6 +63,31 @@ def looks_like_human_hourly_job(text: str) -> bool:
     return _has_wage_pattern(t) and _has_fuzzy_job_word(t)
 
 
+def _has_high_fraud_signals(event_text: str) -> bool:
+    """Return True when the event contains strong technical fraud indicators
+    that should NOT be overridden by occupation heuristics."""
+    try:
+        data = json.loads(event_text)
+    except (json.JSONDecodeError, TypeError):
+        return False
+
+    signals = data.get("third_party_signals", {})
+    try:
+        minfraud = float(signals.get("minfraud_risk_score", 0))
+    except (ValueError, TypeError):
+        minfraud = 0.0
+    try:
+        recaptcha = float(signals.get("recaptcha_score", 1.0))
+    except (ValueError, TypeError):
+        recaptcha = 1.0
+
+    flags = data.get("rule_based_flags", [])
+    has_high_minfraud = minfraud >= 20.0 or "High Minfraud Risk Score" in flags
+    has_low_recaptcha = recaptcha < 0.5 or "User reCAPTCHA score on sign up less than 0.5" in flags
+
+    return has_high_minfraud and has_low_recaptcha
+
+
 def apply_occupation_rules(
     normalized_signals: Dict[str, Any],
     *,
@@ -71,10 +97,21 @@ def apply_occupation_rules(
     """
     Post-process LLM signals with deterministic, rule-based overrides
     related to occupation / income text.
+
+    Skip the override when strong technical fraud signals (high Minfraud
+    AND low reCAPTCHA) are present — fraudsters routinely craft realistic
+    profile data.
     """
 
     if looks_like_human_hourly_job(event_text):
         if normalized_signals.get("suspicious_signup"):
+            if _has_high_fraud_signals(event_text):
+                log.info(
+                    "rules.apply_occupation_rules.skip_override_high_fraud_signals",
+                    event_id=event_id,
+                )
+                return normalized_signals
+
             log.info(
                 "rules.apply_occupation_rules.downweight_suspicion_for_hourly_job",
                 event_id=event_id,
