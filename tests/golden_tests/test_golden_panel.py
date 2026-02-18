@@ -132,11 +132,7 @@ def calculate_human_signal_score(item: Dict[str, Any]) -> int:
     return min(score, 100)
 
 
-# Change slice if you want to run a subset: e.g., [:1], [1:2], etc.
-# PARAM_ITEMS = load_test_data()[0:2]
 PARAM_ITEMS = load_test_data()
-#i only want to test iP1c42f07cff, iP2d8325efb9, iP5a77f99280, iPbd9fc018e8
-# PARAM_ITEMS = [item for item in PARAM_ITEMS if item["identity"]["panelist_id"] in ["iP1c42f07cff", "iP2d8325efb9", "iP5a77f99280", "iPbd9fc018e8"]]
 
 # PARAM_ITEMS = [item for item in PARAM_ITEMS if item["identity"]["panelist_id"] in ["iPed2bd533d4"]]
 
