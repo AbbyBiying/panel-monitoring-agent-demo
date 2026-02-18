@@ -16,7 +16,6 @@ import logging
 
 from panel_monitoring.app.clients.llms import aclassify_event
 from panel_monitoring.app.injection_detector import detect_injection_ml
-from panel_monitoring.app.rules import apply_occupation_rules
 from panel_monitoring.app.schemas import GraphState, Signals, ModelMeta
 from panel_monitoring.app.utils import (
     build_llm_decision_summary_from_signals,
@@ -475,15 +474,6 @@ async def signal_evaluation_node(state: GraphState) -> dict:
             reason=f"Prompt injection detected ({pattern_names}). Original: {signals.reason}",
             panelist_id=signals.panelist_id,
         )
-
-    # ---- Rule-based post-processing / guardrails -----------------------------
-    raw_signals_dict = signals.model_dump()
-    raw_signals_dict = apply_occupation_rules(
-        raw_signals_dict,
-        event_text=text,
-        event_id=event_id,
-    )
-    signals = Signals.model_validate(raw_signals_dict)
 
     # ---- Decide high-level classification; action decided later ---------------
     if signals.suspicious_signup and not signals.normal_signup:
