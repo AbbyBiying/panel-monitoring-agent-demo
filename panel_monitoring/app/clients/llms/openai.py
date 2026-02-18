@@ -17,6 +17,7 @@ try:
 except Exception:  # pragma: no cover
     APIError = RateLimitError = AuthenticationError = OpenAIError = Exception  # type: ignore
 
+from panel_monitoring.app.retry import llm_retry
 from panel_monitoring.app.clients.llms.base import (
     LLMPredictionClient,
     PredictionError,
@@ -89,6 +90,7 @@ class LLMClientOpenAI(LLMPredictionClient):
             api_key=self.api_key,
         )
 
+    @llm_retry
     def classify_event(
         self,
         event: str,

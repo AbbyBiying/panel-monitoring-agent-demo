@@ -138,7 +138,7 @@ PARAM_ITEMS = load_test_data()
 #i only want to test iP1c42f07cff, iP2d8325efb9, iP5a77f99280, iPbd9fc018e8
 # PARAM_ITEMS = [item for item in PARAM_ITEMS if item["identity"]["panelist_id"] in ["iP1c42f07cff", "iP2d8325efb9", "iP5a77f99280", "iPbd9fc018e8"]]
 
-# PARAM_ITEMS = [item for item in PARAM_ITEMS if item["identity"]["panelist_id"] in ["iPf22e115194"]]
+# PARAM_ITEMS = [item for item in PARAM_ITEMS if item["identity"]["panelist_id"] in ["iPed2bd533d4"]]
 
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("item", PARAM_ITEMS, ids=[_get_pid(it) for it in PARAM_ITEMS])

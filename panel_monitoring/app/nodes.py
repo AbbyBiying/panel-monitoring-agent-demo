@@ -24,6 +24,7 @@ from panel_monitoring.app.utils import (
     log_info,
     looks_like_automated,
 )
+from panel_monitoring.app.retry import firestore_write_with_retry
 from panel_monitoring.data.firestore_client import (
     embed_text,
     events_col,
@@ -140,6 +141,36 @@ def _heuristic_fallback(text: str) -> Tuple[Signals, ModelMeta]:
     )
 
 
+# Fields that the LLM must see first (critical for classification).
+# Everything else follows in original order; verbose fields go last.
+_PRIORITY_FIELDS = [
+    "rule_based_flags",
+    "third_party_signals",
+    "identity",
+    "network_device",
+    "recruitment",
+    "registration_profile",
+]
+_DEFERRED_FIELDS = [
+    "additional_profile_answers",
+]
+
+
+def _reorder_event(data: dict) -> dict:
+    """Reorder event dict so critical fields come first, verbose fields last."""
+    ordered: dict = {}
+    for key in _PRIORITY_FIELDS:
+        if key in data:
+            ordered[key] = data[key]
+    for key in data:
+        if key not in ordered and key not in _DEFERRED_FIELDS:
+            ordered[key] = data[key]
+    for key in _DEFERRED_FIELDS:
+        if key in data:
+            ordered[key] = data[key]
+    return ordered
+
+
 def _event_text_from_state(state: GraphState) -> str:
     """Produce a plain-text representation for classification & preview."""
     if isinstance(state.event_text, str):
@@ -147,7 +178,7 @@ def _event_text_from_state(state: GraphState) -> str:
     src = state.event_data or ""
     if isinstance(src, str):
         return src
-    return json.dumps(src, ensure_ascii=False)
+    return json.dumps(_reorder_event(src), ensure_ascii=False)
 
 
 # --- nodes -----------------------------------------------------------------
@@ -193,7 +224,8 @@ async def user_event_node(state: GraphState) -> dict:
     if state.event_id:
         event_id = state.event_id
         # Only update mutable fields on existing doc
-        await events.document(event_id).set(
+        await firestore_write_with_retry(
+            events.document(event_id),
             {
                 "project_id": project_id,
                 "updated_at": firestore.SERVER_TIMESTAMP,
@@ -206,7 +238,8 @@ async def user_event_node(state: GraphState) -> dict:
     else:
         # Create new doc with immutable creation fields
         evt_ref = events.document()
-        await evt_ref.set(
+        await firestore_write_with_retry(
+            evt_ref,
             {
                 "project_id": project_id,
                 "type": getattr(state, "event_type", "signup"),
@@ -218,7 +251,7 @@ async def user_event_node(state: GraphState) -> dict:
                 "payload": {"preview": (event_text or "")[:200]},
                 "panelist_id": panelist_id
 
-            }
+            },
         )
         event_id = evt_ref.id
 
@@ -623,7 +656,7 @@ async def save_classification_node(state: GraphState) -> dict:
         run_data["prompt_id"] = state.prompt_id
     if state.prompt_name:
         run_data["prompt_name"] = state.prompt_name
-    await runs.document(run_id).set(run_data)
+    await firestore_write_with_retry(runs.document(run_id), run_data)
 
     # --- events: update with classification (visible in UI immediately) ---
     status = "awaiting_review" if decision == "suspicious" else ("classified" if decision != "error" else "error")
@@ -642,7 +675,7 @@ async def save_classification_node(state: GraphState) -> dict:
         event_data["prompt_id"] = state.prompt_id
     if state.prompt_name:
         event_data["prompt_name"] = state.prompt_name
-    await events.document(event_id).set(event_data, merge=True)
+    await firestore_write_with_retry(events.document(event_id), event_data, merge=True)
 
     log_info(
         "Classification saved | event=%s | panelist=%s | decision=%s | confidence=%.2f | status=%s",
@@ -672,7 +705,8 @@ async def logging_node(state: GraphState) -> dict:
 
     # --- runs: update with final action & review outcome ---
     runs = await runs_col()
-    await runs.document(run_id).set(
+    await firestore_write_with_retry(
+        runs.document(run_id),
         {
             "action": state.action or "no_action",
             "review_decision": getattr(state, "review_decision", None),
@@ -685,7 +719,8 @@ async def logging_node(state: GraphState) -> dict:
 
     # --- events: update with final action ---
     events = await events_col()
-    await events.document(event_id).set(
+    await firestore_write_with_retry(
+        events.document(event_id),
         {
             "status": "classified" if decision != "error" else "error",
             "action": state.action or "no_action",

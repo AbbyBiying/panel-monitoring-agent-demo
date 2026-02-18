@@ -15,6 +15,7 @@ from langchain_google_genai import (
     HarmBlockThreshold,
 )
 
+from panel_monitoring.app.retry import llm_retry
 from panel_monitoring.app.clients.llms.base import (
     LLMPredictionClient,
     PredictionError,
@@ -93,6 +94,7 @@ class LLMClientGemini(LLMPredictionClient):
 
     # ---- primary (structured) APIs ---------------------------------------
 
+    @llm_retry
     def classify_event(
         self,
         event: str,

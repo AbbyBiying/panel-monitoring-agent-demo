@@ -82,6 +82,14 @@ def _has_high_fraud_signals(event_text: str) -> bool:
         recaptcha = 1.0
 
     flags = data.get("rule_based_flags", [])
+
+    # A human admin decision must never be overridden by heuristics
+    for flag in flags:
+        if "failed manual validation" in flag.lower():
+            return True
+        if "blacklisted" in flag.lower():
+            return True
+
     has_high_minfraud = minfraud >= 20.0 or "High Minfraud Risk Score" in flags
     has_low_recaptcha = recaptcha < 0.5 or "User reCAPTCHA score on sign up less than 0.5" in flags
 

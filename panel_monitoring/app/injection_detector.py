@@ -17,6 +17,8 @@ import logging
 import threading
 from dataclasses import dataclass
 
+from panel_monitoring.app.retry import llm_retry
+
 logger = logging.getLogger(__name__)
 
 _MODEL_NAME = "protectai/deberta-v3-base-prompt-injection-v2"
@@ -56,6 +58,7 @@ def _get_pipeline():
         return _pipeline
 
 
+@llm_retry
 def _classify_sync(text: str) -> dict:
     """Run the model synchronously. Returns {"label": ..., "score": ...}."""
     pipe = _get_pipeline()

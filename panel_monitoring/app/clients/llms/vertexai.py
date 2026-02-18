@@ -13,6 +13,7 @@ from panel_monitoring.app.clients.llms.base import LLMPredictionClient, Predicti
 from panel_monitoring.app.config import get_settings
 from panel_monitoring.app.schemas import Signals
 from panel_monitoring.app.prompts import PROMPT_CLASSIFY_SYSTEM, PROMPT_CLASSIFY_USER
+from panel_monitoring.app.retry import llm_retry
 from panel_monitoring.app.utils import (
     build_classify_messages,
     load_credentials,
@@ -77,6 +78,7 @@ class LLMClientVertexAI(LLMPredictionClient):
             credentials=creds,
         )
 
+    @llm_retry
     def _sync_classify(
         self,
         event: str,
