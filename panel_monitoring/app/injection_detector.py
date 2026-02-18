@@ -64,6 +64,8 @@ def _classify_sync(text: str) -> dict:
     pipe = _get_pipeline()
     result = pipe(text)
     # pipeline returns [{"label": "INJECTION", "score": 0.99}]
+    if not result:
+        raise RuntimeError("Injection detection pipeline returned empty result")
     return result[0]
 
 

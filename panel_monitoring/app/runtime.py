@@ -69,7 +69,7 @@ async def run_interactive(app, get_event_input, project_name: str, provider: str
                 logger.info(result)
 
                 # Drain all interrupts (if any)
-                while isinstance(result, dict) and "__interrupt__" in result:
+                while isinstance(result, dict) and result.get("__interrupt__"):
                     last = result["__interrupt__"][-1]
                     msg = last.value
 

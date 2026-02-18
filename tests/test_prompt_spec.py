@@ -25,7 +25,7 @@ class TestPromptSpecDoc:
         assert doc.deployment_role is None
         assert doc.model_name == ""
         assert doc.system_prompt == ""
-        assert doc.prompt == ""
+        assert doc.user_prompt == ""
         assert doc.config == {}
         assert doc.labels == []
         assert doc.url is None
@@ -108,7 +108,7 @@ class TestGetActivePromptSpec:
             "model_host": "vertexai",
             "model_name": "gemini-2.5-flash",
             "system_prompt": "sys",
-            "prompt": "usr {event}",
+            "user_prompt": "usr {event}",
             "config": {},
             "version": "1",
             "labels": [],
@@ -283,7 +283,7 @@ class TestSignalEvaluationNodePromptSpec:
         spec = PromptSpecDoc(
             model_name="gemini-2.5-flash",
             system_prompt="Custom sys prompt.",
-            prompt="Custom user: {event}",
+            user_prompt="Custom user: {event}",
             version="2",
             deployment_status="live",
             deployment_role="signup_classification",
@@ -322,7 +322,7 @@ class TestSignalEvaluationNodePromptSpec:
         mock_classify.assert_awaited_once()
         call_kwargs = mock_classify.call_args
         assert call_kwargs.kwargs["system_prompt_override"] == "Custom sys prompt."
-        assert call_kwargs.kwargs["user_prompt_override"] == "Custom user: {event}"
+        assert call_kwargs.kwargs["user_prompt_override"] == "Custom user: {event}"  # noqa: E501
 
         # Verify prompt_id/prompt_name propagated
         assert result["prompt_id"] == "ps_123"
@@ -499,7 +499,138 @@ class TestPromptSpecsCol:
 
 
 # ---------------------------------------------------------------------------
-# 7. Seed script — validate seeded document shape
+# 7. Push script — versioning and immutability
+# ---------------------------------------------------------------------------
+
+
+def _make_push_col(existing_docs: list[dict]):
+    """
+    Build a mock collection for push_prompt_to_firestore tests.
+
+    existing_docs: list of dicts representing existing Firestore docs
+                   (each must have a 'version' key).
+    """
+    async def fake_stream():
+        for data in existing_docs:
+            snap = MagicMock()
+            snap.to_dict.return_value = data
+            yield snap
+
+    fake_query = MagicMock()
+    fake_query.stream.return_value = fake_stream()
+
+    captured = {}
+
+    async def capture_set(data):
+        captured.update(data)
+
+    mock_doc = MagicMock()
+    mock_doc.set = capture_set
+
+    mock_col = MagicMock()
+    mock_col.where.return_value = fake_query
+    mock_col.document.return_value = mock_doc
+
+    return mock_col, captured, mock_col.document
+
+
+class TestPushPromptToFirestore:
+    @pytest.mark.asyncio
+    async def test_first_push_creates_v1(self):
+        """When no existing docs, push creates signup_classification_v1."""
+        mock_col, captured, mock_document = _make_push_col(existing_docs=[])
+
+        with patch(
+            "panel_monitoring.scripts.push_prompt_to_firestore.prompt_specs_col",
+            new_callable=AsyncMock,
+            return_value=mock_col,
+        ):
+            from panel_monitoring.scripts.push_prompt_to_firestore import push
+            await push()
+
+        mock_document.assert_called_once_with("signup_classification_v1")
+        assert captured["version"] == "1"
+        assert captured["deployment_role"] == "signup_classification"
+        assert captured["deployment_status"] == "pre_live"
+
+    @pytest.mark.asyncio
+    async def test_second_push_creates_v2(self):
+        """When v1 already exists, push creates v2."""
+        mock_col, captured, mock_document = _make_push_col(
+            existing_docs=[{"version": "1", "deployment_role": "signup_classification"}]
+        )
+
+        with patch(
+            "panel_monitoring.scripts.push_prompt_to_firestore.prompt_specs_col",
+            new_callable=AsyncMock,
+            return_value=mock_col,
+        ):
+            from panel_monitoring.scripts.push_prompt_to_firestore import push
+            await push()
+
+        mock_document.assert_called_once_with("signup_classification_v2")
+        assert captured["version"] == "2"
+
+    @pytest.mark.asyncio
+    async def test_push_sets_correct_prompts(self):
+        """Pushed doc contains the actual system and user prompts."""
+        from panel_monitoring.app.prompts import PROMPT_CLASSIFY_SYSTEM, PROMPT_CLASSIFY_USER
+
+        mock_col, captured, _ = _make_push_col(existing_docs=[])
+
+        with patch(
+            "panel_monitoring.scripts.push_prompt_to_firestore.prompt_specs_col",
+            new_callable=AsyncMock,
+            return_value=mock_col,
+        ):
+            from panel_monitoring.scripts.push_prompt_to_firestore import push
+            await push()
+
+        assert captured["system_prompt"] == PROMPT_CLASSIFY_SYSTEM
+        assert captured["user_prompt"] == PROMPT_CLASSIFY_USER
+
+    @pytest.mark.asyncio
+    async def test_push_never_uses_merge(self):
+        """Push must call set() without merge=True to enforce immutability."""
+        mock_col, _, _ = _make_push_col(existing_docs=[])
+
+        set_calls = []
+
+        async def capture_set(data, **kwargs):
+            set_calls.append(kwargs)
+
+        mock_col.document.return_value.set = capture_set
+
+        with patch(
+            "panel_monitoring.scripts.push_prompt_to_firestore.prompt_specs_col",
+            new_callable=AsyncMock,
+            return_value=mock_col,
+        ):
+            from panel_monitoring.scripts.push_prompt_to_firestore import push
+            await push()
+
+        assert len(set_calls) == 1
+        assert set_calls[0].get("merge") is not True, "push must NOT use merge=True"
+
+    @pytest.mark.asyncio
+    async def test_push_starts_as_pre_live_not_live(self):
+        """New versions must never be pushed directly to live."""
+        mock_col, captured, _ = _make_push_col(existing_docs=[])
+
+        with patch(
+            "panel_monitoring.scripts.push_prompt_to_firestore.prompt_specs_col",
+            new_callable=AsyncMock,
+            return_value=mock_col,
+        ):
+            from panel_monitoring.scripts.push_prompt_to_firestore import push
+            await push()
+
+        assert captured["deployment_status"] == "pre_live"
+        assert captured["deployment_status"] != "live"
+
+
+# ---------------------------------------------------------------------------
+# 8. Seed script — validate seeded document shape
 # ---------------------------------------------------------------------------
 
 
@@ -558,7 +689,7 @@ class TestSeedFirestorePromptSpec:
         assert captured_data["deployment_status"] == "live"
         assert captured_data["deployment_role"] == "signup_classification"
         assert captured_data["model_name"] == "gemini-2.5-flash"
-        assert "{event}" in captured_data["prompt"]
+        assert "{event}" in captured_data["user_prompt"]
         assert len(captured_data["system_prompt"]) > 0
 
         # Validate it round-trips through the Pydantic model

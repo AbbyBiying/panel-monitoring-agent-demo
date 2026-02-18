@@ -85,6 +85,8 @@ def _has_high_fraud_signals(event_text: str) -> bool:
 
     # A human admin decision must never be overridden by heuristics
     for flag in flags:
+        if not isinstance(flag, str):
+            continue
         if "failed manual validation" in flag.lower():
             return True
         if "blacklisted" in flag.lower():

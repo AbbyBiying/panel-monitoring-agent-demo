@@ -327,7 +327,7 @@ async def signal_evaluation_node(state: GraphState) -> dict:
 
         if prompt_spec:
             system_prompt_override = prompt_spec.system_prompt or None
-            user_prompt_override = prompt_spec.prompt or None
+            user_prompt_override = prompt_spec.user_prompt or None
             if prompt_spec.model_name:
                 model = prompt_spec.model_name
             prompt_id = prompt_spec.doc_id
@@ -469,7 +469,9 @@ async def signal_evaluation_node(state: GraphState) -> dict:
     # If the LLM was tricked into saying "normal", override to suspicious.
     if injection_flags and signals.normal_signup and not signals.suspicious_signup:
         pattern_names = ", ".join(
-            f["matched_patterns"][0] for f in injection_flags if f.get("matched_patterns")
+            f["matched_patterns"][0]
+            for f in injection_flags
+            if f.get("matched_patterns") and len(f["matched_patterns"]) > 0
         )
         signals = Signals(
             suspicious_signup=True,

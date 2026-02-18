@@ -201,6 +201,47 @@ This mode is best for:
 
 * Real-time monitoring of panel activity
 
+### Prompt Management
+
+Prompts are stored in Firestore as versioned `PromptSpec` documents and are **immutable after creation**. Never edit or delete an existing version — past runs reference it by ID, and changing it would corrupt the audit trail.
+
+#### Push a new prompt version
+
+Edit `panel_monitoring/app/prompts.py`, then run:
+
+```
+uv run python -m panel_monitoring.scripts.push_prompt_to_firestore
+```
+
+This creates a new document (e.g. `signup_classification_v4`) with `deployment_status = pre_live`. The agent will not use it yet.
+
+#### Promote to live
+
+In the Firestore console:
+1. Set the old live version's `deployment_status` → `deactivated`
+2. Set the new version's `deployment_status` → `live` (or `canary` first for a gradual rollout)
+
+#### Deployment statuses
+
+| Status | Meaning |
+|--------|---------|
+| `pre_live` | Created, not yet active |
+| `canary` | Receiving a portion of traffic (manual routing) |
+| `live` | Active — picked up by the agent |
+| `failover` | Used if the live version fails |
+| `deactivated` | Retired, kept for audit history |
+
+#### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `system_prompt` | str | The system-level instructions for the LLM |
+| `user_prompt` | str | The user-turn template (must contain `{event}`) |
+| `version` | str | Integer string, auto-incremented on each push |
+| `deployment_role` | str | Which agent uses this prompt (e.g. `signup_classification`) |
+| `model_host` | PromptModelHost | Provider: `vertexai`, `gemini`, `openai`, `anthropic` |
+| `model_name` | str | Model override (e.g. `gemini-2.5-flash`) |
+
 ### Code Quality: Ruff (lint & format)
 
 This repo uses Ruff for linting and formatting.

@@ -1,8 +1,24 @@
 # panel_monitoring/models/firestore_docs.py
 from __future__ import annotations
+import enum
 from datetime import UTC, datetime
 from typing import Optional, Dict, Any, List, Literal
 from pydantic import BaseModel, Field, field_validator
+
+
+class PromptDeploymentStatus(enum.StrEnum):
+    DEACTIVATED = enum.auto()
+    PRE_LIVE = enum.auto()
+    CANARY = enum.auto()
+    LIVE = enum.auto()
+    FAILOVER = enum.auto()
+
+
+class PromptModelHost(enum.StrEnum):
+    VERTEXAI = enum.auto()
+    GEMINI = enum.auto()
+    OPENAI = enum.auto()
+    ANTHROPIC = enum.auto()
 
 
 class _BaseDoc(BaseModel):
@@ -79,18 +95,16 @@ class RunDoc(_BaseDoc):
 class PromptSpecDoc(_BaseDoc):
     """Firestore document for a prompt specification (mirrors app_portal PromptSpec)."""
 
-    model_host: str = ""
+    model_host: PromptModelHost = PromptModelHost.VERTEXAI
     model_name: str = ""
     system_prompt: str = ""
-    prompt: str = ""
+    user_prompt: str = ""
     config: Dict[str, Any] = Field(default_factory=dict)
     version: str = ""
     labels: List[str] = Field(default_factory=list)
     url: Optional[str] = None
 
-    deployment_status: Literal[
-        "deactivated", "pre_live", "canary", "live", "failover"
-    ] = "deactivated"
+    deployment_status: PromptDeploymentStatus = PromptDeploymentStatus.DEACTIVATED
     deployment_role: Optional[str] = None  # e.g. "signup_classification"
 
     # Not stored in Firestore — populated at read time with the document ID

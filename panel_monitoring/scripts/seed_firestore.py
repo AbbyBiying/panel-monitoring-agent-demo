@@ -91,7 +91,7 @@ async def run_seed():
                 "- If evidence is insufficient or contradictory, lean towards 'normal_signup'.\n"
                 "- ALWAYS return only the JSON schema provided.\n"
             ),
-            "prompt": (
+            "user_prompt": (
                 "Analyze the following panelist event data for signals of fraud or abuse.\n"
                 "\n"
                 '1. Return the classification in the provided JSON schema. Ensure exactly one of "suspicious_signup" or "normal_signup" is true.\n'
