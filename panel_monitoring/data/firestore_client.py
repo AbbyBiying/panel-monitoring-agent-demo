@@ -216,6 +216,8 @@ def _embed_text_sync(text: str) -> list[float]:
     try:
         model = _get_embeddings_model()
         vectors = model.embed_documents([text])
+        if not vectors or not vectors[0]:
+            raise RuntimeError("Embedding API returned empty vectors")
         logger.debug(
             "_embed_text_sync: embedded text (%d chars) -> %d-dim vector",
             len(text),

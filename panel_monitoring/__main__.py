@@ -48,7 +48,11 @@ def main():
         cmd = [sys.executable, str(resolved), *extra_args]
 
     logger.info("Running: %s", " ".join(cmd))
-    subprocess.run(cmd, check=True)
+    try:
+        subprocess.run(cmd, check=True)
+    except subprocess.CalledProcessError as e:
+        logger.error("Script exited with code %d", e.returncode)
+        sys.exit(e.returncode)
 
 
 if __name__ == "__main__":

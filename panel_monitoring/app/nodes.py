@@ -177,7 +177,11 @@ def _event_text_from_state(state: GraphState) -> str:
     src = state.event_data or ""
     if isinstance(src, str):
         return src
-    return json.dumps(_reorder_event(src), ensure_ascii=False)
+    try:
+        return json.dumps(_reorder_event(src), ensure_ascii=False, default=str)
+    except (TypeError, ValueError):
+        logger.warning("_event_text_from_state: json.dumps failed, falling back to str()")
+        return str(src)
 
 
 # --- nodes -----------------------------------------------------------------

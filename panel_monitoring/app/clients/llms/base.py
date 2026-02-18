@@ -39,7 +39,12 @@ class LLMPredictionClient(ABC):
         self.system_prompt = system_prompt or None
         self.user_prompt = user_prompt
         if isinstance(prompt_config, str):
-            self.prompt_config = json.loads(prompt_config)
+            try:
+                self.prompt_config = json.loads(prompt_config)
+            except (json.JSONDecodeError, ValueError) as e:
+                raise PredictionError(
+                    f"Invalid prompt_config JSON: {e}", str(model_ref)
+                ) from e
         else:
             self.prompt_config = prompt_config or {}
         self.log = log

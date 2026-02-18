@@ -24,7 +24,10 @@ logger = logging.getLogger(__name__)
 
 # Pre-initialize LLM client at module import time (before async event loop)
 # This ensures all blocking I/O (credentials, .env files) happens synchronously
-init_llm_client()
+try:
+    init_llm_client()
+except Exception:
+    logger.exception("Failed to initialize LLM client — classification will fail at runtime")
 
 
 def build_graph():
