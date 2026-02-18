@@ -1,4 +1,4 @@
-# panel_monitoring/app/rules/occupation_rules.py
+# panel_monitoring/app/rules.py
 import difflib
 import json
 import re

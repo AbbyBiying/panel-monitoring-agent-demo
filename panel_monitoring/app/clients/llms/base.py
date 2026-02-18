@@ -6,7 +6,6 @@ import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Optional, Union
-from uuid import UUID
 
 
 class PredictionError(Exception):
@@ -28,7 +27,7 @@ class PredictionResult:
 class LLMPredictionClient(ABC):
     def __init__(
         self,
-        model_ref: Union[str, UUID],
+        model_ref: str,
         model_name: str,
         user_prompt: str,
         system_prompt: Optional[str] = None,

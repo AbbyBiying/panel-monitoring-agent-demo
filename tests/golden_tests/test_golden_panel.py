@@ -17,8 +17,6 @@ os.environ.setdefault("VERTEX_MODEL", "gemini-2.5-flash")
 
 HERE = pathlib.Path(__file__).parent
 TEST_DATA_FILES = [
-    # HERE / "formatted-test-data.json",
-    # HERE / "formatted-edge-test-data.json",
     HERE / "updated-golden-test-data.json"
 ]
 

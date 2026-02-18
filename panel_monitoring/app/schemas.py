@@ -21,6 +21,13 @@ class Signals(BaseModel):
     # dont do chain of thought
 
 
+class InjectionScanResult(BaseModel):
+    """Result of prompt injection detection scan."""
+    detected: bool = False
+    matched_patterns: list[str] = Field(default_factory=list)
+    source: str = ""
+
+
 # ----------------------------
 # Metadata about model execution
 # ----------------------------
@@ -96,3 +103,6 @@ class GraphState(BaseModel):
     # RAG Context: Store the fraud rules retrieved from Firestore
     # We use list[dict] to store both the rule text and its metadata (like rule_id)
     retrieved_docs: Annotated[list[dict], operator.add] = Field(default_factory=list)
+
+    # Prompt injection detection flags
+    injection_flags: list[dict] = Field(default_factory=list)

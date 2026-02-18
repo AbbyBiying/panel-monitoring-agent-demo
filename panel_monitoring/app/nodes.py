@@ -15,10 +15,12 @@ from langgraph.types import Command, interrupt
 import logging
 
 from panel_monitoring.app.clients.llms import aclassify_event
+from panel_monitoring.app.injection_detector import detect_injection_ml
 from panel_monitoring.app.rules import apply_occupation_rules
 from panel_monitoring.app.schemas import GraphState, Signals, ModelMeta
 from panel_monitoring.app.utils import (
     build_llm_decision_summary_from_signals,
+    detect_prompt_injection,
     log_info,
     looks_like_automated,
 )
@@ -268,6 +270,7 @@ async def signal_evaluation_node(state: GraphState) -> dict:
 
     prompt_id = None
     prompt_name = None
+    injection_flags: list[dict] = []
 
     if human_input and looks_like_automated(human_input):
         signals = Signals(
@@ -303,6 +306,59 @@ async def signal_evaluation_node(state: GraphState) -> dict:
             )
         else:
             log_info("No live PromptSpec found; using hardcoded prompts.")
+
+        # --- Prompt injection scan on untrusted inputs ---
+        # Layer 1: fast regex scan
+        event_scan = detect_prompt_injection(text, source="event")
+        if event_scan.detected:
+            injection_flags.append(event_scan.model_dump())
+        for i, doc in enumerate(state.retrieved_docs or [], 1):
+            doc_scan = detect_prompt_injection(
+                doc.get("text", ""), source=f"retrieved_doc_{i}",
+            )
+            if doc_scan.detected:
+                injection_flags.append(doc_scan.model_dump())
+
+        # Layer 2: DeBERTa ML model (freeform fields only — full JSON
+        # triggers false positives on structured data like brackets/colons)
+        _freeform_parts: list[str] = []
+        if human_input:
+            _freeform_parts.append(human_input)
+        for answer in (event_dict.get("additional_profile_answers") or []):
+            if isinstance(answer, str) and answer.strip():
+                _freeform_parts.append(answer.strip())
+            elif isinstance(answer, dict):
+                ans_text = answer.get("answer") or answer.get("text") or ""
+                if isinstance(ans_text, str) and ans_text.strip():
+                    _freeform_parts.append(ans_text.strip())
+        freeform_text = " ".join(_freeform_parts)
+
+        if freeform_text:
+            ml_event = await detect_injection_ml(freeform_text, source="event_freeform")
+            if ml_event.detected:
+                injection_flags.append({
+                    "detected": True,
+                    "matched_patterns": [f"ml:{ml_event.label}"],
+                    "source": ml_event.source,
+                    "ml_score": ml_event.score,
+                })
+        for i, doc in enumerate(state.retrieved_docs or [], 1):
+            ml_doc = await detect_injection_ml(
+                doc.get("text", ""), source=f"retrieved_doc_{i}",
+            )
+            if ml_doc.detected:
+                injection_flags.append({
+                    "detected": True,
+                    "matched_patterns": [f"ml:{ml_doc.label}"],
+                    "source": ml_doc.source,
+                    "ml_score": ml_doc.score,
+                })
+
+        if injection_flags:
+            log_info(
+                "Prompt injection detected | event_id=%s panelist_id=%s | flags=%s",
+                event_id, state.panelist_id, injection_flags,
+            )
 
         log_info(
             f"Evaluating signals with LLM (provider={provider}, model={model}), event_id={event_id} panelist_id={state.panelist_id}"
@@ -371,6 +427,22 @@ async def signal_evaluation_node(state: GraphState) -> dict:
             signals.reason = f"{signals.reason} ({type(e).__name__})"
 
     meta.latency_ms = round((time.perf_counter() - t0) * 1000, 2)
+
+    # ---- Prompt injection override -------------------------------------------
+    # Legitimate panelist data should never contain injection patterns.
+    # If the LLM was tricked into saying "normal", override to suspicious.
+    if injection_flags and signals.normal_signup and not signals.suspicious_signup:
+        pattern_names = ", ".join(
+            f["matched_patterns"][0] for f in injection_flags if f.get("matched_patterns")
+        )
+        signals = Signals(
+            suspicious_signup=True,
+            normal_signup=False,
+            confidence=max(float(signals.confidence or 0), 0.85),
+            reason=f"Prompt injection detected ({pattern_names}). Original: {signals.reason}",
+            panelist_id=signals.panelist_id,
+        )
+
     # ---- Rule-based post-processing / guardrails -----------------------------
     raw_signals_dict = signals.model_dump()
     raw_signals_dict = apply_occupation_rules(
@@ -398,6 +470,7 @@ async def signal_evaluation_node(state: GraphState) -> dict:
         "confidence": confidence,
         "action": action,
         "model_meta": meta,
+        "injection_flags": injection_flags,
     }
     if prompt_id is not None:
         result["prompt_id"] = prompt_id
@@ -498,8 +571,6 @@ async def human_approval_node(
 
     if normalized == "approve":
         final_action = "delete_account"
-    elif normalized == "reject":
-        final_action = "hold_account"
     else:
         final_action = "hold_account"
 
