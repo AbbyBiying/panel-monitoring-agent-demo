@@ -10,6 +10,8 @@
 # Prompt logic (internal)
 # -------------------------
 panel_monitoring/app/prompts.py
+panel_monitoring/app/utils.py
+panel_monitoring/data/business_context.txt
 
 # -------------------------
 # System / editor files
