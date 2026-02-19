@@ -47,18 +47,28 @@ use a `.env` file with `python-dotenv` library.
 $ export API_ENV_VAR="your-api-key-here"
 ```
 
-Create a .env file in the repo root (auto-loaded), or set environment variables manually:
+Create a `.env` file in the repo root (auto-loaded), or set environment variables manually:
 
-# Google credentials
 ```
+# Google / GCP
 GOOGLE_APPLICATION_CREDENTIALS="path/to/creds.json"
 GOOGLE_CLOUD_PROJECT="your-gcp-project"
 GOOGLE_CLOUD_LOCATION="us-central1"
-FIRESTORE_DATABASE_ID="(default)"       
-```
+FIRESTORE_DATABASE_ID="panel-monitoring-agent-dev"
+
+# Agent
+ENVIRONMENT=local                        # set to "local" for dev credential loading
+PANEL_PROJECT_ID="panel-app-dev"         # Firestore project namespace
+PANEL_DEFAULT_PROVIDER=vertexai          # vertexai | openai | genai
+VERTEX_MODEL=gemini-2.5-flash            # model override for Vertex AI
+
 # OpenAI (if used)
-```
 OPENAI_API_KEY="your-key"
+
+# LangSmith (optional — tracing and eval)
+LANGSMITH_API_KEY="your-key"
+LANGSMITH_TRACING=true
+LANGSMITH_PROJECT="panel-monitoring-agent"
 ```
 
 Infrastructure & Smoke Checks
@@ -99,40 +109,21 @@ This will print the most recent event document under your project, e.g.:
 mH2rAYijvDXOhDH6kLji {'type': 'signup', 'source': 'web', ...}
 ```
 
-# LangSmith (optional monitoring/tracing)
-```
-LANGSMITH_API_KEY="your-key"
-LANGSMITH_TRACING=true
-LANGSMITH_PROJECT="panel-monitoring-agent"
-# Tavily (optional web search)
-```
-TAVILY_API_KEY="your-key"
+### LangSmith (optional — tracing and eval)
 
-reference: <!-- https://docs.langchain.com/langsmith/manage-datasets -->
-Run 
+Sign up at [smith.langchain.com](https://smith.langchain.com/). Once set up, every agent run is traced automatically. To seed the eval dataset:
+
 ```
 uv run python testing-examples/datasets/seed_langsmith_dataset.py
-``` 
-to create the **Panel Monitoring Cases** dataset in LangSmith, seeding evaluation examples aligned with GraphState for classification and action testing.
-
-Tag latest as v1:
-``` 
 uv run python testing-examples/datasets/tag_dataset_version.py
-``` 
-
-### Set OpenAI API key
-* If you don't have an OpenAI API key, you can sign up [here](https://openai.com/index/openai-api/).
-*  Set `OPENAI_API_KEY` in your environment 
-
-### Sign up and Set LangSmith API
-* Sign up for LangSmith [here](https://smith.langchain.com/), find out more about LangSmith
-* and how to use it within your workflow [here](https://www.langchain.com/langsmith), and relevant library [docs](https://docs.smith.langchain.com/)!
-*  Set `LANGSMITH_API_KEY`, `LANGSMITH_TRACING=true`, `LANGSMITH_PROJECT="panel-monitoring-agent"` in your environment 
+```
 
 ### Running the Panel Monitoring Agent
 
 The Panel Monitoring Agent supports three execution modes, depending on your workflow and environment.
-# Run via the unified CLI (with FunctionProvider):
+
+#### Run via the unified CLI:
+
 OpenAI
 ```
 uv run python -m panel_monitoring.scripts.panel_agent --provider openai
@@ -200,6 +191,44 @@ This mode is best for:
 * Scalable event-driven workflows
 
 * Real-time monitoring of panel activity
+
+### Testing
+
+Run the full test suite:
+```
+uv run pytest tests/
+```
+
+Run specific suites:
+```
+# Golden tests (classification accuracy against hand-labeled production data)
+uv run pytest tests/golden_tests/
+
+# Unit tests (prompt spec, injection detection, retry logic)
+uv run pytest tests/test_prompt_spec.py tests/test_injection_detection.py tests/test_injection_ml.py tests/test_retry.py
+```
+
+Golden tests use hardcoded local prompts (not Firestore) for stability — a prompt change in Firestore will never silently break them.
+
+### Security: Prompt Injection Detection
+
+The agent runs a two-layer injection scan on all untrusted inputs before they reach the LLM:
+
+1. **Regex scan** (`utils.detect_prompt_injection`) — fast pattern matching for known injection techniques (instruction overrides, role hijacking, delimiter escapes, output manipulation)
+2. **ML scan** (`injection_detector.detect_injection_ml`) — DeBERTa v3 model (`protectai/deberta-v3-base-prompt-injection-v2`) for freeform text fields
+
+If injection is detected and the LLM still returns `normal_signup`, the result is overridden to `suspicious_signup` with confidence ≥ 0.85.
+
+### RAG: Business Context Ingestion
+
+The agent retrieves similar fraud patterns from Firestore using vector search to ground LLM decisions in real case history.
+
+To ingest or refresh the business context:
+```
+uv run python -m panel_monitoring.scripts.ingest_business_context
+```
+
+This chunks `panel_monitoring/data/business_context.txt` and writes embeddings to the `fraud_patterns` collection in Firestore.
 
 ### Prompt Management
 

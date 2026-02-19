@@ -7,6 +7,11 @@
 *.pem
 
 # -------------------------
+# Prompt logic (internal)
+# -------------------------
+panel_monitoring/app/prompts.py
+
+# -------------------------
 # System / editor files
 # -------------------------
 .DS_Store

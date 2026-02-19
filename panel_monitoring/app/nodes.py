@@ -320,28 +320,29 @@ async def signal_evaluation_node(state: GraphState) -> dict:
         provider = os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai")
         model = os.getenv("VERTEX_MODEL", "gemini-2.5-flash")
 
-        # --- Load active PromptSpec from Firestore (if available) ---
+        # --- Load active PromptSpec from Firestore (required) ---
         prompt_spec = await get_active_prompt_spec("signup_classification")
-        system_prompt_override = None
-        user_prompt_override = None
 
-        if prompt_spec:
-            system_prompt_override = prompt_spec.system_prompt or None
-            user_prompt_override = prompt_spec.user_prompt or None
-            if prompt_spec.model_name:
-                model = prompt_spec.model_name
-            prompt_id = prompt_spec.doc_id
-            prompt_name = (
-                f"{prompt_spec.deployment_role}@v{prompt_spec.version}"
-                if prompt_spec.version
-                else prompt_spec.deployment_role
+        if not prompt_spec:
+            raise RuntimeError(
+                "No live PromptSpec found for role 'signup_classification'. "
+                "Push and promote a prompt version before running the agent."
             )
-            log_info(
-                "Loaded PromptSpec from Firestore | id=%s name=%s model=%s",
-                prompt_id, prompt_name, model,
-            )
-        else:
-            log_info("No live PromptSpec found; using hardcoded prompts.")
+
+        system_prompt_override = prompt_spec.system_prompt or None
+        user_prompt_override = prompt_spec.user_prompt or None
+        if prompt_spec.model_name:
+            model = prompt_spec.model_name
+        prompt_id = prompt_spec.doc_id
+        prompt_name = (
+            f"{prompt_spec.deployment_role}@v{prompt_spec.version}"
+            if prompt_spec.version
+            else prompt_spec.deployment_role
+        )
+        log_info(
+            "Loaded PromptSpec from Firestore | id=%s name=%s model=%s",
+            prompt_id, prompt_name, model,
+        )
 
         # --- Prompt injection scan on untrusted inputs ---
         # Layer 1: fast regex scan

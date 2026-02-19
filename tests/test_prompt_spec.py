@@ -329,17 +329,8 @@ class TestSignalEvaluationNodePromptSpec:
         assert result["prompt_name"] == "signup_classification@v2"
 
     @pytest.mark.asyncio
-    async def test_falls_back_when_no_prompt_spec(self):
-        fake_signals = (
-            {
-                "suspicious_signup": False,
-                "normal_signup": True,
-                "confidence": 0.80,
-                "reason": "ok",
-            },
-            {"provider": "vertexai", "model": "gemini-2.5-flash"},
-        )
-
+    async def test_raises_when_no_prompt_spec(self):
+        """No live PromptSpec should raise RuntimeError — no silent fallback."""
         state = _make_state()
 
         with (
@@ -348,22 +339,11 @@ class TestSignalEvaluationNodePromptSpec:
                 new_callable=AsyncMock,
                 return_value=None,
             ),
-            patch(
-                "panel_monitoring.app.nodes.aclassify_event",
-                new_callable=AsyncMock,
-                return_value=fake_signals,
-            ) as mock_classify,
+            pytest.raises(RuntimeError, match="No live PromptSpec found"),
         ):
             from panel_monitoring.app.nodes import signal_evaluation_node
 
-            result = await signal_evaluation_node(state)
-
-        call_kwargs = mock_classify.call_args
-        assert call_kwargs.kwargs["system_prompt_override"] is None
-        assert call_kwargs.kwargs["user_prompt_override"] is None
-
-        assert "prompt_id" not in result
-        assert "prompt_name" not in result
+            await signal_evaluation_node(state)
 
 
 # ---------------------------------------------------------------------------

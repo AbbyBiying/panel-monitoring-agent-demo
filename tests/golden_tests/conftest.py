@@ -2,6 +2,9 @@ from unittest.mock import AsyncMock, patch
 import pathlib
 import pytest
 
+from panel_monitoring.app.prompts import PROMPT_CLASSIFY_SYSTEM, PROMPT_CLASSIFY_USER
+from panel_monitoring.models.firestore_docs import PromptSpecDoc
+
 
 def _load_biz_chunks() -> list[dict]:
     """Read business_context.txt and split into chunks matching Firestore schema."""
@@ -30,10 +33,21 @@ _DUMMY_VECTOR = [0.0] * 768
 def use_local_prompts():
     biz_chunks = _load_biz_chunks()
 
+    # Build a PromptSpecDoc from the hardcoded local prompts so golden tests
+    # are stable and never depend on what's live in Firestore.
+    local_spec = PromptSpecDoc(
+        system_prompt=PROMPT_CLASSIFY_SYSTEM,
+        user_prompt=PROMPT_CLASSIFY_USER,
+        version="local",
+        deployment_role="signup_classification",
+        deployment_status="live",
+    )
+    local_spec.doc_id = "local"
+
     with patch(
         "panel_monitoring.app.nodes.get_active_prompt_spec",
         new_callable=AsyncMock,
-        return_value=None,
+        return_value=local_spec,
     ), patch(
         "panel_monitoring.app.nodes.embed_text",
         new_callable=AsyncMock,
