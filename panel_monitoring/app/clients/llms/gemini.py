@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import time
@@ -14,6 +15,7 @@ from langchain_google_genai import (
     HarmBlockThreshold,
 )
 
+from panel_monitoring.app.retry import llm_retry
 from panel_monitoring.app.clients.llms.base import (
     LLMPredictionClient,
     PredictionError,
@@ -25,7 +27,7 @@ from panel_monitoring.app.prompts import PROMPT_CLASSIFY_SYSTEM, PROMPT_CLASSIFY
 from panel_monitoring.app.utils import build_classify_messages, normalize_signals
 
 
-DEFAULT_MODEL = "gemini-2.5-pro"
+DEFAULT_MODEL = "gemini-2.5-flash"
 
 SAFETY_SETTINGS = {
     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
@@ -45,7 +47,7 @@ class LLMClientGemini(LLMPredictionClient):
         *,
         model_ref: str = "gemini-classifier",
         model_name: str = DEFAULT_MODEL,
-        user_prompt: str = PROMPT_CLASSIFY_USER,   # must contain "{event}"
+        user_prompt: str = PROMPT_CLASSIFY_USER,  # must contain "{event}"
         system_prompt: Optional[str] = PROMPT_CLASSIFY_SYSTEM,
         prompt_config: Optional[dict] = None,
         log=None,
@@ -60,7 +62,6 @@ class LLMClientGemini(LLMPredictionClient):
         )
         self.api_key: Optional[str] = None
         self.client: Optional[ChatGoogleGenerativeAI] = None
-
 
     def setup(self) -> None:
         """
@@ -91,47 +92,68 @@ class LLMClientGemini(LLMPredictionClient):
             google_api_key=self.api_key,
         )
 
-
     # ---- primary (structured) APIs ---------------------------------------
 
-    def classify_event(self, event: str) -> dict:
+    @llm_retry
+    def classify_event(
+        self,
+        event: str,
+        retrieved_docs: list[dict] | None = None,
+        *,
+        system_prompt_override: str | None = None,
+        user_prompt_override: str | None = None,
+    ) -> dict:
         """
         Synchronous structured classification (mirrors original function).
         Returns a dict normalized to your Signals shape.
         """
         if self.client is None:
-            raise PredictionError("Model not initialized. Call setup() first.", str(self.model_ref))
+            raise PredictionError(
+                "Model not initialized. Call setup() first.", str(self.model_ref)
+            )
 
-        msgs = build_classify_messages(event)
+        msgs = build_classify_messages(
+            event,
+            retrieved_docs=retrieved_docs,
+            system_prompt_override=system_prompt_override,
+            user_prompt_override=user_prompt_override,
+        )
         try:
-            result = self.client.with_structured_output(Signals).invoke(msgs)
-            return normalize_signals(result)
+            result = self.client.with_structured_output(Signals, include_raw=True).invoke(msgs)
+            raw_msg = result["raw"]
+            meta = {"usage": getattr(raw_msg, "usage_metadata", None) or {}}
+            return normalize_signals(result["parsed"]), meta
         except ValidationError as e:
-            raise PredictionError(f"Schema validation failed: {e}", str(self.model_ref)) from e
+            raise PredictionError(
+                f"Schema validation failed: {e}", str(self.model_ref)
+            ) from e
         except Exception as e:
             raise PredictionError(
                 f"GenAI classification error: {type(e).__name__}: {e}",
                 str(self.model_ref),
             ) from e
 
-    async def aclassify_event(self, event: str) -> dict:
+    async def aclassify_event(
+        self,
+        event: str,
+        retrieved_docs: list[dict] | None = None,
+        *,
+        system_prompt_override: str | None = None,
+        user_prompt_override: str | None = None,
+    ) -> dict:
         """
-        Async structured classification.
-        """
-        if self.client is None:
-            raise PredictionError("Model not initialized. Call setup() first.", str(self.model_ref))
+        Async classification that runs the sync version in a thread pool.
 
-        msgs = build_classify_messages(event)
-        try:
-            result = await self.client.with_structured_output(Signals).ainvoke(msgs)
-            return normalize_signals(result)
-        except ValidationError as e:
-            raise PredictionError(f"Schema validation failed: {e}", str(self.model_ref)) from e
-        except Exception as e:
-            raise PredictionError(
-                f"GenAI classification error: {type(e).__name__}: {e}",
-                str(self.model_ref),
-            ) from e
+        The underlying langchain library may perform blocking I/O even in
+        async methods. Running in a thread pool avoids blocking the event loop.
+        """
+        return await asyncio.to_thread(
+            self.classify_event,
+            event,
+            retrieved_docs,
+            system_prompt_override=system_prompt_override,
+            user_prompt_override=user_prompt_override,
+        )
 
     # ---- base.py-required async predict ----------------------------------
 
@@ -170,9 +192,11 @@ class LLMClientGemini(LLMPredictionClient):
 # Keep the original function name so existing imports keep working
 _client_singleton: Optional[LLMClientGemini] = None
 
+
 def classify_with_genai(event: str) -> dict:
     """
-    Back-compat thin wrapper that uses a singleton LLMClientGemini.
+    Back-compat sync wrapper for old call sites.
+    For async usage, use aclassify_event() from the llms module instead.
     """
     global _client_singleton
     if _client_singleton is None:

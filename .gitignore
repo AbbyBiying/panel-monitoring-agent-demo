@@ -7,6 +7,14 @@
 *.pem
 
 # -------------------------
+# Prompt logic (internal)
+# -------------------------
+panel_monitoring/app/prompts.py
+panel_monitoring/app/utils.py
+panel_monitoring/data/business_context.txt
+tests/golden_tests/updated-golden-test-data.json
+
+# -------------------------
 # System / editor files
 # -------------------------
 .DS_Store
@@ -59,3 +67,7 @@ __pypackages__/
 # -------------------------
 .langgraph_api/
 credentials/
+
+test-data.json
+
+.txt

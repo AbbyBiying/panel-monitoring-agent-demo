@@ -1,10 +1,10 @@
 {
-    "dockerfile_lines": [],
-    "graphs": {
-      "panel_agent": "./panel_monitoring/panel_agent_vertexai.py:graph"
-    },
-    "python_version": "3.12",
-    "dependencies": [
-      "."
-    ]
-  }
+  "dockerfile_lines": [],
+  "graphs": {
+    "panel_agent": "panel_monitoring.app.graph:build_graph"
+  },
+  "python_version": "3.12",
+  "dependencies": [
+    "."
+  ]
+}

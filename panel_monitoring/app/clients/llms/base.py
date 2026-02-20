@@ -6,7 +6,6 @@ import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Optional, Union
-from uuid import UUID
 
 
 class PredictionError(Exception):
@@ -28,7 +27,7 @@ class PredictionResult:
 class LLMPredictionClient(ABC):
     def __init__(
         self,
-        model_ref: Union[str, UUID],
+        model_ref: str,
         model_name: str,
         user_prompt: str,
         system_prompt: Optional[str] = None,
@@ -40,7 +39,12 @@ class LLMPredictionClient(ABC):
         self.system_prompt = system_prompt or None
         self.user_prompt = user_prompt
         if isinstance(prompt_config, str):
-            self.prompt_config = json.loads(prompt_config)
+            try:
+                self.prompt_config = json.loads(prompt_config)
+            except (json.JSONDecodeError, ValueError) as e:
+                raise PredictionError(
+                    f"Invalid prompt_config JSON: {e}", str(model_ref)
+                ) from e
         else:
             self.prompt_config = prompt_config or {}
         self.log = log

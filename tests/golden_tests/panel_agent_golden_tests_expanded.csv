@@ -1,5 +1,0 @@
-case_id,input,min_confidence,expected_classification,reason_contains
-normal_conversational,Hi there! I joined the panel after a friend referral. I live in Denver and use a personal Gmail.,0.5,normal,
-normal_profile_json,"{""email"":""alex.taylor@gmail.com"",""zip"":""94016"",""device_id"":""ios-13-abc"",""user_agent"":""iPhone Safari""}",0.6,normal,
-normal_short_ok,"Signed up via mobile, took the onboarding survey.",0.5,normal,
-ansi_arrow_garbage,[A[A[A,0.8,suspicious,automated

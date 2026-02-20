@@ -1,28 +1,77 @@
 # panel_monitoring/app/clients/llms/__init__.py
 
-from .openai import classify_with_openai
-from .gemini import classify_with_genai
-from .vertexai import classify_with_vertexai
+import os
+import logging
+import threading
+from typing import Optional, Dict, Any
+
+from .openai import LLMClientOpenAI
+from .gemini import LLMClientGemini
+from .vertexai import LLMClientVertexAI
+
+logger = logging.getLogger(__name__)
+
+# Pre-initialized client singleton
+_initialized_client: Any = None
+_initialized_provider: Optional[str] = None
+_init_lock = threading.Lock()
 
 
-_CLASSIFIERS = {
-    "openai": classify_with_openai,
-    "genai": classify_with_genai,
-    "gemini": classify_with_genai,
-    "vertexai": classify_with_vertexai,
-}
+def init_llm_client(provider: Optional[str] = None) -> None:
+    """Synchronous initialization for startup/cli."""
+    # In cloud environments like GCP Cloud Run, reusing the client is critical.
+    global _initialized_client, _initialized_provider
 
-def get_llm_classifier(provider: str):
-    """
-    Return a callable classification function for the chosen provider.
+    if _initialized_client is not None:
+        return
 
-    Example:
-        classify = get_llm_classifier("openai")
-        result = classify("some event text")
-    """
-    key = provider.lower()
-    if key not in _CLASSIFIERS:
-        raise ValueError(
-            f"Unknown provider '{provider}'. Valid options: {', '.join(_CLASSIFIERS.keys())}"
+    with _init_lock:
+        # Double-check after acquiring lock
+        if _initialized_client is not None:
+            return
+
+        provider = (provider or os.getenv("PANEL_DEFAULT_PROVIDER", "vertexai")).lower()
+
+        clients = {
+            "vertexai": LLMClientVertexAI,
+            "genai": LLMClientGemini,
+            "gemini": LLMClientGemini,
+            "openai": LLMClientOpenAI,
+        }
+
+        if provider not in clients:
+            raise ValueError(
+                f"Invalid provider: {provider}. Options: {list(clients.keys())}"
+            )
+
+        client = clients[provider]()
+        client.setup()  # Blocking setup performed at startup
+
+        _initialized_client = client
+        _initialized_provider = provider
+
+
+def get_initialized_client():
+    if _initialized_client is None:
+        logger.warning(
+            "LLM client not explicitly initialized; falling back to default provider."
         )
-    return _CLASSIFIERS[key]
+        init_llm_client()
+    return _initialized_client
+
+
+async def aclassify_event(
+    event_data: Dict[str, Any],
+    retrieved_docs: list[dict] | None = None,
+    *,
+    system_prompt_override: Optional[str] = None,
+    user_prompt_override: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Production Async Entrypoint."""
+    client = get_initialized_client()
+    return await client.aclassify_event(
+        event_data,
+        retrieved_docs=retrieved_docs,
+        system_prompt_override=system_prompt_override,
+        user_prompt_override=user_prompt_override,
+    )
