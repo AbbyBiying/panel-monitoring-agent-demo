@@ -178,6 +178,8 @@ echo "TAVILY_API_KEY=\"$TAVILY_API_KEY\"" >> module-4/studio/.env
 
 ### Production Mode via Google Cloud Event Trigger
 
+For full GCP Cloud Functions deployment instructions, see [gcp/functions/README.md](gcp/functions/README.md).
+
 * In production, the agent runs automatically in response to real user or system events.
 
 Flow:
