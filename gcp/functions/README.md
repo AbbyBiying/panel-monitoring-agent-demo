@@ -29,7 +29,7 @@ just deploy-pubsub
 gcloud functions deploy pubsub-to-langsmith \
   --gen2 \
   --region=us-central1 \
-  --runtime=python311 \
+  --runtime=python312 \
   --source=. \
   --entry-point=pubsub_to_langsmith \
   --trigger-topic=user-event-signups \
