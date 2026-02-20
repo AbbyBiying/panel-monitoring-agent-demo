@@ -153,9 +153,9 @@ uv run python -m panel_monitoring.scripts.panel_agent --provider genai
 
 * LangGraph Studio is a custom IDE for viewing and testing agents.
 * Studio can be run locally and opened in your browser on Mac, Windows, and Linux.
-* See documentation [here](https://langchain-ai.github.io/langgraph/concepts/langgraph_studio/#local-development-server) on the local Studio development server and [here](https://langchain-ai.github.io/langgraph/cloud/how-tos/studio/quick_start/#local-development-server). 
-* Graphs for LangGraph Studio are in the `module-x/studio/` folders.
-* To start the local development server, run the following command in your terminal in the `/studio` directory each module:
+* See documentation [here](https://langchain-ai.github.io/langgraph/concepts/langgraph_studio/#local-development-server) on the local Studio development server and [here](https://langchain-ai.github.io/langgraph/cloud/how-tos/studio/quick_start/#local-development-server).
+* The graph is defined in `langgraph.json` at the repo root.
+* To start the local development server, run from the repo root:
 
 ```
 langgraph dev
@@ -170,15 +170,7 @@ You should see the following output:
 
 Open your browser and navigate to the Studio UI: `https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024`.
 
-* To use Studio, you will need to create a .env file with the relevant API keys
-* Run this from the command line to create these files for module 1 to 5, as an example:
-```
-for i in {1..5}; do
-  cp module-$i/studio/.env.example module-$i/studio/.env
-  echo "OPENAI_API_KEY=\"$OPENAI_API_KEY\"" > module-$i/studio/.env
-done
-echo "TAVILY_API_KEY=\"$TAVILY_API_KEY\"" >> module-4/studio/.env
-```
+* Make sure your `.env` file is set up with the relevant API keys before starting Studio.
 
 ### Production Mode via Google Cloud Event Trigger
 
@@ -226,7 +218,7 @@ Golden tests use hardcoded local prompts (not Firestore) for stability — a pro
 
 The agent runs a two-layer injection scan on all untrusted inputs before they reach the LLM:
 
-1. **Regex scan** (`utils.detect_prompt_injection`) — fast pattern matching for known injection techniques (instruction overrides, role hijacking, delimiter escapes, output manipulation)
+1. **Regex scan** — fast pattern matching for known injection techniques (instruction overrides, role hijacking, delimiter escapes, output manipulation). Excluded from this demo for IP protection.
 2. **ML scan** (`injection_detector.detect_injection_ml`) — DeBERTa v3 model (`protectai/deberta-v3-base-prompt-injection-v2`) for freeform text fields
 
 If injection is detected and the LLM still returns `normal_signup`, the result is overridden to `suspicious_signup` with confidence ≥ 0.85.
@@ -240,7 +232,7 @@ To ingest or refresh the business context:
 uv run python -m panel_monitoring.scripts.ingest_business_context
 ```
 
-This chunks `panel_monitoring/data/business_context.txt` and writes embeddings to the `fraud_patterns` collection in Firestore.
+This chunks the business context file and writes embeddings to the `fraud_patterns` collection in Firestore. The business context data is excluded from this demo for IP protection.
 
 ### Prompt Management
 
@@ -248,13 +240,13 @@ Prompts are stored in Firestore as versioned `PromptSpec` documents and are **im
 
 #### Push a new prompt version
 
-Edit `panel_monitoring/app/prompts.py`, then run:
+Edit your prompt definitions, then run:
 
 ```
 uv run python -m panel_monitoring.scripts.push_prompt_to_firestore
 ```
 
-This creates a new document (e.g. `signup_classification_v4`) with `deployment_status = pre_live`. The agent will not use it yet.
+This creates a new document (e.g. `signup_classification_v4`) with `deployment_status = pre_live`. The agent will not use it yet. Prompt definitions are excluded from this demo for IP protection.
 
 #### Promote to live
 
