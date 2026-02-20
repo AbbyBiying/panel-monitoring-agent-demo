@@ -4,6 +4,10 @@ Panel Monitoring Agent
 Flexible monitoring agent built with LangGraph and Vertex AI (Gemini) / OpenAI + LangSmith.
 Supports running locally for development or inside Google Cloud for production.
 
+## Agent Architecture
+
+![Agent Graph](graph.png)
+
 **Architectural Ownership:** I personally designed the LangGraph state machine and implemented the Firestore security layer.
 
 **Production Standards:** The code follows strict Pydantic data validation and Ruff linting to ensure system reliability and clean-formatted audit logs.
