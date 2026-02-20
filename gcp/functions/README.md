@@ -11,7 +11,7 @@ echo -n "your-langsmith-api-key" | gcloud secrets create LANGSMITH_API_KEY_CLOUD
 
 # Grant the Cloud Run service account access to the secret
 gcloud secrets add-iam-policy-binding LANGSMITH_API_KEY_CLOUD_FUNCTIONS \
-  --member="serviceAccount:$PROJECT_ID@appspot.gserviceaccount.com" \
+  --member="serviceAccount:$PROJECT_NUMBER-compute@developer.gserviceaccount.com" \
   --role="roles/secretmanager.secretAccessor"
 ```
 
@@ -27,13 +27,14 @@ just deploy-pubsub
 ```bash
 # From gcp/functions/pubsub_to_langsmith/
 gcloud functions deploy pubsub-to-langsmith \
+  --gen2 \
   --region=us-central1 \
-  --runtime=python313 \
+  --runtime=python311 \
   --source=. \
   --entry-point=pubsub_to_langsmith \
   --trigger-topic=user-event-signups \
-  --set-env-vars LANGSMITH_PROJECT=your-project-name,LOG_LEVEL=INFO \
-  --set-secrets LANGSMITH_API_KEY_CLOUD_FUNCTIONS=LANGSMITH_API_KEY_CLOUD_FUNCTIONS:latest
+  --set-env-vars=GOOGLE_CLOUD_PROJECT=your-gcp-project,GOOGLE_CLOUD_REGION=us-central1,VERTEX_MODEL=gemini-2.5-flash,PANEL_DEFAULT_PROVIDER=vertexai,LG_GRAPH_NAME=panel_agent,LG_DEPLOYMENT_URL=https://your-deployment-host,LANGSMITH_PROJECT=your-project-name,LOG_LEVEL=INFO \
+  --set-secrets=LANGSMITH_API_KEY_CLOUD_FUNCTIONS=LANGSMITH_API_KEY_CLOUD_FUNCTIONS:latest
 ```
 
 ## Local Development
