@@ -73,4 +73,4 @@ tidy:
     just format
 
 golden:
-    pytest -vv tests/golden_tests/test_golden_panel.py
+    uv run pytest -vv tests/golden_tests/test_golden_panel.py
