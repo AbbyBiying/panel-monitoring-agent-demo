@@ -325,7 +325,7 @@ This project uses GitHub Actions for continuous integration.
 
 | Workflow | Trigger | What it runs |
 |----------|---------|--------------|
-| `test-deberta-api.yml` | Every push, every PR | `pytest tests/test_deberta_api.py` |
+| `test-deberta-api.yml` | Every push, every PR | All unit tests (injection detection, ML classifier, prompt spec, retry, DeBERTa API) |
 
 Unit tests run on every push to any branch. Golden tests (classification accuracy against hand-labeled production data) are excluded from CI — they require live GCP credentials and are run manually before promoting to production.
 
