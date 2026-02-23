@@ -74,3 +74,7 @@ tidy:
 
 golden:
     uv run pytest -vv tests/golden_tests/test_golden_panel.py
+
+# Run the DeBERTa FastAPI inference service locally
+serve-injection-api:
+    uv run uvicorn main:app --reload --app-dir services/deberta-api --port 8080
