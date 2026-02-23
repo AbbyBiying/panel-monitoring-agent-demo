@@ -5,6 +5,34 @@ import pytest
 from panel_monitoring.app.prompts import PROMPT_CLASSIFY_SYSTEM, PROMPT_CLASSIFY_USER
 from panel_monitoring.models.firestore_docs import PromptSpecDoc
 
+# ── Benchmark tracking ────────────────────────────────────────────────────────
+_results: list[dict] = []
+
+
+def pytest_runtest_logreport(report):
+    """Collect pass/fail for every golden test call phase."""
+    if report.when != "call":
+        return
+    if "golden_tests" not in report.nodeid:
+        return
+    _results.append({"nodeid": report.nodeid, "passed": report.passed})
+
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    """Print classification accuracy summary after all golden tests finish."""
+    if not _results:
+        return
+    total = len(_results)
+    passed = sum(1 for r in _results if r["passed"])
+    failed = total - passed
+    accuracy = passed / total * 100
+
+    terminalreporter.write_sep("=", "GOLDEN TEST BENCHMARK SUMMARY")
+    terminalreporter.write_line(f"  Classification Accuracy : {passed}/{total} ({accuracy:.1f}%)")
+    terminalreporter.write_line(f"  Correct                 : {passed}")
+    terminalreporter.write_line(f"  Mismatches              : {failed}")
+    terminalreporter.write_sep("=", "")
+
 
 def _load_biz_chunks() -> list[dict]:
     """Read business_context.txt and split into chunks matching Firestore schema."""
