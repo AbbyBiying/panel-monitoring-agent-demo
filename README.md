@@ -319,6 +319,16 @@ In the Firestore console:
 | `model_host` | PromptModelHost | Provider: `vertexai`, `gemini`, `openai`, `anthropic` |
 | `model_name` | str | Model override (e.g. `gemini-2.5-flash`) |
 
+### CI/CD
+
+This project uses GitHub Actions for continuous integration.
+
+| Workflow | Trigger | What it runs |
+|----------|---------|--------------|
+| `test-deberta-api.yml` | Every push, every PR | `pytest tests/test_deberta_api.py` |
+
+Unit tests run on every push to any branch. Golden tests (classification accuracy against hand-labeled production data) are excluded from CI — they require live GCP credentials and are run manually before promoting to production.
+
 ### Code Quality: Ruff (lint & format)
 
 This repo uses Ruff for linting and formatting.
