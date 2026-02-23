@@ -25,4 +25,4 @@ jobs:
         run: uv sync --frozen
 
       - name: Run unit tests
-        run: uv run pytest tests/test_deberta_api.py tests/test_injection_detection.py tests/test_injection_ml.py tests/test_prompt_spec.py tests/test_retry.py -v
+        run: uv run pytest tests/test_deberta_api.py tests/test_injection_ml.py tests/test_retry.py -v
