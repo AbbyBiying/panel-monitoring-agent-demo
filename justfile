@@ -18,18 +18,6 @@ sync:
     uv sync
 
 
-# Run the app via Docker Compose
-run-compose *args:
-    docker compose up {{args}}
-
-# Apply all database migrations
-migrate:
-    uv run alembic upgrade head
-
-# Create a new migration with a name
-makemigration name:
-    uv run alembic revision --autogenerate -m "{{name}}"
-
 # Run tests
 test *args:
     uv run pytest tests/ {{args}}
