@@ -269,7 +269,7 @@ Example response:
 }
 ```
 
-The Dockerfile for this service uses a multi-stage build (builder → test → production). Tests must pass at build time — the production image will not build if `tests/test_deberta_api.py` fails. CI runs these tests automatically on every push via `.github/workflows/test-deberta-api.yml`.
+The Dockerfile for this service uses a two-stage build (builder → production). The builder stage installs dependencies and downloads model weights; the production stage copies the venv and model cache from builder and runs fully offline (`HF_HUB_OFFLINE=1`). CI runs these tests automatically on every push via `.github/workflows/test-deberta-api.yml`.
 
 ### RAG: Business Context Ingestion
 

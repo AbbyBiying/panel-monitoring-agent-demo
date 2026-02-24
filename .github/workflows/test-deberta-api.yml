@@ -24,5 +24,19 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
+      - name: Cache HuggingFace model weights
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-protectai-deberta-v3-prompt-injection-v2-${{ runner.os }}
+
+      - name: Download DeBERTa model weights
+        run: |
+          uv run python -c "
+          from transformers import pipeline
+          pipeline('text-classification', model='protectai/deberta-v3-base-prompt-injection-v2', truncation=True, max_length=512)
+          print('Model downloaded and cached.')
+          "
+
       - name: Run unit tests
         run: uv run pytest tests/test_deberta_api.py tests/test_injection_ml.py tests/test_retry.py -v
