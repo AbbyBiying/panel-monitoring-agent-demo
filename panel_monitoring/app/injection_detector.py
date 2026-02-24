@@ -47,23 +47,12 @@ def _get_pipeline():
 
         from transformers import pipeline  # noqa: E402
 
-        # transformers._patch_mistral_regex calls model_info() on the HF API
-        # to check if the model is a Mistral base model. DeBERTa is not Mistral,
-        # so we short-circuit this network call. Without this patch, Cloud Run's
-        # shared outbound IP hits HuggingFace rate limits (429) on every startup.
-        try:
-            import transformers.tokenization_utils_tokenizers as _tut
-            _tut.is_base_mistral = lambda _: False
-        except (ImportError, AttributeError):
-            pass
-
         logger.info("Loading prompt injection model: %s", _MODEL_NAME)
         _pipeline = pipeline(
             "text-classification",
             model=_MODEL_NAME,
             truncation=True,
             max_length=512,
-            local_files_only=True,
         )
         logger.info("Prompt injection model loaded successfully.")
         return _pipeline
