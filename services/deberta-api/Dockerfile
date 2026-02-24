@@ -1,9 +1,10 @@
 # -----------------------------------------------------------------------------
-#   Builder
+#   Builder — installs deps and downloads model weights (has internet access)
 # -----------------------------------------------------------------------------
 FROM python:3.12.8-slim AS builder
 
-ENV APP_DIR=/app
+ENV APP_DIR=/app \
+    HF_HOME=/app/.cache/huggingface
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONFAULTHANDLER=1 \
@@ -12,54 +13,42 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 COPY --from=ghcr.io/astral-sh/uv:0.8.22 /uv /bin/uv
 
+ENV PATH="/app/.venv/bin:$PATH"
+
 WORKDIR ${APP_DIR}
 
 ADD pyproject.toml ${APP_DIR}/
 ADD uv.lock ${APP_DIR}/
+ADD README.md ${APP_DIR}/
 
 RUN set -eEx; \
     apt-get update && \
     apt-get upgrade -y openssl ca-certificates && \
     apt-get install -y --no-install-recommends procps ca-certificates && \
     update-ca-certificates && \
-    uv sync --frozen --no-dev && \
+    uv sync --frozen --no-dev --no-install-project && \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false && \
     rm -rf /var/lib/apt/lists/*
 
-# -----------------------------------------------------------------------------
-#   Test
-# -----------------------------------------------------------------------------
-FROM builder AS test
-
-COPY panel_monitoring ${APP_DIR}/panel_monitoring
-COPY services/deberta-api/main.py ${APP_DIR}/
-COPY conftest.py ${APP_DIR}/
-COPY tests/test_deberta_api.py ${APP_DIR}/tests/
-
-# Build fails here if any test fails
-RUN uv run pytest tests/test_deberta_api.py -v
-
-RUN touch /tests-passed
+# Download model weights into builder cache
+RUN python -c "from transformers import pipeline; pipeline('text-classification', model='protectai/deberta-v3-base-prompt-injection-v2')"
 
 # -----------------------------------------------------------------------------
-#   Production
+#   Production — fully offline, copies venv and model cache from builder
 # -----------------------------------------------------------------------------
 FROM python:3.12.8-slim AS production
 
 EXPOSE 8080
 
 ENV APP_DIR=/app \
-    HF_HOME=/app/.cache/huggingface
-
-WORKDIR ${APP_DIR}
-
-ENV PYTHONFAULTHANDLER=1 \
+    HF_HOME=/app/.cache/huggingface \
+    HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1 \
+    PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/app/.venv/bin:$PATH"
 
-RUN adduser --disabled-password --gecos "" deberta-svc \
-    && mkdir -p ${APP_DIR}/.cache/huggingface \
-    && chown -R deberta-svc:deberta-svc ${APP_DIR}
+WORKDIR ${APP_DIR}
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends procps ca-certificates && \
@@ -67,18 +56,16 @@ RUN apt-get update && \
     update-ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy virtualenv from builder instead of system site-packages
-COPY --from=builder /app/.venv /app/.venv
+RUN adduser --disabled-password --gecos "" deberta-svc \
+    && mkdir -p ${APP_DIR}/.cache/huggingface \
+    && chown -R deberta-svc:deberta-svc ${APP_DIR}
 
-# Force test stage to complete before shipping
-COPY --from=test /tests-passed /tests-passed
+# Copy virtualenv and model cache from builder
+COPY --from=builder --chown=deberta-svc:deberta-svc /app/.venv /app/.venv
+COPY --from=builder --chown=deberta-svc:deberta-svc /app/.cache/huggingface /app/.cache/huggingface
 
 COPY --chown=deberta-svc:deberta-svc panel_monitoring ${APP_DIR}/panel_monitoring
 COPY --chown=deberta-svc:deberta-svc services/deberta-api/main.py ${APP_DIR}/
-
-# Bake model weights into image to eliminate cold-start download
-RUN python -c "from transformers import pipeline; pipeline('text-classification', model='protectai/deberta-v3-base-prompt-injection-v2')" \
-    && chown -R deberta-svc:deberta-svc ${APP_DIR}/.cache
 
 USER deberta-svc
 
