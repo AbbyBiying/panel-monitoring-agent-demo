@@ -8,10 +8,7 @@ ENV APP_DIR=/app
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONHASHSEED=random \
-    PIP_NO_CACHE_DIR=off \
-    PIP_DISABLE_PIP_VERSION_CHECK=on \
-    PIP_DEFAULT_TIMEOUT=100
+    PYTHONHASHSEED=random
 
 COPY --from=ghcr.io/astral-sh/uv:0.8.22 /uv /bin/uv
 
@@ -25,8 +22,7 @@ RUN set -eEx; \
     apt-get upgrade -y openssl ca-certificates && \
     apt-get install -y --no-install-recommends procps ca-certificates && \
     update-ca-certificates && \
-    pip install -U pip && \
-    uv sync --frozen --no-dev --system && \
+    uv sync --frozen --no-dev && \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false && \
     rm -rf /var/lib/apt/lists/*
 
@@ -52,20 +48,18 @@ FROM python:3.12.8-slim AS production
 
 EXPOSE 8080
 
-ENV APP_DIR=/app
+ENV APP_DIR=/app \
+    HF_HOME=/app/.cache/huggingface
+
 WORKDIR ${APP_DIR}
 
 ENV PYTHONFAULTHANDLER=1 \
-    PYTHONUNBUFFERED=1
-
-COPY --from=ghcr.io/astral-sh/uv:0.8.22 /uv /bin/uv
-
-ADD pyproject.toml ${APP_DIR}/
-ADD uv.lock ${APP_DIR}/
+    PYTHONUNBUFFERED=1 \
+    PATH="/app/.venv/bin:$PATH"
 
 RUN adduser --disabled-password --gecos "" deberta-svc \
-    && chown -R deberta-svc:deberta-svc ${APP_DIR} \
-    && chmod -R 770 ${APP_DIR}
+    && mkdir -p ${APP_DIR}/.cache/huggingface \
+    && chown -R deberta-svc:deberta-svc ${APP_DIR}
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends procps ca-certificates && \
@@ -73,16 +67,18 @@ RUN apt-get update && \
     update-ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /usr/local/bin/* /usr/local/bin/
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+# Copy virtualenv from builder instead of system site-packages
+COPY --from=builder /app/.venv /app/.venv
 
 # Force test stage to complete before shipping
 COPY --from=test /tests-passed /tests-passed
 
-COPY panel_monitoring ${APP_DIR}/panel_monitoring
-COPY services/deberta-api/main.py ${APP_DIR}/
+COPY --chown=deberta-svc:deberta-svc panel_monitoring ${APP_DIR}/panel_monitoring
+COPY --chown=deberta-svc:deberta-svc services/deberta-api/main.py ${APP_DIR}/
 
-RUN chmod -R 755 ${APP_DIR}
+# Bake model weights into image to eliminate cold-start download
+RUN python -c "from transformers import pipeline; pipeline('text-classification', model='protectai/deberta-v3-base-prompt-injection-v2')" \
+    && chown -R deberta-svc:deberta-svc ${APP_DIR}/.cache
 
 USER deberta-svc
 
