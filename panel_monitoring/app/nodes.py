@@ -484,11 +484,11 @@ async def signal_evaluation_node(state: GraphState) -> dict:
 
     # ---- Decide high-level classification; action decided later ---------------
     if signals.suspicious_signup and not signals.normal_signup:
-        classification: Literal["suspicious", "normal", "uncertain"] = "suspicious"
+        classification: Literal["suspicious", "normal", "unsure"] = "suspicious"
     elif signals.normal_signup and not signals.suspicious_signup:
         classification = "normal"
     else:
-        classification = "uncertain"
+        classification = "unsure"
 
     confidence = float(signals.confidence or 0.0)
 
