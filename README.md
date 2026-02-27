@@ -4,7 +4,7 @@ Panel Monitoring Agent
 Flexible monitoring agent built with LangGraph and Vertex AI (Gemini) / OpenAI + LangSmith.
 Supports running locally for development or inside Google Cloud for production.
 
-**Architectural Ownership:** I personally designed the LangGraph state machine and implemented the Firestore security layer.
+**Architectural Ownership:** I personally designed the LangGraph state machine, implemented the Firestore security layer, and built the GCP Cloud Run Function (`pubsub_to_langsmith`) that bridges Pub/Sub events to the remote agent.
 
 **Production Standards:** The code follows strict Pydantic data validation and Ruff linting to ensure system reliability and clean-formatted audit logs.
 
@@ -178,11 +178,13 @@ For full GCP Cloud Functions deployment instructions, see [gcp/functions/README.
 
 * In production, the agent runs automatically in response to real user or system events.
 
+The entry point is `gcp/functions/pubsub_to_langsmith/main.py` — a Cloud Run Gen2 Function I designed and implemented. It decodes the Eventarc CloudEvent payload, generates a deterministic UUID from the Pub/Sub message ID for idempotency on retries, and invokes the LangGraph agent remotely via LangSmith's `RemoteGraph`.
+
 Flow:
 
 * Pub/Sub event is published (e.g., user signup, suspicious behavior, survey action)
 
-* Cloud Function Gen2 receives the event and invokes the agent
+* Cloud Run Function Gen2 (`pubsub_to_langsmith`) receives the Eventarc CloudEvent, decodes the payload, and calls the remote agent via `RemoteGraph`
 
 * Agent processes the event using Vertex AI
 
