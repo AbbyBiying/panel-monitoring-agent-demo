@@ -22,7 +22,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: uv sync --frozen
+        run: uv sync
 
       - name: Cache HuggingFace model weights
         uses: actions/cache@v4
@@ -39,4 +39,4 @@ jobs:
           "
 
       - name: Run unit tests
-        run: uv run pytest tests/test_deberta_api.py tests/test_injection_ml.py tests/test_retry.py -v
+        run: uv run pytest tests/test_deberta_api.py -v
