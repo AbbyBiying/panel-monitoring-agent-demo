@@ -52,7 +52,7 @@ async def get_db() -> AsyncClient:
             return _DB
 
         project = os.getenv("GCP_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT")
-        database = os.getenv("FIRESTORE_DATABASE_ID", "(default)")
+        database = os.getenv("FIRESTORE_DATABASE_ID", "your-firestore-db-id")
 
         # Load credentials in a thread to avoid blocking
         if os.getenv("ENVIRONMENT") == "local":

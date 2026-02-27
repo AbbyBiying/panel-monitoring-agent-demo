@@ -206,7 +206,7 @@ async def perform_effects_node(state: GraphState) -> dict:
 
 @traceable(name="user_event_node", tags=["node"])
 async def user_event_node(state: GraphState) -> dict:
-    project_id = state.project_id or os.getenv("PANEL_PROJECT_ID", "panel-app-dev")
+    project_id = state.project_id or os.getenv("PANEL_PROJECT_ID", "your-panel-project-id")
     event_text = _event_text_from_state(state)
 
     # 1. Normalize the messy input into a clean dict
@@ -484,11 +484,11 @@ async def signal_evaluation_node(state: GraphState) -> dict:
 
     # ---- Decide high-level classification; action decided later ---------------
     if signals.suspicious_signup and not signals.normal_signup:
-        classification: Literal["suspicious", "normal", "uncertain"] = "suspicious"
+        classification: Literal["suspicious", "normal", "unsure"] = "suspicious"
     elif signals.normal_signup and not signals.suspicious_signup:
         classification = "normal"
     else:
-        classification = "uncertain"
+        classification = "unsure"
 
     confidence = float(signals.confidence or 0.0)
 
@@ -614,7 +614,7 @@ async def human_approval_node(
 @traceable(name="save_classification_node", tags=["node"])
 async def save_classification_node(state: GraphState) -> dict:
     """Persist classification result immediately so it survives interrupt/crash."""
-    project_id = state.project_id or "panel-app-dev"
+    project_id = state.project_id or "your-panel-project-id"
     event_id = state.event_id
     run_id = f"{event_id}_{uuid4().hex[:12]}"
     decision = state.classification or "error"

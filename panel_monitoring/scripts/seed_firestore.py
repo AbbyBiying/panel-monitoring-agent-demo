@@ -17,7 +17,7 @@ load_dotenv()
 
 async def run_seed():
     """Asynchronous seeding logic for Firestore."""
-    project_id = "panel-app-dev"
+    project_id = "your-panel-project-id"
 
     # 1. Seed Project Metadata
     # We await the collection helper to get the reference

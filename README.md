@@ -4,15 +4,15 @@ Panel Monitoring Agent
 Flexible monitoring agent built with LangGraph and Vertex AI (Gemini) / OpenAI + LangSmith.
 Supports running locally for development or inside Google Cloud for production.
 
-## Agent Architecture
-
-![Agent Graph](graph.png)
-
-**Architectural Ownership:** I personally designed the LangGraph state machine and implemented the Firestore security layer.
+**Architectural Ownership:** I personally designed the LangGraph state machine and built the GCP Cloud Run Function (`pubsub_to_langsmith`) that bridges Pub/Sub events to the remote agent.
 
 **Production Standards:** The code follows strict Pydantic data validation and Ruff linting to ensure system reliability and clean-formatted audit logs.
 
-**Security & IP:** To protect sensitive data, specific business fraud rules and private dataset weights are excluded. The system uses GCP IAM service accounts rather than hardcoded API keys.
+**Security & IP:** The system uses GCP IAM service accounts rather than hardcoded API keys.
+
+## Agent Architecture
+
+![Agent Graph](graph.png)
 
 ## Setup
 
@@ -68,7 +68,7 @@ FIRESTORE_DATABASE_ID="your-firestore-db-id"
 
 # Agent
 ENVIRONMENT=local                        # set to "local" for dev credential loading
-PANEL_PROJECT_ID="your-panel-project-id" # Firestore project namespace
+PANEL_PROJECT_ID="your-panel-project-id"         # Firestore project namespace
 PANEL_DEFAULT_PROVIDER=vertexai          # vertexai | openai | genai
 VERTEX_MODEL=gemini-2.5-flash            # model override for Vertex AI
 
@@ -172,17 +172,41 @@ Open your browser and navigate to the Studio UI: `https://smith.langchain.com/st
 
 * Make sure your `.env` file is set up with the relevant API keys before starting Studio.
 
+### Deploying the Agent to LangSmith (Remote Graph)
+
+The agent graph is defined in `langgraph.json` at the repo root and can be deployed to LangSmith as a hosted remote graph. Once deployed, the Cloud Run Function invokes it via `RemoteGraph` without needing a local process running.
+
+Deploy from the repo root using the LangGraph CLI:
+```bash
+langgraph deploy
+```
+
+This reads `langgraph.json`, which registers the graph under the name `panel_agent`:
+```json
+{
+  "graphs": {
+    "panel_agent": "panel_monitoring.app.graph:build_graph"
+  },
+  "python_version": "3.12",
+  "dependencies": ["."]
+}
+```
+
+After deployment, the hosted graph URL is used by `pubsub_to_langsmith` as `LG_DEPLOYMENT_URL`. The `RemoteGraph` client in the Cloud Run Function calls `ainvoke()` against that URL — the same interface as a local `CompiledGraph`.
+
 ### Production Mode via Google Cloud Event Trigger
 
 For full GCP Cloud Functions deployment instructions, see [gcp/functions/README.md](gcp/functions/README.md).
 
 * In production, the agent runs automatically in response to real user or system events.
 
+The entry point is `gcp/functions/pubsub_to_langsmith/main.py` — a Cloud Run Gen2 Function I designed and implemented. It decodes the Eventarc CloudEvent payload, generates a deterministic UUID from the Pub/Sub message ID for idempotency on retries, and invokes the LangGraph agent remotely via LangSmith's `RemoteGraph`.
+
 Flow:
 
 * Pub/Sub event is published (e.g., user signup, suspicious behavior, survey action)
 
-* Cloud Function Gen2 receives the event and invokes the agent
+* Cloud Run Function Gen2 (`pubsub_to_langsmith`) receives the Eventarc CloudEvent, decodes the payload, and calls the remote agent via `RemoteGraph`
 
 * Agent processes the event using Vertex AI
 
@@ -221,10 +245,19 @@ Golden tests use hardcoded local prompts (not Firestore) for stability — a pro
 
 The agent runs a two-layer injection scan on all untrusted inputs before they reach the LLM:
 
-1. **Regex scan** — fast pattern matching for known injection techniques (instruction overrides, role hijacking, delimiter escapes, output manipulation). Excluded from this demo for IP protection.
+1. **Regex scan** (`utils.detect_prompt_injection`) — fast pattern matching for known injection techniques (instruction overrides, role hijacking, delimiter escapes, output manipulation)
 2. **ML scan** (`injection_detector.detect_injection_ml`) — DeBERTa v3 model (`protectai/deberta-v3-base-prompt-injection-v2`) for freeform text fields
 
 If injection is detected and the LLM still returns `normal_signup`, the result is overridden to `suspicious_signup` with confidence ≥ 0.85.
+
+### Deploying the DeBERTa Inference Service to Cloud Run
+
+The service uses a two-stage Docker build. The builder stage downloads model weights from HuggingFace; the production stage copies them in and runs fully offline. Build must target `linux/amd64` for GCP compatibility.
+
+**Operational properties:**
+- Model weights are baked into the Docker image at build time — no HuggingFace download on startup
+- New Cloud Run instances start in seconds, not minutes
+- Every instance is stateless — Cloud Run scales horizontally automatically when requests spike
 
 ### DeBERTa Inference Service
 
@@ -269,7 +302,9 @@ Example response:
 }
 ```
 
-The Dockerfile for this service uses a multi-stage build (builder → test → production). Tests must pass at build time — the production image will not build if `tests/test_deberta_api.py` fails. CI runs these tests automatically on every push via `.github/workflows/test-deberta-api.yml`.
+The Dockerfile for this service uses a two-stage build (builder → production). The builder stage installs dependencies and downloads model weights; the production stage copies the venv and model cache from builder and runs fully offline (`HF_HUB_OFFLINE=1`). CI runs all unit tests automatically on every push via `.github/workflows/test-deberta-api.yml`.
+
+The CI workflow caches the DeBERTa model weights (~675MB) using `actions/cache@v4` with a fixed key (`hf-protectai-deberta-v3-prompt-injection-v2-Linux`). On the first run the weights are downloaded from HuggingFace and saved to cache; all subsequent runs restore from cache and skip the download entirely, keeping CI fast.
 
 ### RAG: Business Context Ingestion
 
@@ -280,7 +315,7 @@ To ingest or refresh the business context:
 uv run python -m panel_monitoring.scripts.ingest_business_context
 ```
 
-This chunks the business context file and writes embeddings to the `fraud_patterns` collection in Firestore. The business context data is excluded from this demo for IP protection.
+This chunks `panel_monitoring/data/business_context.txt` and writes embeddings to the `fraud_patterns` collection in Firestore.
 
 ### Prompt Management
 
@@ -288,13 +323,13 @@ Prompts are stored in Firestore as versioned `PromptSpec` documents and are **im
 
 #### Push a new prompt version
 
-Edit your prompt definitions, then run:
+Edit `panel_monitoring/app/prompts.py`, then run:
 
 ```
 uv run python -m panel_monitoring.scripts.push_prompt_to_firestore
 ```
 
-This creates a new document (e.g. `signup_classification_v4`) with `deployment_status = pre_live`. The agent will not use it yet. Prompt definitions are excluded from this demo for IP protection.
+This creates a new document (e.g. `signup_classification_v4`) with `deployment_status = pre_live`. The agent will not use it yet.
 
 #### Promote to live
 

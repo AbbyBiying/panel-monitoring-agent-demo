@@ -77,7 +77,7 @@ class GraphState(BaseModel):
 
     # Classification results
     signals: Optional[Signals] = None
-    classification: Literal["pending", "suspicious", "normal", "error"] = "pending"
+    classification: Literal["pending", "suspicious", "normal", "unsure", "error"] = "pending"
     confidence: Optional[float] = None
     model_meta: ModelMeta = Field(default_factory=ModelMeta)
     error: Optional[str] = None

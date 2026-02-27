@@ -7,7 +7,7 @@ Small local reporting page that monitors the Firestore **events** collection by 
 1. Set environment variables (same as the rest of the repo):
    - **GCP_PROJECT** or **GOOGLE_CLOUD_PROJECT** – Firestore project ID
    - This app **always** uses **Application Default Credentials** (your local `gcloud auth application-default login`). It does not use `GOOGLE_APPLICATION_CREDENTIALS`.
-   - **FIRESTORE_DATABASE_ID** (optional) – defaults to `panel-monitoring-agent-dev`
+   - **FIRESTORE_DATABASE_ID** (optional) – defaults to `your-firestore-db-id`
    - **ENVIRONMENT** (optional) – set to `local` to load credentials from file; otherwise ADC is used
 
 2. From the **repo root**:

@@ -31,7 +31,7 @@ def main():
     )
     p.add_argument(
         "--project",
-        default=os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
+        default=os.getenv("LANGSMITH_PROJECT", "your-gcp-project"),
         help="LangSmith project name.",
     )
     args = p.parse_args()

@@ -313,6 +313,11 @@ class TestSignalEvaluationNodePromptSpec:
                 new_callable=AsyncMock,
                 return_value=fake_signals,
             ) as mock_classify,
+            patch(
+                "panel_monitoring.app.nodes.detect_injection_ml",
+                new_callable=AsyncMock,
+                return_value=MagicMock(detected=False),
+            ),
         ):
             from panel_monitoring.app.nodes import signal_evaluation_node
 

@@ -1,4 +1,4 @@
-# panel-monitoring-agent/gcp/functions/pubsub_to_langsmith/main.py
+# your-gcp-project/gcp/functions/pubsub_to_langsmith/main.py
 
 # Cloud Run Functions (Gen2 on Cloud Run) – Pub/Sub → LangSmith (RemoteGraph)
 # Deploy (example):
@@ -137,7 +137,7 @@ async def async_handler(cloud_event):
     try:
         config = {
             "configurable": {"thread_id": thread_id},
-            "project_name": os.getenv("LANGSMITH_PROJECT", "panel-monitoring-agent"),
+            "project_name": os.getenv("LANGSMITH_PROJECT", "your-gcp-project"),
         }
 
         # 5) Invoke the Remote Graph
