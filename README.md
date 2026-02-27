@@ -304,7 +304,7 @@ Example response:
 
 The Dockerfile for this service uses a two-stage build (builder → production). The builder stage installs dependencies and downloads model weights; the production stage copies the venv and model cache from builder and runs fully offline (`HF_HUB_OFFLINE=1`). CI runs all unit tests automatically on every push via `.github/workflows/test-deberta-api.yml`.
 
-The CI workflow caches the DeBERTa model weights (~675MB) using `actions/cache@v4` with a fixed key (`hf-protectai-deberta-v3-prompt-injection-v2-Linux`). On the first run the weights are downloaded from HuggingFace and saved to cache; all subsequent runs restore from cache and skip the download entirely, keeping CI fast.
+The CI workflow caches the DeBERTa model weights (~750MB) using `actions/cache@v4` with a fixed key (`hf-protectai-deberta-v3-prompt-injection-v2-Linux`). On the first run the weights are downloaded from HuggingFace and saved to cache; all subsequent runs restore from cache and skip the download entirely, keeping CI fast.
 
 ### RAG: Business Context Ingestion
 
