@@ -172,6 +172,28 @@ Open your browser and navigate to the Studio UI: `https://smith.langchain.com/st
 
 * Make sure your `.env` file is set up with the relevant API keys before starting Studio.
 
+### Deploying the Agent to LangSmith (Remote Graph)
+
+The agent graph is defined in `langgraph.json` at the repo root and can be deployed to LangSmith as a hosted remote graph. Once deployed, the Cloud Run Function invokes it via `RemoteGraph` without needing a local process running.
+
+Deploy from the repo root using the LangGraph CLI:
+```bash
+langgraph deploy
+```
+
+This reads `langgraph.json`, which registers the graph under the name `panel_agent`:
+```json
+{
+  "graphs": {
+    "panel_agent": "panel_monitoring.app.graph:build_graph"
+  },
+  "python_version": "3.12",
+  "dependencies": ["."]
+}
+```
+
+After deployment, the hosted graph URL is used by `pubsub_to_langsmith` as `LG_DEPLOYMENT_URL`. The `RemoteGraph` client in the Cloud Run Function calls `ainvoke()` against that URL — the same interface as a local `CompiledGraph`.
+
 ### Production Mode via Google Cloud Event Trigger
 
 For full GCP Cloud Functions deployment instructions, see [gcp/functions/README.md](gcp/functions/README.md).
@@ -227,6 +249,33 @@ The agent runs a two-layer injection scan on all untrusted inputs before they re
 2. **ML scan** (`injection_detector.detect_injection_ml`) — DeBERTa v3 model (`protectai/deberta-v3-base-prompt-injection-v2`) for freeform text fields
 
 If injection is detected and the LLM still returns `normal_signup`, the result is overridden to `suspicious_signup` with confidence ≥ 0.85.
+
+### Deploying the DeBERTa Inference Service to Cloud Run
+
+The service uses a two-stage Docker build. The builder stage downloads model weights from HuggingFace; the production stage copies them in and runs fully offline. Build must target `linux/amd64` for GCP compatibility.
+
+Build and push:
+```bash
+docker buildx build --platform linux/amd64 -t <ARTIFACT_REGISTRY_IMAGE> -f services/deberta-api/Dockerfile .
+docker push <ARTIFACT_REGISTRY_IMAGE>
+```
+
+Deploy to Cloud Run:
+```bash
+gcloud run deploy deberta-api \
+  --image <ARTIFACT_REGISTRY_IMAGE> \
+  --region us-central1 \
+  --port 8080 \
+  --memory 4Gi \
+  --cpu 2 \
+  --min-instances 1 \
+  --no-allow-unauthenticated
+```
+
+The service requires an identity token for authenticated requests:
+```bash
+curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" <SERVICE_URL>/health
+```
 
 ### DeBERTa Inference Service
 
