@@ -4,7 +4,7 @@ Panel Monitoring Agent
 Flexible monitoring agent built with LangGraph and Vertex AI (Gemini) / OpenAI + LangSmith.
 Supports running locally for development or inside Google Cloud for production.
 
-**Architectural Ownership:** I personally designed the LangGraph state machine, implemented the Firestore security layer, and built the GCP Cloud Run Function (`pubsub_to_langsmith`) that bridges Pub/Sub events to the remote agent.
+**Architectural Ownership:** I personally designed the LangGraph state machine and built the GCP Cloud Run Function (`pubsub_to_langsmith`) that bridges Pub/Sub events to the remote agent.
 
 **Production Standards:** The code follows strict Pydantic data validation and Ruff linting to ensure system reliability and clean-formatted audit logs.
 
@@ -254,28 +254,10 @@ If injection is detected and the LLM still returns `normal_signup`, the result i
 
 The service uses a two-stage Docker build. The builder stage downloads model weights from HuggingFace; the production stage copies them in and runs fully offline. Build must target `linux/amd64` for GCP compatibility.
 
-Build and push:
-```bash
-docker buildx build --platform linux/amd64 -t <ARTIFACT_REGISTRY_IMAGE> -f services/deberta-api/Dockerfile .
-docker push <ARTIFACT_REGISTRY_IMAGE>
-```
-
-Deploy to Cloud Run:
-```bash
-gcloud run deploy deberta-api \
-  --image <ARTIFACT_REGISTRY_IMAGE> \
-  --region us-central1 \
-  --port 8080 \
-  --memory 4Gi \
-  --cpu 2 \
-  --min-instances 1 \
-  --no-allow-unauthenticated
-```
-
-The service requires an identity token for authenticated requests:
-```bash
-curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" <SERVICE_URL>/health
-```
+**Operational properties:**
+- Model weights are baked into the Docker image at build time — no HuggingFace download on startup
+- New Cloud Run instances start in seconds, not minutes
+- Every instance is stateless — Cloud Run scales horizontally automatically when requests spike
 
 ### DeBERTa Inference Service
 
