@@ -78,7 +78,7 @@ OPENAI_API_KEY="your-key"
 # LangSmith (optional — tracing and eval)
 LANGSMITH_API_KEY="your-key"
 LANGSMITH_TRACING=true
-LANGSMITH_PROJECT="your-gcp-project"
+LANGSMITH_PROJECT="your-langsmith-project"
 ```
 
 Infrastructure & Smoke Checks
