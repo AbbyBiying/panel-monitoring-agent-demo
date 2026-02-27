@@ -1,7 +1,13 @@
 # -----------------------------------------------------------------------------
 #   Builder — installs deps and downloads model weights (has internet access)
+#
+#   MODEL_BASE defaults to plain python:3.12.8-slim (cold build, downloads
+#   weights from HuggingFace). Pass the pre-built base image to skip the
+#   714MB download:
+#     docker build --build-arg MODEL_BASE=<base-image> ...
 # -----------------------------------------------------------------------------
-FROM python:3.12.8-slim AS builder
+ARG MODEL_BASE=python:3.12.8-slim
+FROM ${MODEL_BASE} AS builder
 
 ENV APP_DIR=/app \
     HF_HOME=/app/.cache/huggingface
@@ -19,7 +25,6 @@ WORKDIR ${APP_DIR}
 
 ADD pyproject.toml ${APP_DIR}/
 ADD uv.lock ${APP_DIR}/
-ADD README.md ${APP_DIR}/
 
 RUN set -eEx; \
     apt-get update && \

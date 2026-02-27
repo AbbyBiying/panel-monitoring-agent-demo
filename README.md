@@ -4,15 +4,15 @@ Panel Monitoring Agent
 Flexible monitoring agent built with LangGraph and Vertex AI (Gemini) / OpenAI + LangSmith.
 Supports running locally for development or inside Google Cloud for production.
 
-## Agent Architecture
-
-![Agent Graph](graph.png)
-
 **Architectural Ownership:** I personally designed the LangGraph state machine and implemented the Firestore security layer.
 
 **Production Standards:** The code follows strict Pydantic data validation and Ruff linting to ensure system reliability and clean-formatted audit logs.
 
-**Security & IP:** To protect sensitive data, specific business fraud rules and private dataset weights are excluded. The system uses GCP IAM service accounts rather than hardcoded API keys.
+**Security & IP:** The system uses GCP IAM service accounts rather than hardcoded API keys.
+
+## Agent Architecture
+
+![Agent Graph](graph.png)
 
 ## Setup
 
@@ -64,11 +64,11 @@ Create a `.env` file in the repo root (auto-loaded), or set environment variable
 GOOGLE_APPLICATION_CREDENTIALS="path/to/creds.json"
 GOOGLE_CLOUD_PROJECT="your-gcp-project"
 GOOGLE_CLOUD_LOCATION="us-central1"
-FIRESTORE_DATABASE_ID="your-firestore-db-id"
+FIRESTORE_DATABASE_ID="panel-monitoring-agent-dev"
 
 # Agent
 ENVIRONMENT=local                        # set to "local" for dev credential loading
-PANEL_PROJECT_ID="your-panel-project-id" # Firestore project namespace
+PANEL_PROJECT_ID="panel-app-dev"         # Firestore project namespace
 PANEL_DEFAULT_PROVIDER=vertexai          # vertexai | openai | genai
 VERTEX_MODEL=gemini-2.5-flash            # model override for Vertex AI
 
@@ -78,7 +78,7 @@ OPENAI_API_KEY="your-key"
 # LangSmith (optional — tracing and eval)
 LANGSMITH_API_KEY="your-key"
 LANGSMITH_TRACING=true
-LANGSMITH_PROJECT="your-langsmith-project"
+LANGSMITH_PROJECT="panel-monitoring-agent"
 ```
 
 Infrastructure & Smoke Checks
@@ -221,7 +221,7 @@ Golden tests use hardcoded local prompts (not Firestore) for stability — a pro
 
 The agent runs a two-layer injection scan on all untrusted inputs before they reach the LLM:
 
-1. **Regex scan** — fast pattern matching for known injection techniques (instruction overrides, role hijacking, delimiter escapes, output manipulation). Excluded from this demo for IP protection.
+1. **Regex scan** (`utils.detect_prompt_injection`) — fast pattern matching for known injection techniques (instruction overrides, role hijacking, delimiter escapes, output manipulation)
 2. **ML scan** (`injection_detector.detect_injection_ml`) — DeBERTa v3 model (`protectai/deberta-v3-base-prompt-injection-v2`) for freeform text fields
 
 If injection is detected and the LLM still returns `normal_signup`, the result is overridden to `suspicious_signup` with confidence ≥ 0.85.
@@ -269,7 +269,7 @@ Example response:
 }
 ```
 
-The Dockerfile for this service uses a two-stage build (builder → production). The builder stage installs dependencies and downloads model weights; the production stage copies the venv and model cache from builder and runs fully offline (`HF_HUB_OFFLINE=1`). CI runs these tests automatically on every push via `.github/workflows/test-deberta-api.yml`.
+The Dockerfile for this service uses a two-stage build (builder → production). The builder stage installs dependencies and downloads model weights; the production stage copies the venv and model cache from builder and runs fully offline (`HF_HUB_OFFLINE=1`). CI runs all unit tests automatically on every push via `.github/workflows/test-deberta-api.yml`.
 
 ### RAG: Business Context Ingestion
 
@@ -280,7 +280,7 @@ To ingest or refresh the business context:
 uv run python -m panel_monitoring.scripts.ingest_business_context
 ```
 
-This chunks the business context file and writes embeddings to the `fraud_patterns` collection in Firestore. The business context data is excluded from this demo for IP protection.
+This chunks `panel_monitoring/data/business_context.txt` and writes embeddings to the `fraud_patterns` collection in Firestore.
 
 ### Prompt Management
 
@@ -288,13 +288,13 @@ Prompts are stored in Firestore as versioned `PromptSpec` documents and are **im
 
 #### Push a new prompt version
 
-Edit your prompt definitions, then run:
+Edit `panel_monitoring/app/prompts.py`, then run:
 
 ```
 uv run python -m panel_monitoring.scripts.push_prompt_to_firestore
 ```
 
-This creates a new document (e.g. `signup_classification_v4`) with `deployment_status = pre_live`. The agent will not use it yet. Prompt definitions are excluded from this demo for IP protection.
+This creates a new document (e.g. `signup_classification_v4`) with `deployment_status = pre_live`. The agent will not use it yet.
 
 #### Promote to live
 

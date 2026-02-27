@@ -1,0 +1,16 @@
+# Base image: downloads DeBERTa model weights into the HF cache.
+# Build and push once (or when the model changes):
+#   just build-base
+#
+# Regular builds use this as the builder base so the 714MB download
+# is skipped entirely.
+FROM python:3.12.8-slim
+
+ENV HF_HOME=/app/.cache/huggingface \
+    DEBIAN_FRONTEND=noninteractive
+
+RUN pip install --quiet --no-cache-dir huggingface_hub
+
+RUN python -c "\
+from huggingface_hub import snapshot_download; \
+snapshot_download('protectai/deberta-v3-base-prompt-injection-v2')"
