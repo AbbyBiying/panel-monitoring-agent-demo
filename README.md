@@ -64,11 +64,11 @@ Create a `.env` file in the repo root (auto-loaded), or set environment variable
 GOOGLE_APPLICATION_CREDENTIALS="path/to/creds.json"
 GOOGLE_CLOUD_PROJECT="your-gcp-project"
 GOOGLE_CLOUD_LOCATION="us-central1"
-FIRESTORE_DATABASE_ID="panel-monitoring-agent-dev"
+FIRESTORE_DATABASE_ID="your-firestore-db-id"
 
 # Agent
 ENVIRONMENT=local                        # set to "local" for dev credential loading
-PANEL_PROJECT_ID="panel-app-dev"         # Firestore project namespace
+PANEL_PROJECT_ID="your-panel-project-id"         # Firestore project namespace
 PANEL_DEFAULT_PROVIDER=vertexai          # vertexai | openai | genai
 VERTEX_MODEL=gemini-2.5-flash            # model override for Vertex AI
 
@@ -78,7 +78,7 @@ OPENAI_API_KEY="your-key"
 # LangSmith (optional — tracing and eval)
 LANGSMITH_API_KEY="your-key"
 LANGSMITH_TRACING=true
-LANGSMITH_PROJECT="panel-monitoring-agent"
+LANGSMITH_PROJECT="your-gcp-project"
 ```
 
 Infrastructure & Smoke Checks

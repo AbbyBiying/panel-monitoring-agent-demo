@@ -206,7 +206,7 @@ async def perform_effects_node(state: GraphState) -> dict:
 
 @traceable(name="user_event_node", tags=["node"])
 async def user_event_node(state: GraphState) -> dict:
-    project_id = state.project_id or os.getenv("PANEL_PROJECT_ID", "panel-app-dev")
+    project_id = state.project_id or os.getenv("PANEL_PROJECT_ID", "your-panel-project-id")
     event_text = _event_text_from_state(state)
 
     # 1. Normalize the messy input into a clean dict
@@ -614,7 +614,7 @@ async def human_approval_node(
 @traceable(name="save_classification_node", tags=["node"])
 async def save_classification_node(state: GraphState) -> dict:
     """Persist classification result immediately so it survives interrupt/crash."""
-    project_id = state.project_id or "panel-app-dev"
+    project_id = state.project_id or "your-panel-project-id"
     event_id = state.event_id
     run_id = f"{event_id}_{uuid4().hex[:12]}"
     decision = state.classification or "error"

@@ -6,8 +6,8 @@ Thin facade over Firestore datastore helpers so the rest of the app can do:
 
 Environment:
 - GOOGLE_APPLICATION_CREDENTIALS: path to a GCP service account JSON
-- GCP_PROJECT or GOOGLE_CLOUD_PROJECT: host GCP project id (e.g., "panel-monitoring-agent")
-- FIRESTORE_DATABASE_ID: Firestore database id (e.g., "panel-monitoring-agent-dev") or "(default)"
+- GCP_PROJECT or GOOGLE_CLOUD_PROJECT: host GCP project id (e.g., "your-gcp-project")
+- FIRESTORE_DATABASE_ID: Firestore database id (e.g., "your-firestore-db-id") or "(default)"
 - FIRESTORE_EMULATOR_HOST: host:port for local emulator (optional)
 
 Exports:
@@ -40,7 +40,7 @@ def db_info() -> dict:
     db = get_db()
     return {
         "project": db.project,
-        "database": os.getenv("FIRESTORE_DATABASE_ID", "panel-monitoring-agent-dev"),
+        "database": os.getenv("FIRESTORE_DATABASE_ID", "your-firestore-db-id"),
     }
 
 

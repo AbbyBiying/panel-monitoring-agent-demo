@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     # --- LangSmith ---
     langsmith_project: str = Field(
-        default="panel-monitoring-agent", alias="LANGSMITH_PROJECT"
+        default="your-gcp-project", alias="LANGSMITH_PROJECT"
     )
     langsmith_tracing: bool = Field(default=False, alias="LANGSMITH_TRACING")
 

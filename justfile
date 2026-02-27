@@ -83,9 +83,9 @@ serve-injection-api:
 # DeBERTa API — GCP Deploy
 # ---------------------------
 
-GCP_PROJECT := "panel-monitoring-agent"
+GCP_PROJECT := "your-gcp-project"
 GCP_REGION := "us-central1"
-IMAGE := "us-central1-docker.pkg.dev/panel-monitoring-agent/deberta-api/deberta-api:latest"
+IMAGE := "us-central1-docker.pkg.dev/your-gcp-project/deberta-api/deberta-api:latest"
 
 # Build Docker image for linux/amd64 (required for GCP from Apple Silicon)
 docker-build:
@@ -102,7 +102,7 @@ deploy:
 # Full release: build → push → deploy
 release: docker-build docker-push deploy
 
-SERVICE_URL := "https://deberta-api-249814166877.us-central1.run.app"
+SERVICE_URL := "https://deberta-api-YOUR_PROJECT_NUMBER.us-central1.run.app"
 
 # Check health of deployed service
 health:

@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def peek_latest(project_id: str = "panel-app-dev", window: int = 50):
+async def peek_latest(project_id: str = "your-panel-project-id", window: int = 50):
     """
     Asynchronously fetches the latest events for a specific project.
     """
